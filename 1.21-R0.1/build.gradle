@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id("io.papermc.paperweight.userdev") version "1.7.1"
+    // Check for new versions at https://plugins.gradle.org/plugin/io.papermc.paperweight.userdev
+}
+
+group = 'net.sabafly.mailbox'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+}
+
+dependencies {
+    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
+    implementation project(':common')
+}

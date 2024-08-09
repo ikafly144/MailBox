@@ -1,0 +1,2 @@
+rootProject.name = 'MailBox'
+include '1.21-R0.1', 'common'

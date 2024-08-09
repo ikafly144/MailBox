@@ -1,0 +1,20 @@
+name: MailBox
+version: '${version}'
+main: net.sabafly.mailbox.MailBox
+bootstrapper: net.sabafly.mailbox.MailBoxBootstrapper
+api-version: '1.21'
+load: STARTUP
+permissions:
+  mailbox.admin:
+    default: op
+    description: Allows the player to use the admin commands
+    children:
+      mailbox.command.reload: true
+      mailbox.command.sendmail: true
+      mailbox.command.sendmail.schedule: true
+      mailbox.command.mailbox.clear: true
+      mailbox.default:
+        default: true
+        description: Allows the player to use the default commands
+        children:
+          mailbox.command.mailbox: true

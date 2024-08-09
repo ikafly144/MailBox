@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.sabafly.mailbox'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+}
