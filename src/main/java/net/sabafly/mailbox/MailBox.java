@@ -4,6 +4,7 @@ import net.sabafly.mailbox.commands.AbstractCommand;
 import net.sabafly.mailbox.configurations.Configurations;
 import net.sabafly.mailbox.event.InventoryEventHandler;
 import net.sabafly.mailbox.event.LoginEventHandler;
+import net.sabafly.mailbox.library.LibNMSAccessor;
 import net.sabafly.mailbox.utils.LogUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.configurate.ConfigurateException;
@@ -16,6 +17,13 @@ public final class MailBox extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        try {
+            LibNMSAccessor.get();
+        } catch (IllegalStateException e) {
+            LOGGER.severe(e.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         try {
             Configurations.loadPluginConfiguration(getDataPath().resolve("config.yml"));
         } catch (ConfigurateException e) {
