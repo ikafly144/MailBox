@@ -10,9 +10,9 @@ public class LibNMSAccessor {
     public static LibNMS get() {
         if (instance != null)
             return instance;
-        var version = Bukkit.getServer().getBukkitVersion();
+        var version = Bukkit.getServer().getMinecraftVersion();
         var nms = switch (version) {
-            case "1.21-R0.1-SNAPSHOT" -> new NMSImplV1_21_1();
+            case "1.21", "1.21.1" -> new NMSImplV1_21_1();
             default -> throw new IllegalStateException("Unsupported Paper version: " + version);
         };
         instance = nms;
