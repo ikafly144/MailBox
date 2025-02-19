@@ -1,0 +1,21 @@
+name: MailBox
+version: '0.1.0'
+main: net.sabafly.mailBox.MailBox
+api-version: '1.21'
+authors: [ ikafly ]
+loader: net.sabafly.mailBox.Loader
+permissions:
+  mailBox.admin:
+    description: Allows the user to use all MailBox commands
+    default: op
+    children:
+      mailbox.template: true
+      mailbox.attachment.command: true
+      mailbox.attachment.message: true
+  mailBox.use:
+    description: Allows the user to use MailBox
+    default: true
+    children:
+      mailbox.send: true
+      mailbox.attachment.item: true
+      mailbox.attachment.vault: true

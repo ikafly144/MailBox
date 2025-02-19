@@ -1,0 +1,98 @@
+package net.sabafly.mailBox.menu;
+
+import com.github.retrooper.packetevents.event.PacketListener;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientNameItem;
+import net.sabafly.mailBox.MailBox;
+import net.sabafly.mailBox.utils.ThreadUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.plugin.Plugin;
+
+import java.util.concurrent.CompletableFuture;
+
+public class MenuManager implements Listener, PacketListener {
+
+    private final Plugin plugin;
+
+    public MenuManager(Plugin plugin) {
+        this.plugin = plugin;
+    }
+
+    public void register() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        boolean startPlayer = event.getView().getBottomInventory() == event.getView().getInventory(event.getRawSlot());
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (!(event.getWhoClicked() instanceof Player)) {
+            return;
+        }
+
+        if (event.getClickedInventory().getHolder() instanceof BaseMenu.MenuHolder menu) {
+            menu.menu().onClick(event);
+        } else if (startPlayer && event.getInventory().getHolder() instanceof BaseMenu.MenuHolder menu && !menu.menu().isMoveable()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof BaseMenu.MenuHolder) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        if (event.getInventory().getHolder() instanceof BaseMenu.MenuHolder menu) {
+            if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
+                BaseMenu m = menu.menu();
+                while (m.getNextMenu() != null) {
+                    m = m.getNextMenu();
+                    m.onClose(player, event.getView());
+                }
+                return;
+            }
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
+                menu.menu().onClose(player, event.getView());
+                future.complete(null);
+            }));
+            future.thenRun(menu.menu()::onCloseComplete);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.NAME_ITEM) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof BaseMenu.MenuHolder menu)) {
+            return;
+        }
+        var wrapper = new WrapperPlayClientNameItem(event);
+        if (!(menu.menu() instanceof SetResult<?> setResult)) {
+            return;
+        }
+        try {
+            ((SetResult<String>) setResult).setResult(wrapper.getItemName());
+        } catch (Exception ignored) {
+        }
+    }
+}
