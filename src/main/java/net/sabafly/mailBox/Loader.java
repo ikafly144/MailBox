@@ -6,15 +6,31 @@ import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public class Loader implements PluginLoader {
     @Override
-    public void classloader(PluginClasspathBuilder classpathBuilder) {
+    public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
-        resolver.addDependency(new Dependency(new DefaultArtifact("com.h2database:h2:2.3.232"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("com.mysql:mysql-connector-j:9.2.0"), null));
+        List<String> dependencies = List.of(
+                "net.kyori:adventure-api:4.18.0",
+                "net.kyori:adventure-key:4.18.0",
+                "net.kyori:adventure-nbt:4.18.0",
+                "net.kyori:examination-api:1.3.0",
+                "com.h2database:h2:2.3.232",
+                "com.mysql:mysql-connector-j:9.2.0"
+        );
+
+        for (String dependency : dependencies) {
+            resolver.addDependency(new Dependency(new DefaultArtifact(dependency), "compile"));
+        }
+
         resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build());
+        resolver.addRepository(new RemoteRepository.Builder("papermc", "default", "https://repo.papermc.io/repository/maven-public/").build());
+        resolver.addRepository(new RemoteRepository.Builder("sonatype", "default", "https://oss.sonatype.org/content/groups/public/").build());
 
         classpathBuilder.addLibrary(resolver);
     }

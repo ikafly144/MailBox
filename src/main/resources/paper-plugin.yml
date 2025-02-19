@@ -1,5 +1,5 @@
 name: MailBox
-version: '0.1.0'
+version: '${version}'
 main: net.sabafly.mailBox.MailBox
 api-version: '1.21'
 authors: [ ikafly ]

@@ -6,11 +6,10 @@ plugins {
 }
 
 group = 'net.sabafly'
-version = '0.1.0'
+version = '1.0.0-alpha.1'
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
@@ -63,15 +62,25 @@ processResources {
 }
 
 shadowJar {
-    relocate("com.zaxxer.hikari", "net.sabafly.hikari")
-    relocate("org.apache.commons.dbutils", "net.sabafly.dbutils")
-    relocate("io.github.retrooper.packetevents", "net.sabafly.packetevents")
-
     archiveBaseName = 'MailBox'
     archiveClassifier = ''
-    archiveVersion = "${version}"
+    archiveVersion = ""
+
+    dependencies {
+        exclude(dependency("org.slf4j:slf4j-api"))
+        exclude(dependency("net.kyori:adventure-api"))
+        exclude(dependency("net.kyori:adventure-key"))
+        exclude(dependency("net.kyori:adventure-nbt"))
+        exclude(dependency("net.kyori:examination-api"))
+    }
+
+    exclude("plugin.yml")
 
     minimize()
+    relocate("com.zaxxer.hikari", "net.sabafly.libs.com.zaxxer.hikari")
+    relocate("org.apache.commons.dbutils", "net.sabafly.libs.org.apache.commons.dbutils")
+    relocate("com.github.retrooper.packetevents", "net.sabafly.libs.com.github.retrooper.packetevents")
+    relocate("io.github.retrooper.packetevents", "net.sabafly.libs.io.github.retrooper.packetevents")
 }
 
 build {
