@@ -13,7 +13,6 @@ import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.util.SortedSet;
@@ -36,10 +35,17 @@ public class PlayerListener implements Listener {
         MailBox.getThreadedQueue().submit(() -> {
             MailUser user = database().getUser(event.getPlayer().getUniqueId());
             SortedSet<Mail> mails = database().getAllMails(user, TriState.FALSE);
-            if (mails.isEmpty()) return;
+            long unreceivedAttachments = database().getAllMails(user, TriState.NOT_SET)
+                    .stream().mapToLong(mail -> mail.getAttachments().stream().filter(attachment -> !(attachment.isExpired() || attachment.received())).count()).sum();
             ThreadUtils.runSync(() -> {
-                event.getPlayer().sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
-                event.getPlayer().playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
+                if (!mails.isEmpty()) {
+                    event.getPlayer().sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
+                    event.getPlayer().playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
+                }
+                if (unreceivedAttachments > 0) {
+                    event.getPlayer().sendMessage(miniMessage().deserialize(config().messages.unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
+                    event.getPlayer().playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
+                }
             });
             ScheduleManager.checkNotify(event.getPlayer(), user);
         });

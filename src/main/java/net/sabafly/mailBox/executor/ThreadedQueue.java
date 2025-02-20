@@ -9,7 +9,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ThreadedQueue <T extends Runnable> implements Runnable {
-    private final Logger logger = MailBox.getInstance().getSLF4JLogger();
+    private final Logger logger = MailBox.logger();
 
     private final Queue<T> jobs = Queues.newArrayDeque();
     private final Thread thread;
@@ -28,6 +28,8 @@ public class ThreadedQueue <T extends Runnable> implements Runnable {
         lock.lock();
         try {
             condition.signal();
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred while stopping ThreadedQueue {}", thread.getName(), e);
         } finally {
             lock.unlock();
         }
@@ -38,6 +40,8 @@ public class ThreadedQueue <T extends Runnable> implements Runnable {
         try {
             jobs.offer(job);
             condition.signalAll();
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred while submitting job to ThreadedQueue {}", thread.getName(), e);
         } finally {
             lock.unlock();
         }
@@ -57,7 +61,7 @@ public class ThreadedQueue <T extends Runnable> implements Runnable {
         }
     }
 
-    public T next() throws InterruptedException {
+    public T next() {
         lock.lock();
         try {
             while (jobs.isEmpty() && !killed) {
@@ -69,6 +73,9 @@ public class ThreadedQueue <T extends Runnable> implements Runnable {
             }
 
             return jobs.remove();
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred while getting next job from ThreadedQueue {}", thread.getName(), e);
+            return null;
         } finally {
             lock.unlock();
         }

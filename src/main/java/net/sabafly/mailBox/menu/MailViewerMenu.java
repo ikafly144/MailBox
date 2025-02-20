@@ -1,6 +1,7 @@
 package net.sabafly.mailBox.menu;
 
 import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
@@ -13,16 +14,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class MailViewerMenu extends BaseMenu {
+public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
 
     private final Mail mail;
     private final boolean openPreviousMenu;
@@ -62,7 +66,10 @@ public class MailViewerMenu extends BaseMenu {
         titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.title, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
         clickRegistry.setItem(1, titleItem);
         ItemStack contentItem = new ItemStack(Material.BOOK);
-        contentItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.content)));
+        contentItem.editMeta(meta -> {
+            meta.itemName(miniMessage().deserialize(config().messages.content));
+            meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionRead))));
+        });
         clickRegistry.setItem(2, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new OpenBookMenu(p, Book.builder()
@@ -92,12 +99,21 @@ public class MailViewerMenu extends BaseMenu {
         }
         for (int i = 0; i < mail.getAttachments().size(); i++) {
             int finalI = i;
-            clickRegistry.setItem(start + count + i, mail.getAttachments().get(i).getPreview(), (p, clickType) -> {
+            clickRegistry.setItem(start + count + i, mail.getAttachments().get(i).getPreview(attachment->{
+                List<Component> lore = config().messages.attachmentLore
+                        .replace("{received}", attachment.received() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
+                        .replace("{expires}", attachment.getExpireTime().map(LocalDateTime::toString).orElse(config().messages.expiresNever))
+                        .transform(s -> Stream.of(s.split("\n")))
+                        .filter(str -> !str.isBlank()).map(miniMessage()::deserialize).collect(Collectors.toList());
+                lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
+                return lore;
+            }), (p, clickType) -> {
                 final Attachment<?> attachment = mail.getAttachments().get(finalI);
                 if (clickType.isLeftClick() && !attachment.received() && !attachment.isExpired()) {
                     attachment.apply(p);
                     attachment.setReceived(true);
                     database().updateAttachment(attachment);
+                    refresh();
                 }
             });
         }

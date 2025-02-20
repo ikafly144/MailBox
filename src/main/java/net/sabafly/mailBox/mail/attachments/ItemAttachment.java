@@ -2,6 +2,7 @@ package net.sabafly.mailBox.mail.attachments;
 
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
@@ -20,13 +21,17 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
     private final ItemStack itemStack;
 
     public ItemAttachment(@NotNull ItemStack itemStack, boolean received, @Nullable LocalDateTime expireTime) {
-        super(plainText().serialize(itemStack.effectiveName()), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
+        super(plainText().serialize(getEffectiveName(itemStack)), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
         this.itemStack = itemStack;
     }
 
     protected ItemAttachment(@NotNull UUID id, @NotNull ItemStack itemStack, boolean received, @Nullable LocalDateTime expireTime) {
-        super(id, plainText().serialize(itemStack.effectiveName()), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
+        super(id, plainText().serialize(getEffectiveName(itemStack)), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
         this.itemStack = itemStack;
+    }
+
+    private static Component getEffectiveName(@NotNull ItemStack itemStack) {
+        return itemStack.effectiveName().append(itemStack.getAmount() > 1 ? Component.text(" ×" + itemStack.getAmount()) : Component.empty());
     }
 
     @Override
@@ -43,6 +48,11 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
 
     @Override
     public void apply(@NotNull Player player) {
+        player.getInventory().addItem(itemStack.clone()).forEach((index, item) -> player.getWorld().dropItem(player.getLocation(), item));
+    }
+
+    @Override
+    public void cancel(@NotNull Player player) {
         player.getInventory().addItem(itemStack.clone()).forEach((index, item) -> player.getWorld().dropItem(player.getLocation(), item));
     }
 

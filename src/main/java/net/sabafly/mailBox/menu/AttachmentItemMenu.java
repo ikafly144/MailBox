@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class AttachmentItemMenu extends BaseMenu {
+public class AttachmentItemMenu extends BaseMenu<AttachmentItemMenu> {
 
     private final CreateMailMenu.AttachmentMenu parent;
     private final Consumer<ItemAttachment> consumer;

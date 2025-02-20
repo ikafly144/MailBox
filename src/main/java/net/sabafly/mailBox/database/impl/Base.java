@@ -1,6 +1,5 @@
 package net.sabafly.mailBox.database.impl;
 
-import com.google.protobuf.MapEntry;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.key.Key;
@@ -12,7 +11,6 @@ import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.MailUser;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -280,6 +278,30 @@ public abstract class Base implements Database {
             e.printStackTrace();
         }
         throw new IllegalStateException("Failed to get mails");
+    }
+
+    @Override
+    public int countMails(@NotNull MailUser user, @NotNull TriState read) {
+        try (Connection conn = getConnection()) {
+            if (read != TriState.NOT_SET) {
+                return runner.query(conn, "SELECT COUNT(*) FROM mailbox_mails WHERE receiver = ? AND is_read = ?", rs -> {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                    return 0;
+                }, user.uuid().toString(), read.toBoolean());
+            } else {
+                return runner.query(conn, "SELECT COUNT(*) FROM mailbox_mails WHERE receiver = ?", rs -> {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                    return 0;
+                }, user.uuid().toString());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new IllegalStateException("Failed to count mails");
     }
 
     @Override

@@ -6,7 +6,6 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientNameItem;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.utils.ThreadUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,16 +59,16 @@ public class MenuManager implements Listener, PacketListener {
         }
         if (event.getInventory().getHolder() instanceof BaseMenu.MenuHolder menu) {
             if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
-                BaseMenu m = menu.menu();
+                BaseMenu<?> m = menu.menu();
                 while (m.getNextMenu() != null) {
                     m = m.getNextMenu();
-                    m.onClose(player, event.getView());
+                    m.callClose(player, event.getView());
                 }
                 return;
             }
             CompletableFuture<Void> future = new CompletableFuture<>();
             MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                menu.menu().onClose(player, event.getView());
+                menu.menu().callClose(player, event.getView());
                 future.complete(null);
             }));
             future.thenRun(menu.menu()::onCloseComplete);

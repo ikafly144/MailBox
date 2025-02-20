@@ -5,6 +5,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -44,10 +44,16 @@ public class ScheduleManager {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 final MailUser user = database().getUser(player.getUniqueId());
                 for (MailTemplate template : templates) {
-                    if (!Optional.ofNullable(template.permission()).map(player::hasPermission).orElse(true)) continue;
-                    long intervalCount = Optional.ofNullable(template.interval()).map(d -> Duration.between(Objects.requireNonNull(template.startTime()), LocalDateTime.now()).dividedBy(d)).orElse(0L);
+                    if (!Optional.ofNullable(template.permission()).map(p -> player.permissionValue(p) == TriState.TRUE).orElse(true))
+                        continue;
+                    long intervalCount = template.intervalCount();
                     MailBox.getThreadedQueue().submit(() -> {
-                        if (database().hasUserTemplate(user, template, (int) intervalCount)) return;
+                        if (database().hasUserTemplate(user, template, (int) intervalCount)) {
+                            Optional<LocalDateTime> time = database().getUserTemplateTime(user, template, (int) intervalCount);
+                            if (template.interval() != null && time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
+                                return;
+                            database().deleteUserTemplate(user, template, (int) intervalCount);
+                        }
                         Mail mail = template.createMail(user);
                         database().createMail(mail);
                         database().createUserTemplate(user, template, (int) intervalCount);
@@ -62,7 +68,12 @@ public class ScheduleManager {
         List<Mail> mails = database().getAllUserNotification(user);
         database().deleteAllUserNotification(user);
         if (mails.isEmpty()) return;
-        player.sendMessage(miniMessage().deserialize(config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
+        int size = mails.size();
+        size -= (int) database().getAllMails(user, TriState.FALSE).stream()
+                .filter(Mail::isRead)
+                .count();
+        if (size == 0) return;
+        player.sendMessage(miniMessage().deserialize(config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(size))).build()));
         player.playSound(Sound.sound().type(org.bukkit.Sound.UI_TOAST_IN).build());
     }
 

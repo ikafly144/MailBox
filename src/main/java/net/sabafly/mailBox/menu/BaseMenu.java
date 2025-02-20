@@ -12,31 +12,42 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-public abstract class BaseMenu {
+public abstract class BaseMenu<T extends BaseMenu<T>> {
 
     protected final Player player;
-    private final Inventory inventory;
+    private final Function<T, Inventory> inventorySupplier;
+    private @NotNull Inventory inventory;
     private final ClickRegistry clickRegistry = new ClickRegistry(this);
     @Getter
-    private BaseMenu nextMenu = null;
+    private @Nullable BaseMenu<?> nextMenu;
     @Getter
     private final boolean moveable;
+    private final @NotNull Function<@NotNull T, @NotNull Component> title;
 
     public BaseMenu(Player player, int size, Component title) {
         this(player, size, title, false);
     }
 
     public BaseMenu(Player player, int size, Component title, boolean moveable) {
-        this.player = player;
-        this.inventory = Bukkit.createInventory(new MenuHolder(this), size, title);
-        this.moveable = moveable;
+        this(player, size, menu -> title, moveable);
+    }
+
+    public BaseMenu(Player player, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
+        this(player, i, title, false);
+    }
+
+    public BaseMenu(Player player, int size, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), size, title.apply(menu)), title, moveable);
     }
 
     public BaseMenu(Player player, InventoryType type, Component title) {
@@ -44,9 +55,25 @@ public abstract class BaseMenu {
     }
 
     public BaseMenu(Player player, InventoryType type, Component title, boolean moveable) {
+        this(player, type, menu -> title, moveable);
+    }
+
+    public BaseMenu(Player player, InventoryType type, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), type, title.apply(menu)), title, moveable);
+    }
+
+    private BaseMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(player, inventory, title, moveable, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private BaseMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable, @Nullable BaseMenu<?> nextMenu) {
         this.player = player;
-        this.inventory = Bukkit.createInventory(new MenuHolder(this), type, title);
+        this.inventorySupplier = inventory;
         this.moveable = moveable;
+        this.title = title;
+        this.inventory = inventory.apply((T) this);
+        this.nextMenu = nextMenu;
     }
 
     public void open() {
@@ -56,10 +83,19 @@ public abstract class BaseMenu {
         });
     }
 
+    private boolean refreshing = false;
+
+    @SuppressWarnings("unchecked")
     protected void refresh() {
+        if (refreshing) {
+            return;
+        }
+        refreshing = true;
         clickRegistry.clickMap.clear();
         inventory.clear();
+        inventory = inventorySupplier.apply((T) this);
         setItems(clickRegistry);
+        player.openInventory(inventory);
     }
 
     public int size() {
@@ -68,12 +104,12 @@ public abstract class BaseMenu {
 
     abstract void setItems(@NotNull ClickRegistry clickRegistry);
 
-    protected final void openMenu(@NotNull BaseMenu menu) {
+    protected final void openMenu(@NotNull BaseMenu<?> menu) {
         setNextMenu(menu);
         player.closeInventory();
     }
 
-    protected final void setNextMenu(@NotNull BaseMenu menu) {
+    protected final void setNextMenu(@NotNull BaseMenu<?> menu) {
         if (nextMenu != null) {
             return;
         }
@@ -81,10 +117,22 @@ public abstract class BaseMenu {
     }
 
     public final void onCloseComplete() {
+        if (refreshing) {
+            refreshing = false;
+            return;
+        }
         if (nextMenu != null) {
             nextMenu.open();
             nextMenu = null;
         }
+    }
+
+    @ApiStatus.Internal
+    public void callClose(Player player, InventoryView inventory) {
+        if (refreshing) {
+            return;
+        }
+        onClose(player, inventory);
     }
 
     protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
@@ -99,6 +147,12 @@ public abstract class BaseMenu {
             case SHIFT_RIGHT -> ClickType.SHIFT_RIGHT;
             default -> ClickType.UNKNOWN;
         }, event.getSlot()));
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public Component getTitle() {
+        return title.apply((T) this);
     }
 
     public enum ClickType {
@@ -123,10 +177,10 @@ public abstract class BaseMenu {
     }
 
     protected static class ClickRegistry {
-        private final BaseMenu menu;
+        private final BaseMenu<?> menu;
         private final Map<Integer, BiConsumer<@NotNull Player, @NotNull ClickType>> clickMap = new HashMap<>();
 
-        public ClickRegistry(BaseMenu menu) {
+        public ClickRegistry(BaseMenu<?> menu) {
             this.menu = menu;
         }
 
@@ -154,9 +208,9 @@ public abstract class BaseMenu {
 
     public static class MenuHolder implements InventoryHolder {
 
-        private final BaseMenu menu;
+        private final BaseMenu<?> menu;
 
-        private MenuHolder(BaseMenu menu) {
+        private MenuHolder(BaseMenu<?> menu) {
             this.menu = menu;
         }
 
@@ -165,7 +219,7 @@ public abstract class BaseMenu {
             return menu.inventory;
         }
 
-        public BaseMenu menu() {
+        public BaseMenu<?> menu() {
             return menu;
         }
 

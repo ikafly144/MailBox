@@ -40,6 +40,11 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
     }
 
     @Override
+    public void cancel(@NotNull Player player) {
+        // TODO: Implement this
+    }
+
+    @Override
     public byte @NotNull [] serialize() {
         return ByteBuffer.allocate(8).putDouble(value).array();
     }

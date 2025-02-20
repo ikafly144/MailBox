@@ -41,6 +41,10 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment> {
     }
 
     @Override
+    public void cancel(@NotNull Player player) {
+    }
+
+    @Override
     public byte @NotNull [] serialize() {
         return message.getBytes();
     }

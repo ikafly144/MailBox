@@ -2,6 +2,7 @@ package net.sabafly.mailBox.menu;
 
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
@@ -28,7 +29,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class CreateMailMenu extends BaseMenu {
+public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
 
     @Nullable
     private String title = null;
@@ -39,9 +40,12 @@ public class CreateMailMenu extends BaseMenu {
     private boolean created = false;
     @Nullable
     private final OfflinePlayer target;
+    @Nullable
+    private BaseMenu<?> nextMenu = null;
 
-    public CreateMailMenu(@NotNull Player player) {
-        this(player, null);
+    public CreateMailMenu(@NotNull Player player, @Nullable BaseMenu<?> nextMenu) {
+        this(player, (OfflinePlayer) null);
+        this.nextMenu = nextMenu;
     }
 
     public CreateMailMenu(@NotNull Player player, @Nullable OfflinePlayer target) {
@@ -56,7 +60,10 @@ public class CreateMailMenu extends BaseMenu {
             player.getInventory().addItem(content).forEach((i, s) -> player.getWorld().dropItem(player.getLocation(), s));
         }
         if (!created && !attachments.isEmpty()) {
-            attachments.forEach(a -> a.apply(player));
+            attachments.forEach(a -> a.cancel(player));
+        }
+        if (nextMenu != null) {
+            setNextMenu(nextMenu);
         }
     }
 
@@ -102,7 +109,7 @@ public class CreateMailMenu extends BaseMenu {
             clickRegistry.setItem(8, createTemplate, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (title == null || content == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateError))));
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
@@ -124,6 +131,10 @@ public class CreateMailMenu extends BaseMenu {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
+                    if (database().countMails(database().getUser(p.getUniqueId()),TriState.NOT_SET)>=config().mail.maxMailCount) {
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
+                        return;
+                    }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
                         String contentString = String.join("§", ((WritableBookMeta) content.getItemMeta()).getPages());
                         Mail mail = Mail.createNow(p, target, title, contentString, attachments);
@@ -138,7 +149,7 @@ public class CreateMailMenu extends BaseMenu {
 
     }
 
-    public static class BookMenu extends BaseMenu {
+    public static class BookMenu extends BaseMenu<BookMenu> {
 
         private final CreateMailMenu menu;
         private final Consumer<ItemStack> consumer;
@@ -184,7 +195,7 @@ public class CreateMailMenu extends BaseMenu {
         }
     }
 
-    public static class AttachmentMenu extends BaseMenu {
+    public static class AttachmentMenu extends BaseMenu<AttachmentMenu> {
 
         private final CreateMailMenu menu;
         private final Consumer<List<@NotNull Attachment<?>>> consumer;
@@ -195,13 +206,6 @@ public class CreateMailMenu extends BaseMenu {
             this.menu = menu;
             this.consumer = consumer;
             this.attachments = attachments;
-        }
-
-        private static int getSlot(int attachments) {
-            if (attachments <= 0) return 9;
-            if (attachments <= 9) return 27;
-            if (attachments <= 18) return 36;
-            return 45;
         }
 
         @Override
@@ -216,7 +220,7 @@ public class CreateMailMenu extends BaseMenu {
                 ItemStack chest = new ItemStack(Material.CHEST);
                 chest.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendItem)));
                 clickRegistry.setItem(0, chest, (p, clickType) -> {
-                    if (clickType.isLeftClick()) {
+                    if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentItemMenu(this, p, attachment -> {
                             if (attachment != null) {
                                 attachments.add(attachment);
@@ -229,7 +233,7 @@ public class CreateMailMenu extends BaseMenu {
                 ItemStack commandBlock = new ItemStack(Material.COMMAND_BLOCK);
                 commandBlock.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendCommand)));
                 clickRegistry.setItem(1, commandBlock, (p, clickType) -> {
-                    if (clickType.isLeftClick()) {
+                    if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentCommandMenu(this, p, attachment -> {
                             if (attachment != null) {
                                 attachments.add(attachment);
@@ -247,10 +251,9 @@ public class CreateMailMenu extends BaseMenu {
                 }
                 for (int i = 0; i < attachments.size(); i++) {
                     int finalI = i;
-                    clickRegistry.setItem(i + 18, attachments.get(i).getPreview(), (player1, clickType) -> {
+                    clickRegistry.setItem(i + 18, attachments.get(i).getPreview(menu -> List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionDelete)))), (player1, clickType) -> {
                         if (clickType.isLeftClick()) {
-                            attachments.remove(finalI).apply(player1);
-                            ;
+                            attachments.remove(finalI).cancel(player1);
                             refresh();
                         }
                     });

@@ -1,6 +1,7 @@
 package net.sabafly.mailBox.mail;
 
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,9 +9,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
-public final class MailTemplate {
+public final class MailTemplate implements Comparable<MailTemplate> {
     private final @NotNull UUID id;
     private final @NotNull String title;
     private final @NotNull String content;
@@ -139,6 +141,21 @@ public final class MailTemplate {
 
     public @NotNull Mail createMail(@NotNull MailUser user) {
         List<? extends Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).toList();
+        String title = this.title
+                .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replace("{interval}", (intervalCount() + 1) + "");
+        String content = this.content
+                .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replace("{interval}", (intervalCount() + 1) + "");
         return Mail.createNow(sender, user, title, content, newAttachments);
+    }
+
+    @Override
+    public int compareTo(@NotNull MailTemplate o) {
+        return title.compareTo(o.title);
+    }
+
+    public long intervalCount() {
+        return Optional.ofNullable(this.interval()).map(d -> Duration.between(Objects.requireNonNull(this.startTime()), LocalDateTime.now()).dividedBy(d)).orElse(0L);
     }
 }

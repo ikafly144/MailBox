@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenBookMenu extends BaseMenu {
+public class OpenBookMenu extends BaseMenu<OpenBookMenu> {
 
     private Book book;
     private ItemStack bookItem;

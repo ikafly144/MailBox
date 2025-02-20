@@ -5,7 +5,7 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
@@ -13,8 +13,6 @@ import java.util.Optional;
 
 @ConfigSerializable
 public class Config extends BaseConfig {
-
-    public String prefix = "<red>[<white>MailBox</white>]</red>";
 
     public DatabaseConfig database = new DatabaseConfig();
 
@@ -48,7 +46,8 @@ public class Config extends BaseConfig {
     @ConfigSerializable
     public static class MailConfig extends BaseConfig {
         public int maxMailCount = 100;
-        public int maxAttachmentCount = 20;
+        @Range(from = 1, to = 27)
+        public int maxAttachmentCount = 27;
         public DurationOrDisabled expirationTime = new DurationOrDisabled(Optional.of(Duration.of("7d")));
     }
 
@@ -56,11 +55,6 @@ public class Config extends BaseConfig {
 
     @ConfigSerializable
     public static class Messages extends BaseConfig {
-        public String mailMenuMailLore = """
-                <gray>From: <white>{sender}</white>
-                <gray>Time: <white>{time}</white>
-                <gray>Attachments: <white>{attachments}</white>
-                <gray>Read: {read}</gray>""";
         @Comment("This field cannot use minimessage")
         public String systemName = "System";
 
@@ -72,6 +66,21 @@ public class Config extends BaseConfig {
         public String attachmentMenuTitle = "<red>Attachment</red><white>Menu</white>";
         public String mailTemplateMenuTitle = "<red>Mail</red><white>Template</white>";
         public String mailTemplateEditMenuTitle = "<red>Mail</red><white>Template</white>";
+        public String mailTemplateLore = """
+                <gray>Sender: <white>{sender}</white>
+                <gray>Start: <white>{start}</white>
+                <gray>End: <white>{end}</white>
+                <gray>Interval: <white>{interval}</white>
+                <gray>Attachments: <white>{attachments}</white>
+                <gray>Auto Send: <white>{auto_send}</white>""";
+        public String mailMenuMailLore = """
+                <gray>From: <white>{sender}</white>
+                <gray>Time: <white>{time}</white>
+                <gray>Attachments: <white>{attachments}</white>
+                <gray>Read: {read}</gray>""";
+        public String attachmentLore = """
+                <gray>Received: <white>{received}</white>
+                <gray>Expires: <white>{expires}</white>""";
         public String read = "<green>Read</green>";
         public String unread = "<red>Unread</red>";
         public String content = "Content";
@@ -89,13 +98,6 @@ public class Config extends BaseConfig {
         public String setSender = "Set Sender";
         public String nextPage = "Next Page";
         public String previousPage = "Previous Page";
-        public String mailTemplateLore = """
-                <gray>Sender: <white>{sender}</white>
-                <gray>Start: <white>{start}</white>
-                <gray>End: <white>{end}</white>
-                <gray>Interval: <white>{interval}</white>
-                <gray>Attachments: <white>{attachments}</white>
-                <gray>Auto Send: <white>{auto_send}</white>""";
         public String autoSend = "Auto Send";
         public String enabled = "<green>Enabled</green>";
         public String disabled = "<red>Disabled</red>";
@@ -111,8 +113,32 @@ public class Config extends BaseConfig {
         public String attachments = "Attachments";
         public String createMailTemplate = "Create Mail Template";
         public String createMailTemplateSuccess = "<green>Mail template created successfully</green>";
+        public String createMailTemplateError = "<red>Mail template creation failed</red>";
         public String newMail = "<green>You have <count> new mail</green>";
         public String unreadMail = "<green>You have <count> unread mail</green>";
+        public String unreceivedAttachment = "<yellow>You have <count> unreceived attachment</yellow>";
+        public String received = "<green>Received</green>";
+        public String notReceived = "<red>Not Received</red>";
+        public String expired = "<red>Expired</red>";
+        public String expiresNever = "<gray>Never</gray>";
+
+        public String rightClickTo = "<gray>Right Click to {action}</gray>";
+        public String leftClickTo = "<gray>Left Click to {action}</gray>";
+        public String shiftClickTo = "<gray>Shift Click to {action}</gray>";
+        public String clickActionDelete = "<red>Delete</red>";
+        public String clickActionRead = "<green>Read</green>";
+        public String clickActionUnread = "<red>Unread</red>";
+        public String clickActionSend = "<green>Send</green>";
+        public String clickActionOpen = "<green>Open</green>";
+        public String clickActionReceive = "<green>Receive</green>";
+        public String clickActionSet = "<green>Set</green>";
+        public String clickActionUnset = "<red>Unset</red>";
+
+        public String unreceived = "Unreceived";
+        public String page = "page";
+        public String mails = "mails";
+        public String noValue = "<gray>No Value</gray>";
+        public String mailBoxFull = "<red>Receiver's mail box is full</red>";
     }
 
 }

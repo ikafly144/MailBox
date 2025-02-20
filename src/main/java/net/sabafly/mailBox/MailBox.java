@@ -65,6 +65,7 @@ public final class MailBox extends JavaPlugin implements Listener {
         scheduleManager.stop();
         this.database.close();
         PacketEvents.getAPI().terminate();
+        threadedQueue.stop();
     }
 
     public static MailBox getInstance() {

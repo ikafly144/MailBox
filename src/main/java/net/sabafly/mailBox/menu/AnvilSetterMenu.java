@@ -13,19 +13,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-public class AnvilSetterMenu extends BaseMenu implements SetResult<String> {
+public class AnvilSetterMenu extends BaseMenu<AnvilSetterMenu> implements SetResult<String> {
 
     private final Consumer<String> consumer;
-    private final BaseMenu parent;
+    private final BaseMenu<?> parent;
     @Nullable
     private String result = null;
     private final String def;
 
-    public AnvilSetterMenu(BaseMenu parent, Player player, Component title, Consumer<String> consumer) {
+    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, Consumer<String> consumer) {
         this(parent, player, title, consumer, null);
     }
 
-    public AnvilSetterMenu(BaseMenu parent, Player player, Component title, Consumer<String> consumer, @Nullable String def) {
+    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, Consumer<String> consumer, @Nullable String def) {
         super(player, InventoryType.ANVIL, title);
         this.consumer = consumer;
         this.parent = parent;
@@ -35,7 +35,12 @@ public class AnvilSetterMenu extends BaseMenu implements SetResult<String> {
     @Override
     protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
         if (result != null && !result.isBlank()) {
-            consumer.accept(result);
+            try {
+                consumer.accept(result);
+            } catch (Exception e) {
+                MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> player.sendMessage(Component.text("Error: " + e.getMessage()))));
+                MailBox.logger().error("Error while setting anvil result", e);
+            }
         }
         setNextMenu(parent);
     }

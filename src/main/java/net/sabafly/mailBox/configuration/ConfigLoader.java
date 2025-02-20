@@ -3,7 +3,6 @@ package net.sabafly.mailBox.configuration;
 import io.papermc.paper.configuration.type.Duration;
 import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.MailBox;
-import org.spongepowered.configurate.serialize.ScalarSerializer;
 import org.spongepowered.configurate.util.MapFactories;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
@@ -47,7 +46,7 @@ public class ConfigLoader {
                 loader.save(loader.createNode(loader.defaultOptions()).set(Config.class, this.config));
             }
         } catch (Exception e) {
-            MailBox.getInstance().getSLF4JLogger().error("Failed to load config", e);
+            MailBox.logger().error("Failed to load config", e);
         }
     }
 

@@ -35,6 +35,10 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
     }
 
     @Override
+    public void cancel(@NotNull Player player) {
+    }
+
+    @Override
     public byte @NotNull [] serialize() {
         return command.getBytes();
     }

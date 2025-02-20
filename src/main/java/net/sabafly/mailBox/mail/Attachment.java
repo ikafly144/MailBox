@@ -16,8 +16,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 public interface Attachment<T extends Attachment<T>> extends Cloneable {
@@ -35,9 +37,17 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
 
     @NotNull
     default ItemStack getPreview() {
+        return getPreview(null);
+    }
+
+    @NotNull
+    default ItemStack getPreview(@Nullable Function<@NotNull Attachment<T>,@NotNull List<@NotNull Component>> loreSupplier) {
         ItemStack item = getPreviewType() != null ? getPreviewType().createItemStack() : DEFAULT_ITEM.clone();
         item.editMeta(meta -> {
             meta.itemName(Component.text(getName()));
+            if (loreSupplier != null) {
+                meta.lore(loreSupplier.apply(this));
+            }
             if (meta instanceof BundleMeta bundleMeta) bundleMeta.setItems(null);
         });
         return item;
@@ -47,6 +57,8 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
     ItemType getPreviewType();
 
     void apply(@NotNull Player player);
+
+    void cancel(@NotNull Player player);
 
     boolean received();
 

@@ -35,7 +35,10 @@ public interface Database {
         return getMails(user, read, Integer.MAX_VALUE, 0);
     }
 
+
     @NotNull SortedSet<@NotNull Mail> getMails(@NotNull MailUser user, @NotNull TriState read, int limit, int offset);
+
+    int countMails(@NotNull MailUser user, @NotNull TriState read);
 
     @NotNull Optional<@NotNull Mail> getMail(@NotNull UUID id);
 
