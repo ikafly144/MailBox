@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
