@@ -87,15 +87,20 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
 
     @SuppressWarnings("unchecked")
     protected void refresh() {
-        if (refreshing) {
-            return;
+        try {
+            if (refreshing) {
+                return;
+            }
+            refreshing = true;
+            clickRegistry.clickMap.clear();
+            inventory.clear();
+            inventory = inventorySupplier.apply((T) this);
+            setItems(clickRegistry);
+            player.openInventory(inventory);
+        } catch (Exception e) {
+            MailBox.logger().error("Error while refreshing menu", e);
+            throw new RuntimeException(e);
         }
-        refreshing = true;
-        clickRegistry.clickMap.clear();
-        inventory.clear();
-        inventory = inventorySupplier.apply((T) this);
-        setItems(clickRegistry);
-        player.openInventory(inventory);
     }
 
     public int size() {
