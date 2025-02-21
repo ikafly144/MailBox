@@ -123,7 +123,10 @@ public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
         senderItem.editMeta(meta -> {
             if (meta instanceof SkullMeta skullMeta) {
-                skullMeta.setPlayerProfile(mail.getSender() == null ? null : Bukkit.getOfflinePlayer(mail.getSender().uuid()).getPlayerProfile());
+                try {
+                    skullMeta.setPlayerProfile(mail.getSender() == null ? null : Bukkit.getOfflinePlayer(mail.getSender().uuid()).getPlayerProfile());
+                } catch (IllegalArgumentException ignored) {
+                }
             }
         });
         senderItem.editMeta(meta ->

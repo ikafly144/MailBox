@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
@@ -184,7 +185,10 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         ItemStack sender = new ItemStack(Material.PLAYER_HEAD);
         sender.editMeta(meta -> {
             if (meta instanceof SkullMeta skullMeta) {
-                skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(template.sender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(template.sender().uuid()).getName()).orElse(template.sender().uuid().toString())));
+                try {
+                    skullMeta.setPlayerProfile((template.sender() == null ? Bukkit.getOfflinePlayer( config().messages.systemName) : Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
+                } catch (IllegalArgumentException ignored) {
+                }
             }
         });
         sender.editMeta(meta -> {
