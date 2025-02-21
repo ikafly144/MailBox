@@ -50,7 +50,7 @@ public class ScheduleManager {
                     MailBox.getThreadedQueue().submit(() -> {
                         if (database().hasUserTemplate(user, template, (int) intervalCount)) {
                             Optional<LocalDateTime> time = database().getUserTemplateTime(user, template, (int) intervalCount);
-                            if (template.interval() != null && time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
+                            if (template.interval() == null || time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
                                 return;
                             database().deleteUserTemplate(user, template, (int) intervalCount);
                         }
