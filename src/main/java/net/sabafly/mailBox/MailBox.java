@@ -12,6 +12,8 @@ import net.sabafly.mailBox.executor.ThreadedQueue;
 import net.sabafly.mailBox.listener.PlayerListener;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
+import net.sabafly.mailBox.utils.EconomyUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ public final class MailBox extends JavaPlugin implements Listener {
     private static Logger logger;
     private MenuManager menuManager;
     private ScheduleManager scheduleManager;
+    private boolean vaultEnabled;
 
     public static Logger logger() {
         return logger;
@@ -58,6 +61,8 @@ public final class MailBox extends JavaPlugin implements Listener {
         new PlayerListener().register(this);
 
         new MailCommands(this).registerCommands();
+
+        Bukkit.getScheduler().runTask(this, this::loadVault);
     }
 
     @Override
@@ -84,8 +89,22 @@ public final class MailBox extends JavaPlugin implements Listener {
         getInstance().config.reload();
     }
 
-    private static boolean isVaultEnabled() {
-        return getInstance().getServer().getPluginManager().isPluginEnabled("Vault");
+    public static boolean isVaultEnabled() {
+        return getInstance().vaultEnabled;
+    }
+
+    private void loadVault() {
+        if (getInstance().getServer().getPluginManager().getPlugin("Vault") != null) {
+            logger().info("Vault found! Enabling support for it.");
+            try {
+                EconomyUtils.getEconomy();
+            } catch (Exception e) {
+                logger().error("Failed to load Vault economy", e);
+                logger().warn("May be caused by missing economy plugin or incorrect configuration.");
+                return;
+            }
+            vaultEnabled = true;
+        }
     }
 
 }

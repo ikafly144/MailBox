@@ -15,17 +15,17 @@ import java.util.function.Consumer;
 
 public class AnvilSetterMenu extends BaseMenu<AnvilSetterMenu> implements SetResult<String> {
 
-    private final Consumer<String> consumer;
+    private final @NotNull Consumer<@NotNull String> consumer;
     private final BaseMenu<?> parent;
     @Nullable
     private String result = null;
     private final String def;
 
-    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, Consumer<String> consumer) {
+    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, @NotNull Consumer<@NotNull String> consumer) {
         this(parent, player, title, consumer, null);
     }
 
-    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, Consumer<String> consumer, @Nullable String def) {
+    public AnvilSetterMenu(BaseMenu<?> parent, Player player, Component title, @NotNull Consumer<@NotNull String> consumer, @Nullable String def) {
         super(player, InventoryType.ANVIL, title);
         this.consumer = consumer;
         this.parent = parent;

@@ -4,6 +4,12 @@ main: net.sabafly.mailBox.MailBox
 api-version: '1.21'
 authors: [ ikafly ]
 loader: net.sabafly.mailBox.Loader
+dependencies:
+  server:
+    Vault:
+      required: false
+      load: BEFORE
+      join-classpath: true
 permissions:
   mailBox.admin:
     description: Allows the user to use all MailBox commands

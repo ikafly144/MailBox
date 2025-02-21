@@ -7,6 +7,7 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -72,7 +73,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
         ItemStack titleItem = new ItemStack(Material.NAME_TAG);
         titleItem.editMeta(meta -> meta.itemName(title == null ?
                 miniMessage().deserialize(config().messages.setTitle) :
-                miniMessage().deserialize(config().messages.title, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(title))).build())
+                miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(title))).build())
         ));
         clickRegistry.setItem(0, titleItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -82,7 +83,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);
         contentItem.editMeta(meta -> meta.itemName(content == null ?
                 miniMessage().deserialize(config().messages.setContent) :
-                miniMessage().deserialize(config().messages.contentBook, TagResolver.builder().tag("title", Tag.inserting(content.effectiveName())).build())
+                miniMessage().deserialize(config().messages.contentValue, TagResolver.builder().tag("title", Tag.inserting(content.effectiveName())).build())
         ));
         clickRegistry.setItem(1, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -235,6 +236,21 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                 clickRegistry.setItem(1, commandBlock, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentCommandMenu(this, p, attachment -> {
+                            if (attachment != null) {
+                                attachments.add(attachment);
+                            }
+                        }));
+                    }
+                });
+            }
+            if (player.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
+                ItemStack emerald = new ItemStack(Material.PAPER);
+                emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
+                        .replace("{currency}", EconomyUtils.getEconomy().currencyNamePlural())
+                )));
+                clickRegistry.setItem(2, emerald, (p, clickType) -> {
+                    if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
+                        openMenu(new AttachmentVaultValueMenu(this, p, attachment -> {
                             if (attachment != null) {
                                 attachments.add(attachment);
                             }

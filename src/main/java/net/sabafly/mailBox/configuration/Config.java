@@ -84,8 +84,8 @@ public class Config extends BaseConfig {
         public String read = "<green>Read</green>";
         public String unread = "<red>Unread</red>";
         public String content = "Content";
-        public String contentBook = "Content Book: <bold><title></bold>";
-        public String title = "Title: <bold><title></bold>";
+        public String contentValue = "Content: <bold><title></bold>";
+        public String titleValue = "Title: <bold><title></bold>";
         public String setTitle = "Set Title";
         public String setContent = "Set Content";
         public String attachmentAppendItem = "<gray>Append Item</gray>";
@@ -94,7 +94,7 @@ public class Config extends BaseConfig {
         public String send = "Send";
         public String createMailSuccess = "<green>Mail created successfully</green>";
         public String createMailError = "<red>Mail creation failed</red>";
-        public String sender = "Sender: <bold><sender></bold>";
+        public String senderValue = "Sender: <bold><sender></bold>";
         public String setSender = "Set Sender";
         public String nextPage = "Next Page";
         public String previousPage = "Previous Page";
@@ -129,6 +129,7 @@ public class Config extends BaseConfig {
         public String clickActionRead = "<green>Read</green>";
         public String clickActionUnread = "<red>Unread</red>";
         public String clickActionSend = "<green>Send</green>";
+        public String clickActionCreate = "<green>Create</green>";
         public String clickActionOpen = "<green>Open</green>";
         public String clickActionReceive = "<green>Receive</green>";
         public String clickActionSet = "<green>Set</green>";
@@ -139,6 +140,14 @@ public class Config extends BaseConfig {
         public String mails = "mails";
         public String noValue = "<gray>No Value</gray>";
         public String mailBoxFull = "<red>Receiver's mail box is full</red>";
+        public String deposit = "Deposit {value} from {name}";
+        public String setName = "Set Name";
+        public String nameValue = "<gray>Name: <bold><yellow><name></yellow></bold></gray>";
+        public String commandValue = "Command: <bold><yellow><command></yellow></bold>";
+        public String setCommand = "Set Command";
+        public String append = "Append";
+        public String attachmentAppendVault = "Append {currency}";
+        public String displayItem = "Display Item";
     }
 
 }

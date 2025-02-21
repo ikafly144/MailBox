@@ -188,7 +188,7 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
             }
         });
         sender.editMeta(meta -> {
-            meta.customName(miniMessage().deserialize(config().messages.sender, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(template.sender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(template.sender().uuid()).getName()).orElse(template.sender().uuid().toString())))).build()));
+            meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(template.sender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(template.sender().uuid()).getName()).orElse(template.sender().uuid().toString())))).build()));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSet)),
                     miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionUnset))

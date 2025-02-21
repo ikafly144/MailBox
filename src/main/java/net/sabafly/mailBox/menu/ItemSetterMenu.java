@@ -1,38 +1,37 @@
 package net.sabafly.mailBox.menu;
 
 import net.sabafly.mailBox.MailBox;
-import net.sabafly.mailBox.mail.attachments.ItemAttachment;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class AttachmentItemMenu extends BaseMenu<AttachmentItemMenu> {
+public class ItemSetterMenu extends BaseMenu<ItemSetterMenu> {
 
-    private final CreateMailMenu.AttachmentMenu parent;
-    private final Consumer<ItemAttachment> consumer;
+    private final BaseMenu<?> parent;
+    private final Consumer<ItemStack> consumer;
+    private final ItemStack def;
 
-    public AttachmentItemMenu(CreateMailMenu.AttachmentMenu parent, Player player, Consumer<ItemAttachment> consumer) {
+    public ItemSetterMenu(BaseMenu<?> parent, Player player, Consumer<ItemStack> consumer, @Nullable ItemStack def) {
         super(player, InventoryType.DROPPER, miniMessage().deserialize(config().messages.attachmentAppendItem), true);
         this.parent = parent;
         this.consumer = consumer;
+        this.def = def;
     }
 
     @Override
     protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
         try {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
-                    .map(item -> new ItemAttachment(item, false, config().mail.expirationTime.value().map(d -> LocalDateTime.now().plus(Duration.ofSeconds(d.seconds()))).orElse(null)))
                     .ifPresent(consumer);
         } catch (Exception e) {
             MailBox.logger().error("Error while setting item attachment", e);
@@ -49,6 +48,9 @@ public class AttachmentItemMenu extends BaseMenu<AttachmentItemMenu> {
                 clickRegistry.setItem(i, glassPane, (player1, clickType) -> {
                 });
             }
+        }
+        if (def != null) {
+            clickRegistry.setItem(4, def);
         }
     }
 }

@@ -31,7 +31,7 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     @Override
     public void apply(@NotNull Player player) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as " + player.getName() + " at @s run " + command);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{player}", player.getName()));
     }
 
     @Override

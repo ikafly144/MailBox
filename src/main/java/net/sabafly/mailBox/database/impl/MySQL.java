@@ -33,7 +33,7 @@ public class MySQL extends Base implements Database {
         config.setKeepaliveTime(60000);
         config.setConnectionTimeout(5000);
 
-        config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setJdbcUrl("jdbc:mysql://" + MailBox.config().database.host + ":" + MailBox.config().database.port + "/" + MailBox.config().database.database + "?useSSL=false");
         config.addDataSourceProperty("user", MailBox.config().database.username);
         config.addDataSourceProperty("password", MailBox.config().database.password);

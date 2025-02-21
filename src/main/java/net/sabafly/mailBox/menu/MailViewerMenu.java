@@ -63,7 +63,7 @@ public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
         final ItemStack senderItem = getSenderItem();
         clickRegistry.setItem(0, senderItem);
         ItemStack titleItem = new ItemStack(Material.NAME_TAG);
-        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.title, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
+        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
         clickRegistry.setItem(1, titleItem);
         ItemStack contentItem = new ItemStack(Material.BOOK);
         contentItem.editMeta(meta -> {
@@ -127,7 +127,7 @@ public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
             }
         });
         senderItem.editMeta(meta ->
-                meta.customName(miniMessage().deserialize(config().messages.sender, TagResolver.builder().tag("sender", Tag.inserting(plainText().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
+                meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(plainText().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
         return senderItem;
     }
 }

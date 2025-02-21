@@ -72,6 +72,8 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                             OfflinePlayer target = Bukkit.getOfflinePlayer(StringArgumentType.getString(context, "player"));
                             if (!target.hasPlayedBefore())
                                 throw new TagParseCommandSyntaxException("Player not found");
+                            if (player.getUniqueId().equals(target.getUniqueId()))
+                                throw new TagParseCommandSyntaxException("You can't send mail to yourself");
                             new CreateMailMenu(player, target).open();
                             return Command.SINGLE_SUCCESS;
                         })
