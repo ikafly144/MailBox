@@ -45,6 +45,8 @@ public class Config extends BaseConfig {
 
     @ConfigSerializable
     public static class MailConfig extends BaseConfig {
+        public int zoneOffset = 0;
+        public String dateFormat = "yyyy-MM-dd HH:mm:ss";
         public int maxMailCount = 100;
         @Range(from = 1, to = 27)
         public int maxAttachmentCount = 27;

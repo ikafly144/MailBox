@@ -4,6 +4,7 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.utils.DateUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
@@ -12,7 +13,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,8 +81,8 @@ public class MailTemplateMenu extends BaseMenu<MailTemplateMenu> {
             }
             meta.lore(config().messages.mailTemplateLore
                     .replace("{sender}", Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                    .replace("{start}", Optional.ofNullable(mail.startTime()).map(LocalDateTime::toString).orElse(config().messages.noValue))
-                    .replace("{end}", Optional.ofNullable(mail.endTime()).map(LocalDateTime::toString).orElse(config().messages.noValue))
+                    .replace("{start}", Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue))
+                    .replace("{end}", Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue))
                     .replace("{interval}", Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue))
                     .replace("{attachments}", mail.attachment().size() + "")
                     .replace("{auto_send}", mail.autoSend() ? config().messages.enabled : config().messages.disabled)

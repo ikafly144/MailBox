@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.utils.DateUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,9 +69,9 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         clickRegistry.setItem(2, getStartTime(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setStartTime), value -> {
-                    template.setStartTime(LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    template.setStartTime(DateUtils.parse(value));
                     refresh();
-                }, Optional.ofNullable(template.startTime()).map(l -> l.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)).orElse(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))));
+                }, Optional.ofNullable(template.startTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0)))));
             } else if (clickType.isRightClick()) {
                 template.setStartTime(null);
                 refresh();
@@ -80,9 +80,9 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         clickRegistry.setItem(3, getEndTime(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setEndTime), value -> {
-                    template.setEndTime(LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    template.setEndTime(DateUtils.parse(value));
                     refresh();
-                }, Optional.ofNullable(template.endTime()).map(l -> l.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)).orElse(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))));
+                }, Optional.ofNullable(template.endTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0)))));
             } else if (clickType.isRightClick()) {
                 template.setEndTime(null);
                 refresh();

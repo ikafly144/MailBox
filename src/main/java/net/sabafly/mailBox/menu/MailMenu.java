@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.utils.DateUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -89,7 +90,7 @@ public class MailMenu extends BaseMenu<MailMenu> {
             }
             List<Component> lore = config().messages.mailMenuMailLore
                     .replace("{sender}", Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                    .replace("{time}", mail.getSentTime().toString())
+                    .replace("{time}", DateUtils.format(mail.getSentTime()))
                     .replace("{attachments}", mail.getAttachments().size() + " (" + config().messages.unreceived + " " + mail.getAttachments().stream().filter(a -> !a.received()).count() + ")")
                     .replace("{read}", mail.isRead() ? config().messages.read : config().messages.unread)
                     .transform(s -> Stream.of(s.split("\n")))
