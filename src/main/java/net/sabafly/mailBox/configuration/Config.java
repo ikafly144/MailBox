@@ -140,7 +140,7 @@ public class Config extends BaseConfig {
         public String mails = "mails";
         public String noValue = "<gray>No Value</gray>";
         public String mailBoxFull = "<red>Receiver's mail box is full</red>";
-        public String deposit = "Deposit {value} from {name}";
+        public String deposit = "Deposit {value}";
         public String setName = "Set Name";
         public String nameValue = "<gray>Name: <bold><yellow><name></yellow></bold></gray>";
         public String commandValue = "Command: <bold><yellow><command></yellow></bold>";

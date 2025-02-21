@@ -43,7 +43,6 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
         EconomyUtils.getEconomy().depositPlayer(player, value);
         player.sendMessage(miniMessage().deserialize(config().messages.deposit
                 .replace("{value}", EconomyUtils.getEconomy().format(value))
-                .replace("{name}", getName())
         ));
     }
 
@@ -52,7 +51,6 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
         EconomyUtils.getEconomy().depositPlayer(player, value);
         player.sendMessage(miniMessage().deserialize(config().messages.deposit
                 .replace("{value}", EconomyUtils.getEconomy().format(value))
-                .replace("{name}", getName())
         ));
     }
 
