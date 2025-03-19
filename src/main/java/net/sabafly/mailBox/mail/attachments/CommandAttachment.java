@@ -6,21 +6,25 @@ import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
 public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     private final String command;
 
-    public CommandAttachment(@NotNull String name, @NotNull String command, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        super(name, Type.COMMAND, received, itemType, expireTime);
+    public CommandAttachment(@NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
+        super(name, Type.COMMAND, received, itemType, receivedTime, expireDuration);
         this.command = command;
     }
 
-    protected CommandAttachment(UUID uuid, @NotNull String name, @NotNull String command, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        super(uuid, name, Type.COMMAND, received, itemType, expireTime);
+    public CommandAttachment(@NotNull UUID id, @NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
+        super(id, name, Type.COMMAND, received, itemType, receivedTime, expireDuration);
         this.command = command;
     }
 
@@ -43,12 +47,12 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
         return command.getBytes();
     }
 
-    public static @NotNull CommandAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        return new CommandAttachment(id, name, new String(data), received, itemType, expireTime);
+    public static @NotNull CommandAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        return new CommandAttachment(id, name, received, itemType, receivedTime, expireDuration, new String(data));
     }
 
     @Override
     public @NotNull CommandAttachment create(boolean received) {
-        return new CommandAttachment(getName(), command, received, getPreviewType(), getExpireTime().orElse(null));
+        return new CommandAttachment(miniMessage().serialize(getName()), received, getPreviewType(), null, config().mail.getExpirationTime(), command);
     }
 }

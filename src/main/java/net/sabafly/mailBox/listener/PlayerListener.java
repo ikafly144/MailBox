@@ -36,7 +36,7 @@ public class PlayerListener implements Listener {
             MailUser user = database().getUser(event.getPlayer().getUniqueId());
             SortedSet<Mail> mails = database().getAllMails(user, TriState.FALSE);
             long unreceivedAttachments = database().getAllMails(user, TriState.NOT_SET)
-                    .stream().mapToLong(mail -> mail.getAttachments().stream().filter(attachment -> !(attachment.isExpired() || attachment.received())).count()).sum();
+                    .stream().mapToLong(mail -> mail.attachments().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
             ThreadUtils.runSync(() -> {
                 if (!mails.isEmpty()) {
                     event.getPlayer().sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));

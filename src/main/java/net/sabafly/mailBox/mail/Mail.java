@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,8 +31,7 @@ public class Mail implements Comparable<Mail> {
     @NotNull
     @Getter
     private final String content;
-    @Getter
-    private final @NotNull List<? extends @NotNull Attachment<?>> attachments;
+    private final @NotNull List<Attachment<?>> attachments;
     @Getter
     @Setter
     private boolean read;
@@ -42,7 +43,7 @@ public class Mail implements Comparable<Mail> {
         return new Mail(UUID.randomUUID(), sender.getUniqueId(), receiver.getUniqueId(), title, content, attachments, false, LocalDateTime.now());
     }
 
-    public static Mail createNow(@Nullable MailUser sender, @NotNull MailUser receiver, String title, String content, List<? extends Attachment<?>> attachments) {
+    public static Mail createNow(@Nullable MailUser sender, @NotNull MailUser receiver, String title, String content, List<Attachment<?>> attachments) {
         return new Mail(UUID.randomUUID(), Optional.ofNullable(sender).map(MailUser::uuid).orElse(null), receiver.uuid(), title, content, attachments, false, LocalDateTime.now());
     }
 
@@ -52,7 +53,7 @@ public class Mail implements Comparable<Mail> {
             @NotNull UUID receiver,
             @NotNull String title,
             @NotNull String content,
-            @NotNull List<? extends Attachment<?>> attachments,
+            @NotNull List<Attachment<?>> attachments,
             boolean read,
             @NotNull LocalDateTime sentTime) {
         this.id = id;
@@ -60,7 +61,7 @@ public class Mail implements Comparable<Mail> {
         this.receiver = receiver;
         this.title = title;
         this.content = content;
-        this.attachments = attachments;
+        this.attachments = new ArrayList<>(attachments);
         this.read = read;
         this.sentTime = sentTime;
     }
@@ -88,4 +89,18 @@ public class Mail implements Comparable<Mail> {
         return database().getUser(receiver);
     }
 
+    public void attachments(@NotNull List<@NotNull Attachment<?>> mailAttachments) {
+        attachments.clear();
+        attachments.addAll(mailAttachments);
+    }
+
+    public @NotNull List<@NotNull Attachment<?>> attachments() {
+        return attachments;
+    }
+
+    @Nullable
+    @ApiStatus.Internal
+    public String getSenderId() {
+        return sender == null ? null : sender.toString();
+    }
 }

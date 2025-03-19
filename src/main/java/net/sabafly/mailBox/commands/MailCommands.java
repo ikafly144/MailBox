@@ -8,6 +8,7 @@ import io.papermc.paper.plugin.lifecycle.event.handler.LifecycleEventHandler;
 import io.papermc.paper.plugin.lifecycle.event.registrar.ReloadableRegistrarEvent;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.sabafly.mailBox.MailBox;
+import net.sabafly.mailBox.mail.MailUser;
 import net.sabafly.mailBox.menu.CreateMailMenu;
 import net.sabafly.mailBox.menu.MailMenu;
 import net.sabafly.mailBox.menu.MailTemplateMenu;
@@ -17,6 +18,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
+
+import static net.sabafly.mailBox.MailBox.database;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRegistrarEvent<@NotNull Commands>> {
@@ -66,6 +70,18 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
         event.registrar().register(Commands.literal("sendmail")
                 .requires(context -> context.getSender().hasPermission("mailbox.send"))
                 .then(Commands.argument("player", StringArgumentType.word())
+                        .suggests((context, builder) -> {
+                            if (!(context.getSource().getExecutor() instanceof Player player))
+                                return builder.buildFuture();
+                            database().getAllUsers().stream()
+                                    .map(MailUser::uuid)
+                                    .map(Bukkit::getOfflinePlayer)
+                                    .filter(p -> !player.getUniqueId().equals(p.getUniqueId()))
+                                    .map(OfflinePlayer::getName)
+                                    .filter(Objects::nonNull)
+                                    .forEach(builder::suggest);
+                            return builder.buildFuture();
+                        })
                         .executes(context -> {
                             if (!(context.getSource().getExecutor() instanceof Player player))
                                 throw new TagParseCommandSyntaxException("Player required");

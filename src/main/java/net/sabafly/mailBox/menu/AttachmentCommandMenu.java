@@ -14,8 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -79,7 +77,14 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
         clickRegistry.setItem(8, limeWool, (player, clickType) -> {
             if (clickType.isLeftClick() && name != null && command != null) {
                 try {
-                    consumer.accept(new CommandAttachment(name, command, false, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(displayItem.getType().key()), config().mail.expirationTime.value().map(d -> LocalDateTime.now().plus(Duration.ofSeconds(d.seconds()))).orElse(null)));
+                    consumer.accept(new CommandAttachment(
+                            name,
+                            false,
+                            RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(displayItem.getType().key()),
+                            null,
+                            config().mail.getExpirationTime(),
+                            command
+                    ));
                 } catch (Exception e) {
                     MailBox.logger().error("Error while setting command attachment", e);
                 }

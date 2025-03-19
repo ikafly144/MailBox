@@ -2,7 +2,9 @@ package net.sabafly.mailBox;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.google.gson.Gson;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import io.papermc.paper.ServerBuildInfo;
 import lombok.Getter;
 import net.sabafly.mailBox.commands.MailCommands;
 import net.sabafly.mailBox.configuration.Config;
@@ -18,6 +20,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+
+@SuppressWarnings("UnstableApiUsage")
 public final class MailBox extends JavaPlugin implements Listener {
 
     private ConfigLoader config;
@@ -63,6 +74,7 @@ public final class MailBox extends JavaPlugin implements Listener {
         new MailCommands(this).registerCommands();
 
         Bukkit.getScheduler().runTask(this, this::loadVault);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 60 * 60 * 20);
     }
 
     @Override
@@ -104,6 +116,32 @@ public final class MailBox extends JavaPlugin implements Listener {
                 return;
             }
             vaultEnabled = true;
+        }
+    }
+
+    private void updateCheck() {
+        getSLF4JLogger().info("Checking for updates");
+        try (var client = HttpClient.newHttpClient()) {
+            var param = URLEncoder.encode("loaders=[\"paper\"]&game_versions=[\"" + ServerBuildInfo.buildInfo().minecraftVersionId() + "\"]", StandardCharsets.UTF_8);
+            var uri = URI.create("https://api.modrinth.com/v2/project/S5JhwTNt/version?" + param);
+            var request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .timeout(Duration.ofSeconds(10))
+                    .build();
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApplyAsync(HttpResponse::body).thenAcceptAsync(buf -> {
+                        var raw = new Gson().fromJson(buf, Object.class);
+                        // .[0].version_number
+                        var version = ((java.util.List<?>) raw).getFirst();
+                        var versionNumber = ((java.util.Map<?, ?>) version).get("version_number");
+                        if (!getPluginMeta().getVersion().equals(versionNumber)) {
+                            getSLF4JLogger().info("A new version is available");
+                            getSLF4JLogger().info("Latest version: {}", versionNumber);
+                            getSLF4JLogger().info("Current version: {}", getPluginMeta().getVersion());
+                        }
+                    }).join();
+        } catch (Exception e) {
+            getSLF4JLogger().error("Failed to check for updates: {}", e.getLocalizedMessage());
         }
     }
 

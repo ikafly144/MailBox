@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.BundleMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +32,7 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
     Type getType();
 
     @NotNull
-    String getName();
+    Component getName();
 
     ItemStack DEFAULT_ITEM = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(ItemTypeKeys.BUNDLE).createItemStack();
 
@@ -44,7 +45,7 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
     default ItemStack getPreview(@Nullable Function<@NotNull Attachment<T>,@NotNull List<@NotNull Component>> loreSupplier) {
         ItemStack item = getPreviewType() != null ? getPreviewType().createItemStack() : DEFAULT_ITEM.clone();
         item.editMeta(meta -> {
-            meta.itemName(Component.text(getName()));
+            meta.itemName(getName());
             if (loreSupplier != null) {
                 meta.lore(loreSupplier.apply(this));
             }
@@ -60,23 +61,29 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
 
     void cancel(@NotNull Player player);
 
-    boolean received();
+    boolean opened();
 
-    void setReceived(boolean received);
+    void setOpened(boolean opened);
+
+    Optional<LocalDateTime> getReceivedTime();
+
+    boolean isTemplate();
 
     boolean isExpired();
 
     @NotNull
-    Optional<LocalDateTime> getExpireTime();
+    Optional<Duration> expireDuration();
+
+    void expireDuration(@Nullable Duration expireDuration);
 
     byte @NotNull [] serialize();
 
-    static Attachment<?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
+    static Attachment<?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireTime) {
         return switch (type) {
-            case ITEM -> ItemAttachment.deserialize(uuid, name, received, data, itemType, expireTime);
-            case VAULT_VALUE -> VaultValueAttachment.deserialize(uuid, name, received, data, expireTime);
-            case COMMAND -> CommandAttachment.deserialize(uuid, name, received, data, itemType, expireTime);
-            case MESSAGE -> MessageAttachment.deserialize(uuid, name, received, data, itemType, expireTime);
+            case ITEM -> ItemAttachment.deserialize(uuid, name, received, data, itemType, receivedTime, expireTime);
+            case VAULT_VALUE -> VaultValueAttachment.deserialize(uuid, name, received, data, itemType, receivedTime, expireTime);
+            case COMMAND -> CommandAttachment.deserialize(uuid, name, received, data, itemType, receivedTime, expireTime);
+            case MESSAGE -> MessageAttachment.deserialize(uuid, name, received, data, itemType, receivedTime, expireTime);
         };
     }
 

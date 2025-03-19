@@ -1,7 +1,5 @@
 package net.sabafly.mailBox.mail.attachments;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -9,10 +7,12 @@ import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ItemAttachment extends BaseAttachment<ItemAttachment> {
@@ -20,14 +20,14 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
     @NotNull
     private final ItemStack itemStack;
 
-    public ItemAttachment(@NotNull ItemStack itemStack, boolean received, @Nullable LocalDateTime expireTime) {
-        super(plainText().serialize(getEffectiveName(itemStack)), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
-        this.itemStack = itemStack;
+    public ItemAttachment(@NotNull ItemStack item, boolean received, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        super(miniMessage().serialize(getEffectiveName(item)), Type.ITEM, received, item.getType().asItemType(), receivedTime, expireDuration);
+        this.itemStack = item;
     }
 
-    protected ItemAttachment(@NotNull UUID id, @NotNull ItemStack itemStack, boolean received, @Nullable LocalDateTime expireTime) {
-        super(id, plainText().serialize(getEffectiveName(itemStack)), Type.ITEM, received, RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(itemStack.getType().key()), expireTime);
-        this.itemStack = itemStack;
+    public ItemAttachment(@NotNull UUID id, @NotNull ItemStack item, boolean received, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        super(id, miniMessage().serialize(getEffectiveName(item)), Type.ITEM, received, item.getType().asItemType(), receivedTime, expireDuration);
+        this.itemStack = item;
     }
 
     private static Component getEffectiveName(@NotNull ItemStack itemStack) {
@@ -61,12 +61,12 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
         return itemStack.serializeAsBytes();
     }
 
-    public static @NotNull ItemAttachment deserialize(@NotNull UUID id, @NotNull String ignoredName, boolean received, byte @NotNull [] data, @Nullable ItemType ignoredItemType, @Nullable LocalDateTime expireTime) {
-        return new ItemAttachment(id, ItemStack.deserializeBytes(data), received, expireTime);
+    public static @NotNull ItemAttachment deserialize(@NotNull UUID id, @NotNull String ignoredName, boolean received, byte @NotNull [] data, @Nullable ItemType ignoredItemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        return new ItemAttachment(id, ItemStack.deserializeBytes(data), received, receivedTime, expireDuration);
     }
 
     @Override
     public @NotNull ItemAttachment create(boolean received) {
-        return new ItemAttachment(itemStack, received, getExpireTime().orElse(null));
+        return new ItemAttachment(itemStack, false, null, config().mail.getExpirationTime());
     }
 }

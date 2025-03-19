@@ -5,28 +5,30 @@ import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MessageAttachment extends BaseAttachment<MessageAttachment> {
 
     private final String message;
 
-    public MessageAttachment(@NotNull String name, @NotNull String message, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        super(name, Type.MESSAGE, received, itemType, expireTime);
+    public MessageAttachment(@NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String message) {
+        super(name, Type.MESSAGE, received, itemType, receivedTime, expireDuration);
         this.message = message;
     }
 
-    protected MessageAttachment(@NotNull UUID id, @NotNull String name, @NotNull String message, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        super(id, name, Type.MESSAGE, received, itemType, expireTime);
+    public MessageAttachment(@NotNull UUID id, @NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String message) {
+        super(id, name, Type.MESSAGE, received, itemType, receivedTime, expireDuration);
         this.message = message;
     }
 
     @Override
-    public boolean received() {
+    public boolean opened() {
         return false;
     }
 
@@ -49,12 +51,12 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment> {
         return message.getBytes();
     }
 
-    public static @NotNull MessageAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime expireTime) {
-        return new MessageAttachment(id, name, new String(data), received, itemType, expireTime);
+    public static @NotNull MessageAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        return new MessageAttachment(id, name, received, itemType, receivedTime, expireDuration, new String(data));
     }
 
     @Override
     public @NotNull MessageAttachment create(boolean received) {
-        return new MessageAttachment(getName(), message, received, getPreviewType(), getExpireTime().orElse(null));
+        return new MessageAttachment(miniMessage().serialize(getName()), received, getPreviewType(), null, config().mail.getExpirationTime(), message);
     }
 }

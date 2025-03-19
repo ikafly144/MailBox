@@ -1,5 +1,7 @@
 package net.sabafly.mailBox.menu;
 
+import io.papermc.paper.configuration.type.Duration;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.util.TriState;
@@ -9,6 +11,7 @@ import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -202,11 +205,21 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
         private final Consumer<List<@NotNull Attachment<?>>> consumer;
         private final List<@NotNull Attachment<?>> attachments;
 
+        private final boolean isTemplate;
+
         public AttachmentMenu(CreateMailMenu menu, Player player, @NotNull List<@NotNull Attachment<?>> attachments, Consumer<List<@NotNull Attachment<?>>> consumer) {
             super(player, 45, miniMessage().deserialize(config().messages.attachmentMenuTitle));
             this.menu = menu;
             this.consumer = consumer;
             this.attachments = attachments;
+            this.isTemplate = menu.target == null;
+        }
+
+        private void addAttachment(Attachment<?> attachment) {
+            if (attachment != null) {
+                if (!isTemplate) attachment.expireDuration(config().mail.getExpirationTime());
+                attachments.add(attachment);
+            }
         }
 
         @Override
@@ -224,7 +237,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentItemMenu(this, p, attachment -> {
                             if (attachment != null) {
-                                attachments.add(attachment);
+                                addAttachment(attachment);
                             }
                         }));
                     }
@@ -237,7 +250,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentCommandMenu(this, p, attachment -> {
                             if (attachment != null) {
-                                attachments.add(attachment);
+                                addAttachment(attachment);
                             }
                         }));
                     }
@@ -252,7 +265,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentVaultValueMenu(this, p, attachment -> {
                             if (attachment != null) {
-                                attachments.add(attachment);
+                                addAttachment(attachment);
                             }
                         }));
                     }
@@ -266,11 +279,33 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                     clickRegistry.setItem(i + 9, glassPane);
                 }
                 for (int i = 0; i < attachments.size(); i++) {
-                    int finalI = i;
-                    clickRegistry.setItem(i + 18, attachments.get(i).getPreview(menu -> List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionDelete)))), (player1, clickType) -> {
-                        if (clickType.isLeftClick()) {
+                    final int finalI = i;
+                    List<Component> lore = new ArrayList<>(List.of(
+                            miniMessage().deserialize(config().messages.expirationValue, TagResolver.builder().tag(
+                                    "expiration", Tag.inserting(miniMessage().deserialize(attachments.get(i).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.expiresNever)))
+                            ).build())
+                    ));
+                    if (isTemplate) {
+                        lore.add(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSetExpiration)));
+                    }
+                    lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
+                    clickRegistry.setItem(i + 18, attachments.get(i).getPreview(attachment -> lore), (player1, clickType) -> {
+                        if (clickType.isRightClick()) {
                             attachments.remove(finalI).cancel(player1);
                             refresh();
+                        } else if (clickType.isLeftClick() && isTemplate) {
+                            openMenu(new AnvilSetterMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {
+                                try {
+                                    final long seconds = Duration.of(s).seconds();
+                                    if (seconds <= 0) {
+                                        attachments.get(finalI).expireDuration(null);
+                                    } else {
+                                        attachments.get(finalI).expireDuration(java.time.Duration.ofSeconds(seconds));
+                                    }
+                                } catch (Exception e) {
+                                    MailBox.logger().error("Error while setting expiration", e);
+                                }
+                            }, attachments.get(finalI).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse("")));
                         }
                     });
                 }

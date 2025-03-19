@@ -5,6 +5,7 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
@@ -51,6 +52,10 @@ public class Config extends BaseConfig {
         @Range(from = 1, to = 27)
         public int maxAttachmentCount = 27;
         public DurationOrDisabled expirationTime = new DurationOrDisabled(Optional.of(Duration.of("7d")));
+
+        public @Nullable java.time.Duration getExpirationTime() {
+            return expirationTime.value().map(Duration::seconds).map(java.time.Duration::ofSeconds).orElse(null);
+        }
     }
 
     public Messages messages = new Messages();
@@ -136,6 +141,7 @@ public class Config extends BaseConfig {
         public String clickActionReceive = "<green>Receive</green>";
         public String clickActionSet = "<green>Set</green>";
         public String clickActionUnset = "<red>Unset</red>";
+        public String clickActionSetExpiration = "<green>Set Expiration</green>";
 
         public String unreceived = "Unreceived";
         public String page = "page";
@@ -145,11 +151,13 @@ public class Config extends BaseConfig {
         public String deposit = "Deposit {value}";
         public String setName = "Set Name";
         public String nameValue = "<gray>Name: <bold><yellow><name></yellow></bold></gray>";
-        public String commandValue = "Command: <bold><yellow><command></yellow></bold>";
+        public String commandValue = "<gray>Command: <bold><yellow><command></yellow></bold></gray>";
         public String setCommand = "Set Command";
         public String append = "Append";
         public String attachmentAppendVault = "Append {currency}";
         public String displayItem = "Display Item";
+        public String setExpiration = "Set Expiration";
+        public String expirationValue = "<gray>Expiration: <bold><yellow><expiration></yellow></bold></gray>";
     }
 
 }

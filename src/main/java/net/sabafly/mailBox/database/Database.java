@@ -26,6 +26,8 @@ public interface Database {
 
     @NotNull MailUser getUser(@NotNull UUID uuid);
 
+    @NotNull List<@NotNull MailUser> getAllUsers();
+
     default @NotNull SortedSet<@NotNull Mail> getMails(@NotNull MailUser user, @NotNull TriState read, int page) {
         return getMails(user, read, PAGE_SIZE, (page - 1) * PAGE_SIZE);
     }
@@ -60,17 +62,29 @@ public interface Database {
 
     void deleteMailTemplate(@NotNull MailTemplate template);
 
-    <T extends Attachment<T>> Optional<@NotNull Attachment<T>> getAttachment(@NotNull UUID id, @NotNull Class<T> clazz) throws IllegalArgumentException;
+    void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
 
-    Optional<@NotNull Attachment<?>> getAttachment(@NotNull UUID id);
+    void deleteMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
 
-    void createAttachment(@NotNull Attachment<?> attachment);
+    void deleteAllMailAttachments(@NotNull Mail mail);
 
-    void deleteAttachment(@NotNull Attachment<?> attachment);
+    void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
 
-    void updateAttachment(@NotNull Attachment<?> attachment);
+    @NotNull List<@NotNull Attachment<?>> getMailAttachments(@NotNull Mail mail);
 
-    <T extends Attachment<T>> @NotNull List<@NotNull Attachment<T>> getAttachments(Class<T> type);
+    @NotNull Optional<@NotNull Attachment<?>> getMailAttachment(@NotNull UUID id);
+
+    void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+
+    void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+
+    void deleteAllTemplateAttachments(@NotNull MailTemplate template);
+
+    void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+
+    @NotNull List<@NotNull Attachment<?>> getTemplateAttachments(@NotNull MailTemplate template);
+
+    @NotNull Optional<@NotNull Attachment<?>> getTemplateAttachment(@NotNull UUID id);
 
     void createUserTemplate(@NotNull MailUser user, @NotNull MailTemplate template, int interval);
 

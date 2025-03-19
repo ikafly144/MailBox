@@ -67,11 +67,12 @@ public class MailMenu extends BaseMenu<MailMenu> {
             clickRegistry.setItem(9 + i, glassPane);
         }
         int slot = 18;
-        for (Mail mail : database().getMails(database().getUser(player.getUniqueId()), TriState.NOT_SET, page).stream().sorted().toList()) {
+        database().deleteAllUserNotification(database().getUser(player.getUniqueId()));
+        for (Mail mail : database().getMails(database().getUser(player.getUniqueId()), TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
             clickRegistry.setItem(slot, createMailItem(mail), (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     openMenu(new MailViewerMenu(player, mail, true));
-                } else if (clickType.isRightClick() && mail.getAttachments().stream().allMatch(a -> a.received() || a.isExpired())) {
+                } else if (clickType.isRightClick() && mail.attachments().stream().allMatch(a -> a.opened() || a.isExpired())) {
                     database().deleteMail(mail);
                     refresh();
                 }
@@ -91,7 +92,7 @@ public class MailMenu extends BaseMenu<MailMenu> {
             List<Component> lore = config().messages.mailMenuMailLore
                     .replace("{sender}", Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
                     .replace("{time}", DateUtils.format(mail.getSentTime()))
-                    .replace("{attachments}", mail.getAttachments().size() + " (" + config().messages.unreceived + " " + mail.getAttachments().stream().filter(a -> !a.received()).count() + ")")
+                    .replace("{attachments}", mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened()).count() + ")")
                     .replace("{read}", mail.isRead() ? config().messages.read : config().messages.unread)
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)

@@ -10,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -32,7 +31,7 @@ public class AttachmentItemMenu extends BaseMenu<AttachmentItemMenu> {
     protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
         try {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
-                    .map(item -> new ItemAttachment(item, false, config().mail.expirationTime.value().map(d -> LocalDateTime.now().plus(Duration.ofSeconds(d.seconds()))).orElse(null)))
+                    .map(item -> new ItemAttachment(item, false, null, Duration.ofSeconds(0)))
                     .ifPresent(consumer);
         } catch (Exception e) {
             MailBox.logger().error("Error while setting item attachment", e);

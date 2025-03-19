@@ -2,15 +2,17 @@ package net.sabafly.mailBox.mail;
 
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static net.sabafly.mailBox.MailBox.config;
 
 public final class MailTemplate implements Comparable<MailTemplate> {
     private final @NotNull UUID id;
@@ -49,7 +51,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         this.id = id;
         this.title = title;
         this.content = content;
-        this.attachment = attachment;
+        this.attachment = new ArrayList<>(attachment);
         this.autoSend = autoSend;
         this.sender = sender;
         this.startTime = startTime;
@@ -78,6 +80,11 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         return attachment;
     }
 
+    public void attachment(@NotNull List<@NotNull Attachment<?>> attachment) {
+        this.attachment.clear();
+        this.attachment.addAll(attachment);
+    }
+
     public boolean autoSend() {
         return autoSend;
     }
@@ -96,6 +103,11 @@ public final class MailTemplate implements Comparable<MailTemplate> {
 
     public @Nullable Duration interval() {
         return interval;
+    }
+
+    @ApiStatus.Internal
+    public @Nullable Long intervalSeconds() {
+        return Optional.ofNullable(interval).map(Duration::getSeconds).orElse(null);
     }
 
     public @Nullable String permission() {
@@ -140,13 +152,15 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     }
 
     public @NotNull Mail createMail(@NotNull MailUser user) {
-        List<? extends Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).toList();
+        List<Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
         String title = this.title
                 .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
-                .replace("{interval}", (intervalCount() + 1) + "");
+                .replace("{interval}", (intervalCount() + 1) + "")
+                .replace("{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
         String content = this.content
                 .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
-                .replace("{interval}", (intervalCount() + 1) + "");
+                .replace("{interval}", (intervalCount() + 1) + "")
+                .replace("{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
         return Mail.createNow(sender, user, title, content, newAttachments);
     }
 

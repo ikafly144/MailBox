@@ -78,10 +78,7 @@ public class MenuManager implements Listener, PacketListener {
                 future.complete(null);
             }));
             future.thenRun(menu.menu()::onCloseComplete);
-            Bukkit.getAsyncScheduler().runNow(plugin, t -> {
-                future.join();
-                MailBox.logger().info("Menu close task completed");
-            });
+            Bukkit.getAsyncScheduler().runNow(plugin, t -> future.join());
         }
     }
 

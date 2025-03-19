@@ -6,7 +6,6 @@ import net.sabafly.mailBox.utils.EconomyUtils;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -20,7 +19,7 @@ public class AttachmentVaultValueMenu extends AnvilSetterMenu {
         ), value -> {
             try {
                 VaultValueAttachment.createNew(Double.parseDouble(value), player, config().mail.expirationTime.value()
-                                .map(d -> LocalDateTime.now().plus(Duration.ofSeconds(d.seconds())))
+                                .map(d -> Duration.ofSeconds(d.seconds()))
                                 .orElse(null))
                         .ifPresent(consumer);
             } catch (Exception e) {
