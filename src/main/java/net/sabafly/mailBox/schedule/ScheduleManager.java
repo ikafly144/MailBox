@@ -61,7 +61,7 @@ public class ScheduleManager {
                 }
                 MailBox.getThreadedQueue().submit(() -> checkNotify(player, user));
             });
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     public static void checkNotify(Player player, MailUser user) {

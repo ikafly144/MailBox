@@ -29,7 +29,11 @@ public class ItemSetterMenu extends BaseMenu<ItemSetterMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
+        if (inventory == null) {
+            setNextMenu(parent);
+            return;
+        }
         try {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
                     .ifPresent(consumer);

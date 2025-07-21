@@ -68,8 +68,6 @@ public class Config extends BaseConfig {
         public String mailMenuTitle = "<red>Mail</red><white>Box</white>";
         public String mailViewerMenuTitle = "<red>Mail</red><white>Viewer</white>";
         public String createMailMenuTitle = "<red>Create</red><white>Mail</white>";
-        public String inputMenuTitle = "<red>Input</red><white>Menu</white>";
-        public String bookMenuTitle = "<red>Book</red><white>Menu</white>";
         public String attachmentMenuTitle = "<red>Attachment</red><white>Menu</white>";
         public String mailTemplateMenuTitle = "<red>Mail</red><white>Template</white>";
         public String mailTemplateEditMenuTitle = "<red>Mail</red><white>Template</white>";
@@ -91,7 +89,7 @@ public class Config extends BaseConfig {
         public String read = "<green>Read</green>";
         public String unread = "<red>Unread</red>";
         public String content = "Content";
-        public String contentValue = "Content: <bold><title></bold>";
+        public String contentInfo = "Content: <bold><length> letters</bold>";
         public String titleValue = "Title: <bold><title></bold>";
         public String setTitle = "Set Title";
         public String setContent = "Set Content";
@@ -158,6 +156,11 @@ public class Config extends BaseConfig {
         public String displayItem = "Display Item";
         public String setExpiration = "Set Expiration";
         public String expirationValue = "<gray>Expiration: <bold><yellow><expiration></yellow></bold></gray>";
+        public String closeButton = "Close";
+        public String attachmentCommandError = "<red>Error while setting command attachment, please check your command</red>";
+        public String submitButton = "Submit";
+        public String emptyInputError = "<red>Input cannot be empty</red>";
+        public String cancelButton = "Cancel";
     }
 
 }

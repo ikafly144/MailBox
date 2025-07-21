@@ -27,7 +27,6 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-@SuppressWarnings("UnstableApiUsage")
 public class MailMenu extends BaseMenu<MailMenu> {
 
     private int page;
@@ -48,19 +47,21 @@ public class MailMenu extends BaseMenu<MailMenu> {
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack arrow = new ItemStack(Material.ARROW);
         arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
-        clickRegistry.setItem(0, arrow, (player, clickType) -> {
+        if (page > 1) clickRegistry.setItem(0, arrow, (player, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
                 refresh();
             }
         });
         arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
-        clickRegistry.setItem(8, arrow, (player, clickType) -> {
-            if (clickType.isLeftClick() && database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
-                page++;
-                refresh();
-            }
-        });
+        if (database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
+            clickRegistry.setItem(8, arrow, (player, clickType) -> {
+                if (clickType.isLeftClick() && database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
+                    page++;
+                    refresh();
+                }
+            });
+        }
         ItemStack glassPane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         glassPane.editMeta(meta -> meta.setHideTooltip(true));
         for (int i = 0; i < 9; i++) {

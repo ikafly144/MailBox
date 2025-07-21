@@ -14,6 +14,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -35,7 +36,7 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         database().updateMailTemplate(new MailTemplate(template));
         setNextMenu(new MailTemplateMenu(player, 1));
     }
@@ -55,7 +56,7 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(1, getSender(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setSender), value -> {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSender), value -> {
                     OfflinePlayer p = Bukkit.getOfflinePlayer(value);
                     if (!p.hasPlayedBefore()) return;
                     template.setSender(database().getUser(p.getUniqueId()));
@@ -68,10 +69,11 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(2, getStartTime(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setStartTime), value -> {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setStartTime), value -> {
                     template.setStartTime(DateUtils.parse(value));
                     refresh();
-                }, Optional.ofNullable(template.startTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0)))));
+                }, Optional.ofNullable(template.startTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0))),
+                        false, 30));
             } else if (clickType.isRightClick()) {
                 template.setStartTime(null);
                 refresh();
@@ -79,10 +81,11 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(3, getEndTime(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setEndTime), value -> {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setEndTime), value -> {
                     template.setEndTime(DateUtils.parse(value));
                     refresh();
-                }, Optional.ofNullable(template.endTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0)))));
+                }, Optional.ofNullable(template.endTime()).map(DateUtils::format).orElse(DateUtils.format(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).withSecond(0).withNano(0))),
+                        false, 30));
             } else if (clickType.isRightClick()) {
                 template.setEndTime(null);
                 refresh();
@@ -90,10 +93,11 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(4, getInterval(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setInterval), value -> {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setInterval), value -> {
                     template.setInterval(Duration.ofSeconds(io.papermc.paper.configuration.type.Duration.of(value).seconds()));
                     refresh();
-                }, Optional.ofNullable(template.interval()).map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null)));
+                }, Optional.ofNullable(template.interval()).map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
+                        false, 12));
             } else if (clickType.isRightClick()) {
                 template.setInterval(null);
                 refresh();
@@ -101,10 +105,10 @@ public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(5, getPermissions(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setPermissions), value -> {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setPermissions), value -> {
                     template.setPermission(value);
                     refresh();
-                }, template.permission()));
+                }, template.permission(), false, 80));
             } else if (clickType.isRightClick()) {
                 template.setPermission(null);
                 refresh();

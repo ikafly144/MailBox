@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -28,7 +29,11 @@ public class AttachmentItemMenu extends BaseMenu<AttachmentItemMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
+        if (inventory == null) {
+            setNextMenu(parent);
+            return;
+        }
         try {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
                     .map(item -> new ItemAttachment(item, false, null, Duration.ofSeconds(0)))

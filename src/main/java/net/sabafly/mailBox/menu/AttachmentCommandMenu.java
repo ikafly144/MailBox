@@ -22,7 +22,6 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 
-@SuppressWarnings("UnstableApiUsage")
 public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
 
     private final CreateMailMenu.AttachmentMenu parent;
@@ -30,7 +29,7 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
 
     private @Nullable String name = null;
     private @Nullable String command = null;
-    private @NotNull ItemStack displayItem = new ItemStack(Material.COMMAND_BLOCK);
+    private @Nullable ItemStack displayItem = null;
 
     public AttachmentCommandMenu(CreateMailMenu.AttachmentMenu parent, Player player, Consumer<CommandAttachment> consumer) {
         super(player, 9, miniMessage().deserialize(config().messages.attachmentAppendCommand));
@@ -39,7 +38,7 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         setNextMenu(parent);
     }
 
@@ -48,16 +47,16 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
         final ItemStack nameTag = getNameTag();
         clickRegistry.setItem(4, nameTag, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setName), (s) -> name = s, name));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setName), (s) -> name = s, name, false, 30));
             }
         });
         final ItemStack commandBlock = getCommandBlock();
         clickRegistry.setItem(3, commandBlock, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.setCommand), (s) -> command = s, command));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setCommand), (s) -> command = s, command, false, 2000));
             }
         });
-        final ItemStack display = new ItemStack(displayItem.getType());
+        final ItemStack display = new ItemStack((displayItem == null ? Material.COMMAND_BLOCK : displayItem.getType()));
         display.editMeta(meta -> {
             meta.itemName(miniMessage().deserialize(config().messages.displayItem));
             meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
@@ -75,7 +74,7 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
                     .replace("{action}", config().messages.clickActionCreate))));
         });
         clickRegistry.setItem(8, limeWool, (player, clickType) -> {
-            if (clickType.isLeftClick() && name != null && command != null) {
+            if (clickType.isLeftClick() && name != null && command != null && displayItem != null) {
                 try {
                     consumer.accept(new CommandAttachment(
                             name,
@@ -89,6 +88,8 @@ public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
                     MailBox.logger().error("Error while setting command attachment", e);
                 }
                 openMenu(parent);
+            } else {
+                player.sendMessage(miniMessage().deserialize(config().messages.attachmentCommandError));
             }
         });
     }

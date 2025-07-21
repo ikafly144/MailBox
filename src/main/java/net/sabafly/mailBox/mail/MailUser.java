@@ -7,7 +7,7 @@ import java.util.UUID;
 public record MailUser(@NotNull UUID uuid) {
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return uuid.toString();
     }
 }

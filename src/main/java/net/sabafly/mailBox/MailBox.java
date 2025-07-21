@@ -1,9 +1,6 @@
 package net.sabafly.mailBox;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.google.gson.Gson;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.ServerBuildInfo;
 import lombok.Getter;
 import net.sabafly.mailBox.commands.MailCommands;
@@ -28,7 +25,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-@SuppressWarnings("UnstableApiUsage")
 public final class MailBox extends JavaPlugin implements Listener {
 
     private ConfigLoader config;
@@ -47,15 +43,11 @@ public final class MailBox extends JavaPlugin implements Listener {
     @Override
     public void onLoad() {
         logger = getSLF4JLogger();
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().load();
         menuManager = new MenuManager(this);
-        PacketEvents.getAPI().getEventManager().registerListener(menuManager, PacketListenerPriority.NORMAL);
     }
 
     @Override
     public void onEnable() {
-        PacketEvents.getAPI().init();
         threadedQueue = new ThreadedQueue<>("MailBox-Worker-Thread");
 
         config = new ConfigLoader(getDataPath());
@@ -81,7 +73,6 @@ public final class MailBox extends JavaPlugin implements Listener {
     public void onDisable() {
         scheduleManager.stop();
         this.database.close();
-        PacketEvents.getAPI().terminate();
         threadedQueue.stop();
     }
 

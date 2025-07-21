@@ -11,21 +11,17 @@ import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.WritableBookMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -38,7 +34,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
     @Nullable
     private String title = null;
     @Nullable
-    private ItemStack content = null;
+    private String content = null;
     @NotNull
     private List<@NotNull Attachment<?>> attachments = new ArrayList<>();
     private boolean created = false;
@@ -58,11 +54,8 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (getNextMenu() != null) return;
-        if (!created && content != null) {
-            player.getInventory().addItem(content).forEach((i, s) -> player.getWorld().dropItem(player.getLocation(), s));
-        }
         if (!created && !attachments.isEmpty()) {
             attachments.forEach(a -> a.cancel(player));
         }
@@ -80,24 +73,17 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
         ));
         clickRegistry.setItem(0, titleItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AnvilSetterMenu(this, player, miniMessage().deserialize(config().messages.inputMenuTitle), s -> title = s));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), s -> title = s));
             }
         });
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);
         contentItem.editMeta(meta -> meta.itemName(content == null ?
                 miniMessage().deserialize(config().messages.setContent) :
-                miniMessage().deserialize(config().messages.contentValue, TagResolver.builder().tag("title", Tag.inserting(content.effectiveName())).build())
+                miniMessage().deserialize(config().messages.contentInfo, TagResolver.builder().tag("length", Tag.inserting(Component.text(content.length()))).build())
         ));
         clickRegistry.setItem(1, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new BookMenu(this, player, content, item -> {
-                    content = item;
-                    if (item != null && item.getItemMeta() instanceof BookMeta bookMeta) {
-                        Optional.ofNullable(bookMeta.title())
-                                .map(plainText()::serialize)
-                                .ifPresent(t -> title = t);
-                    }
-                }));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setContent), str -> this.content = str, this.content, true, 2000));
             }
         });
         ItemStack attachmentItem = new ItemStack(Material.CHEST);
@@ -117,8 +103,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        String contentString = String.join("§", ((WritableBookMeta) content.getItemMeta()).getPages());
-                        MailTemplate template = MailTemplate.createNow(null, title, contentString, attachments);
+                        MailTemplate template = MailTemplate.createNow(null, title, content, attachments);
                         database().createMailTemplate(template);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateSuccess));
                     }));
@@ -140,8 +125,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        String contentString = String.join("§", ((WritableBookMeta) content.getItemMeta()).getPages());
-                        Mail mail = Mail.createNow(p, target, title, contentString, attachments);
+                        Mail mail = Mail.createNow(p, target, title, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
                     }));
@@ -151,52 +135,6 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
             });
         }
 
-    }
-
-    public static class BookMenu extends BaseMenu<BookMenu> {
-
-        private final CreateMailMenu menu;
-        private final Consumer<ItemStack> consumer;
-        private final ItemStack item;
-
-        public BookMenu(CreateMailMenu menu, Player player, @Nullable ItemStack item, Consumer<@Nullable ItemStack> consumer) {
-            super(player, InventoryType.DROPPER, miniMessage().deserialize(config().messages.bookMenuTitle), true);
-            this.menu = menu;
-            this.consumer = consumer;
-            this.item = item;
-        }
-
-        @Override
-        protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
-            ItemStack item = inventory.getTopInventory().getItem(4);
-            if (item == null || item.getType() == Material.WRITABLE_BOOK) {
-                consumer.accept(item);
-            } else if (item.getType() == Material.WRITTEN_BOOK) {
-                if (item.getAmount() > 1) {
-                    item.setAmount(item.getAmount() - 1);
-                    player.getInventory().addItem(item).forEach((i, s) -> player.getWorld().dropItem(player.getLocation(), s));
-                    item.setAmount(1);
-                }
-                consumer.accept(item);
-            } else if (this.item == null) {
-                player.getInventory().addItem(item).forEach((i, s) -> player.getWorld().dropItem(player.getLocation(), s));
-            }
-            setNextMenu(menu);
-        }
-
-        @Override
-        void setItems(@NotNull ClickRegistry clickRegistry) {
-            ItemStack glassPane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-            glassPane.editMeta(meta -> meta.setHideTooltip(true));
-            for (int i = 0; i < 9; i++) {
-                if (i == 4 && item != null) {
-                    clickRegistry.setItem(i, item);
-                } else if (i != 4) {
-                    clickRegistry.setItem(i, glassPane, (player1, clickType) -> {
-                    });
-                }
-            }
-        }
     }
 
     public static class AttachmentMenu extends BaseMenu<AttachmentMenu> {
@@ -223,7 +161,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
         }
 
         @Override
-        protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+        protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
             consumer.accept(attachments);
             setNextMenu(menu);
         }
@@ -294,7 +232,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                             attachments.remove(finalI).cancel(player1);
                             refresh();
                         } else if (clickType.isLeftClick() && isTemplate) {
-                            openMenu(new AnvilSetterMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {
+                            openMenu(new StringInputMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {
                                 try {
                                     final long seconds = Duration.of(s).seconds();
                                     if (seconds <= 0) {
@@ -305,7 +243,8 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
                                 } catch (Exception e) {
                                     MailBox.logger().error("Error while setting expiration", e);
                                 }
-                            }, attachments.get(finalI).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse("")));
+                            }, attachments.get(finalI).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(""),
+                                    false, 30));
                         }
                     });
                 }

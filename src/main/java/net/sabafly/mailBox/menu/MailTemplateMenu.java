@@ -5,7 +5,7 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.utils.DateUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -21,7 +21,6 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-@SuppressWarnings("UnstableApiUsage")
 public class MailTemplateMenu extends BaseMenu<MailTemplateMenu> {
 
     private int page;

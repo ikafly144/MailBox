@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class AttachmentVaultValueMenu extends AnvilSetterMenu {
+public class AttachmentVaultValueMenu extends StringInputMenu {
 
     public AttachmentVaultValueMenu(BaseMenu<?> parent, Player player, Consumer<VaultValueAttachment> consumer) {
         super(parent, player, miniMessage().deserialize(config().messages.attachmentAppendVault

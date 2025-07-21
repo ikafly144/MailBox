@@ -1,12 +1,12 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
     id("com.gradleup.shadow") version "9.0.0-beta8"
 }
 
 group = 'net.sabafly'
-version = '1.0.0-beta.4'
+version = '1.0.0-beta.5'
 
 repositories {
     mavenCentral()
@@ -26,13 +26,15 @@ dependencies {
     compileOnly("com.h2database:h2:2.3.232")
     compileOnly("com.mysql:mysql-connector-j:9.2.0")
     compileOnly("org.spongepowered:configurate-yaml:4.3.0-SNAPSHOT")
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
+        transitive = false
+    }
     implementation("com.zaxxer:HikariCP:6.2.1")
-    implementation("com.github.retrooper:packetevents-spigot:2.7.1-SNAPSHOT")
     implementation("commons-dbutils:commons-dbutils:1.8.1")
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
-    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
+    compileOnly('org.apache.commons:commons-lang3:3.18.0')
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
 }
 
 def targetJavaVersion = 21
@@ -67,21 +69,11 @@ shadowJar {
     archiveClassifier = ''
     archiveVersion = ""
 
-    dependencies {
-        exclude(dependency("org.slf4j:slf4j-api"))
-        exclude(dependency("net.kyori:adventure-api"))
-        exclude(dependency("net.kyori:adventure-key"))
-        exclude(dependency("net.kyori:adventure-nbt"))
-        exclude(dependency("net.kyori:examination-api"))
-    }
-
     exclude("plugin.yml")
 
     minimize()
     relocate("com.zaxxer.hikari", "net.sabafly.libs.com.zaxxer.hikari")
     relocate("org.apache.commons.dbutils", "net.sabafly.libs.org.apache.commons.dbutils")
-    relocate("com.github.retrooper.packetevents", "net.sabafly.libs.com.github.retrooper.packetevents")
-    relocate("io.github.retrooper.packetevents", "net.sabafly.libs.io.github.retrooper.packetevents")
 }
 
 build {
@@ -92,10 +84,10 @@ tasks {
     runServer {
         //noinspection GroovyMissingReturnStatement
         downloadPlugins {
-            url("https://download.luckperms.net/1573/bukkit/loader/LuckPerms-Bukkit-5.4.156.jar")
             github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
-            modrinth("emeraldbank", "1.0.0-beta.1")
+            modrinth("luckperms", "v5.5.0-bukkit")
+            modrinth("emeraldbank", "1.1.1")
         }
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.21.8")
     }
 }

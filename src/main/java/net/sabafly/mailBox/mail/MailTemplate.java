@@ -166,7 +166,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
 
     @Override
     public int compareTo(@NotNull MailTemplate o) {
-        return title.compareTo(o.title);
+        return id.compareTo(o.id);
     }
 
     public long intervalCount() {

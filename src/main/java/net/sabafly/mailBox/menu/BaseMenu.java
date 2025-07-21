@@ -133,14 +133,14 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
     }
 
     @ApiStatus.Internal
-    public void callClose(Player player, InventoryView inventory) {
+    public void callClose(@NotNull Player player,@Nullable InventoryView inventory) {
         if (refreshing) {
             return;
         }
         onClose(player, inventory);
     }
 
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
     }
 
     public final void onClick(@NotNull InventoryClickEvent event) {

@@ -1,12 +1,11 @@
 package net.sabafly.mailBox.menu;
 
-import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,8 +13,8 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,7 +51,7 @@ public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
     }
 
     @Override
-    protected void onClose(@NotNull Player player, @NotNull InventoryView inventory) {
+    protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (openPreviousMenu) {
             setNextMenu(new MailMenu(player));
         }
@@ -72,12 +71,7 @@ public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
         });
         clickRegistry.setItem(2, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new OpenBookMenu(p, Book.builder()
-                        .author(mail.getSender() == null ? miniMessage().deserialize(config().messages.systemName) : p.name())
-                        .pages(Arrays.stream(mail.getContent().split("§"))
-                                .map(plainText()::deserialize)
-                                .collect(Collectors.toUnmodifiableList())
-                        ).build()));
+                openMenu(new ContentMenu(p, mail.getTitle(), mail.getContent(), this));
             }
         });
         ItemStack glassPane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);

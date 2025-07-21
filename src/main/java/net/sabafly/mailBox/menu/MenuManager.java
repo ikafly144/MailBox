@@ -1,9 +1,5 @@
 package net.sabafly.mailBox.menu;
 
-import com.github.retrooper.packetevents.event.PacketListener;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientNameItem;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.Bukkit;
@@ -17,7 +13,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.concurrent.CompletableFuture;
 
-public class MenuManager implements Listener, PacketListener {
+public class MenuManager implements Listener {
 
     private final Plugin plugin;
 
@@ -82,23 +78,4 @@ public class MenuManager implements Listener, PacketListener {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.NAME_ITEM) {
-            return;
-        }
-        Player player = event.getPlayer();
-        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof BaseMenu.MenuHolder menu)) {
-            return;
-        }
-        var wrapper = new WrapperPlayClientNameItem(event);
-        if (!(menu.menu() instanceof SetResult<?> setResult)) {
-            return;
-        }
-        try {
-            ((SetResult<String>) setResult).setResult(wrapper.getItemName());
-        } catch (Exception ignored) {
-        }
-    }
 }
