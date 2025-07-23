@@ -35,16 +35,16 @@ public class MenuManager implements Listener {
             return;
         }
 
-        if (event.getClickedInventory().getHolder() instanceof BaseMenu.MenuHolder menu) {
+        if (event.getClickedInventory().getHolder() instanceof InventoryMenu.MenuHolder menu) {
             menu.menu().onClick(event);
-        } else if (startPlayer && event.getInventory().getHolder() instanceof BaseMenu.MenuHolder menu && !menu.menu().isMoveable()) {
+        } else if (startPlayer && event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder menu && !menu.menu().isMoveable()) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof BaseMenu.MenuHolder) {
+        if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder) {
             event.setCancelled(true);
         }
     }
@@ -54,19 +54,19 @@ public class MenuManager implements Listener {
         if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-        if (event.getInventory().getHolder() instanceof BaseMenu.MenuHolder menu) {
+        if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder menu) {
             if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
-                BaseMenu<?> m = menu.menu();
+                InventoryMenu<?> m = menu.menu();
                 while (m.getNextMenu() != null) {
                     m = m.getNextMenu();
-                    m.callClose(player, event.getView());
+                    m.callClose(player);
                 }
                 return;
             }
             CompletableFuture<Void> future = new CompletableFuture<>();
             MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
                 try {
-                    menu.menu().callClose(player, event.getView());
+                    menu.menu().callClose(player);
                 } catch (Exception e) {
                     future.completeExceptionally(e);
                     return;

@@ -20,10 +20,10 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
-public class StringInputMenu extends BaseMenu<StringInputMenu> {
+public class StringInputMenu extends DialogMenu implements Menu {
 
     @NotNull
-    private final BaseMenu<?> parent;
+    private final Menu parent;
     @NotNull
     private final Consumer<String> consumer;
     @NotNull
@@ -33,8 +33,8 @@ public class StringInputMenu extends BaseMenu<StringInputMenu> {
     private final boolean multiline;
     private final int maxLength;
 
-    public StringInputMenu(@NotNull BaseMenu<?> parent, Player player, @NotNull Component title, @NotNull final Consumer<String> consumer, @Nullable String defaultText, boolean multiline, int maxLength) {
-        super(player, 9, title);
+    public StringInputMenu(@NotNull InventoryMenu<?> parent, Player player, @NotNull Component title, @NotNull final Consumer<String> consumer, @Nullable String defaultText, boolean multiline, int maxLength) {
+        super(player);
         this.parent = parent;
         this.consumer = consumer;
         this.title = title;
@@ -43,13 +43,13 @@ public class StringInputMenu extends BaseMenu<StringInputMenu> {
         this.maxLength = maxLength;
     }
 
-    public StringInputMenu(@NotNull BaseMenu<?> parent, Player player, @NotNull Component title, @NotNull final Consumer<String> consumer) {
+    public StringInputMenu(@NotNull InventoryMenu<?> parent, Player player, @NotNull Component title, @NotNull final Consumer<String> consumer) {
         this(parent, player, title, consumer, "", false, 100);
     }
 
     @Override
     public void open() {
-        parent.callClose(player, player.getOpenInventory());
+        parent.callClose(player);
         this.player.showDialog(Dialog.create(builder -> builder.empty()
                 .base(DialogBase.builder(title)
                         .inputs(List.of(
@@ -94,9 +94,5 @@ public class StringInputMenu extends BaseMenu<StringInputMenu> {
                         1
                 ))));
 
-    }
-
-    @Override
-    void setItems(@NotNull ClickRegistry clickRegistry) {
     }
 }

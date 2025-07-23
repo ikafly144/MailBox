@@ -21,7 +21,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class MailTemplateMenu extends BaseMenu<MailTemplateMenu> {
+public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
 
     private int page;
 

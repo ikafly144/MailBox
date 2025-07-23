@@ -25,7 +25,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class MailViewerMenu extends BaseMenu<MailViewerMenu> {
+public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private final Mail mail;
     private final boolean openPreviousMenu;

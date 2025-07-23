@@ -26,7 +26,7 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class MailTemplateEditMenu extends BaseMenu<MailTemplateEditMenu> {
+public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
 
     private final MailTemplate template;
 

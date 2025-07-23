@@ -29,7 +29,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
+public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
     @Nullable
     private String title = null;
@@ -41,9 +41,9 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
     @Nullable
     private final OfflinePlayer target;
     @Nullable
-    private BaseMenu<?> nextMenu = null;
+    private InventoryMenu<?> nextMenu = null;
 
-    public CreateMailMenu(@NotNull Player player, @Nullable BaseMenu<?> nextMenu) {
+    public CreateMailMenu(@NotNull Player player, @Nullable InventoryMenu<?> nextMenu) {
         this(player, (OfflinePlayer) null);
         this.nextMenu = nextMenu;
     }
@@ -137,7 +137,7 @@ public class CreateMailMenu extends BaseMenu<CreateMailMenu> {
 
     }
 
-    public static class AttachmentMenu extends BaseMenu<AttachmentMenu> {
+    public static class AttachmentMenu extends InventoryMenu<AttachmentMenu> {
 
         private final CreateMailMenu menu;
         private final Consumer<List<@NotNull Attachment<?>>> consumer;

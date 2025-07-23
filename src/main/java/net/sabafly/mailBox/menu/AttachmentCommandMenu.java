@@ -22,7 +22,7 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class AttachmentCommandMenu extends BaseMenu<AttachmentCommandMenu> {
+public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> {
 
     private final CreateMailMenu.AttachmentMenu parent;
     private final Consumer<CommandAttachment> consumer;

@@ -15,13 +15,13 @@ import java.util.function.Consumer;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class ItemSetterMenu extends BaseMenu<ItemSetterMenu> {
+public class ItemSetterMenu extends InventoryMenu<ItemSetterMenu> {
 
-    private final BaseMenu<?> parent;
+    private final InventoryMenu<?> parent;
     private final Consumer<ItemStack> consumer;
     private final ItemStack def;
 
-    public ItemSetterMenu(BaseMenu<?> parent, Player player, Consumer<ItemStack> consumer, @Nullable ItemStack def) {
+    public ItemSetterMenu(InventoryMenu<?> parent, Player player, Consumer<ItemStack> consumer, @Nullable ItemStack def) {
         super(player, InventoryType.DROPPER, miniMessage().deserialize(config().messages.attachmentAppendItem), true);
         this.parent = parent;
         this.consumer = consumer;

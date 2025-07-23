@@ -12,7 +12,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,53 +21,52 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public abstract class BaseMenu<T extends BaseMenu<T>> {
+public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMenu implements Menu {
 
-    protected final Player player;
     private final Function<T, Inventory> inventorySupplier;
     private @NotNull Inventory inventory;
     private final ClickRegistry clickRegistry = new ClickRegistry(this);
     @Getter
-    private @Nullable BaseMenu<?> nextMenu;
+    private @Nullable InventoryMenu<?> nextMenu;
     @Getter
     private final boolean moveable;
     private final @NotNull Function<@NotNull T, @NotNull Component> title;
 
-    public BaseMenu(Player player, int size, Component title) {
+    public InventoryMenu(Player player, int size, Component title) {
         this(player, size, title, false);
     }
 
-    public BaseMenu(Player player, int size, Component title, boolean moveable) {
+    public InventoryMenu(Player player, int size, Component title, boolean moveable) {
         this(player, size, menu -> title, moveable);
     }
 
-    public BaseMenu(Player player, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
+    public InventoryMenu(Player player, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
         this(player, i, title, false);
     }
 
-    public BaseMenu(Player player, int size, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+    public InventoryMenu(Player player, int size, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
         this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), size, title.apply(menu)), title, moveable);
     }
 
-    public BaseMenu(Player player, InventoryType type, Component title) {
+    public InventoryMenu(Player player, InventoryType type, Component title) {
         this(player, type, title, false);
     }
 
-    public BaseMenu(Player player, InventoryType type, Component title, boolean moveable) {
+    public InventoryMenu(Player player, InventoryType type, Component title, boolean moveable) {
         this(player, type, menu -> title, moveable);
     }
 
-    public BaseMenu(Player player, InventoryType type, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+    public InventoryMenu(Player player, InventoryType type, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
         this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), type, title.apply(menu)), title, moveable);
     }
 
-    private BaseMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+    private InventoryMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
         this(player, inventory, title, moveable, null);
     }
 
     @SuppressWarnings("unchecked")
-    private BaseMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable, @Nullable BaseMenu<?> nextMenu) {
-        this.player = player;
+    private InventoryMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable, @Nullable InventoryMenu<?> nextMenu) {
+        super(player);
         this.inventorySupplier = inventory;
         this.moveable = moveable;
         this.title = title;
@@ -109,12 +107,13 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
 
     abstract void setItems(@NotNull ClickRegistry clickRegistry);
 
-    protected final void openMenu(@NotNull BaseMenu<?> menu) {
-        setNextMenu(menu);
+    @Override
+    protected final void openMenu(@NotNull Menu menu) {
+        if (menu instanceof InventoryMenu<?> inv) setNextMenu(inv);
         player.closeInventory();
     }
 
-    protected final void setNextMenu(@NotNull BaseMenu<?> menu) {
+    protected final void setNextMenu(@NotNull InventoryMenu<?> menu) {
         if (nextMenu != null) {
             return;
         }
@@ -132,12 +131,12 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
         }
     }
 
-    @ApiStatus.Internal
-    public void callClose(@NotNull Player player,@Nullable InventoryView inventory) {
+    @Override
+    public void callClose(@NotNull Player player) {
         if (refreshing) {
             return;
         }
-        onClose(player, inventory);
+        onClose(player, player.getOpenInventory());
     }
 
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
@@ -182,10 +181,10 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
     }
 
     protected static class ClickRegistry {
-        private final BaseMenu<?> menu;
+        private final InventoryMenu<?> menu;
         private final Map<Integer, BiConsumer<@NotNull Player, @NotNull ClickType>> clickMap = new HashMap<>();
 
-        public ClickRegistry(BaseMenu<?> menu) {
+        public ClickRegistry(InventoryMenu<?> menu) {
             this.menu = menu;
         }
 
@@ -195,7 +194,7 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
 
         public void setItem(int slot, ItemStack item, BiConsumer<@NotNull Player, @NotNull ClickType> onClick) {
             menu.inventory.setItem(slot, item);
-            clickMap.put(slot, onClick);
+            register(slot, onClick);
         }
 
         public void setItem(int slot, @NotNull ItemStack item) {
@@ -213,9 +212,9 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
 
     public static class MenuHolder implements InventoryHolder {
 
-        private final BaseMenu<?> menu;
+        private final InventoryMenu<?> menu;
 
-        private MenuHolder(BaseMenu<?> menu) {
+        private MenuHolder(InventoryMenu<?> menu) {
             this.menu = menu;
         }
 
@@ -224,7 +223,7 @@ public abstract class BaseMenu<T extends BaseMenu<T>> {
             return menu.inventory;
         }
 
-        public BaseMenu<?> menu() {
+        public InventoryMenu<?> menu() {
             return menu;
         }
 
