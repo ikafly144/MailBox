@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -431,7 +432,10 @@ public abstract class Base implements Database {
     @Override
     public void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, item_type, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize());
+//            runner.execute(conn, "INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, item_type, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize());
+            runner.execute(conn, """
+                    INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, item_type, data, receive_time, expire_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize(), attachment.getReceivedTime().map(Timestamp::valueOf).orElse(null), attachment.expireDuration().map(Duration::getSeconds).orElse(0L));
         } catch (SQLException e) {
             e.printStackTrace();
         }

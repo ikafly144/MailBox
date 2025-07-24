@@ -5,7 +5,6 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,6 +14,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -96,7 +97,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
             clickRegistry.setItem(start + count + i, mail.attachments().get(i).getPreview(attachment -> {
                 List<Component> lore = config().messages.attachmentLore
                         .replace("{received}", attachment.opened() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
-                        .replace("{expires}", attachment.expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.expiresNever))
+                        .replace("{expires}", attachment.expireDuration().map(d -> LocalDateTime.now().plus(d).format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(config().messages.expiresNever))
                         .transform(s -> Stream.of(s.split("\n")))
                         .filter(str -> !str.isBlank()).map(miniMessage()::deserialize).collect(Collectors.toList());
                 lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));

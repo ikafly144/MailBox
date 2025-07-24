@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 
-@SuppressWarnings("UnstableApiUsage")
 public abstract class BaseAttachment<T extends BaseAttachment<T>> implements Attachment<T> {
 
     @NotNull
