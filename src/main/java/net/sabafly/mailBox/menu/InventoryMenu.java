@@ -27,7 +27,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     private @NotNull Inventory inventory;
     private final ClickRegistry clickRegistry = new ClickRegistry(this);
     @Getter
-    private @Nullable InventoryMenu<?> nextMenu;
+    private @Nullable Menu nextMenu;
     @Getter
     private final boolean moveable;
     private final @NotNull Function<@NotNull T, @NotNull Component> title;
@@ -109,11 +109,11 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
 
     @Override
     protected final void openMenu(@NotNull Menu menu) {
-        if (menu instanceof InventoryMenu<?> inv) setNextMenu(inv);
+        setNextMenu(menu);
         player.closeInventory();
     }
 
-    protected final void setNextMenu(@NotNull InventoryMenu<?> menu) {
+    protected final void setNextMenu(@NotNull Menu menu) {
         if (nextMenu != null) {
             return;
         }
@@ -137,6 +137,13 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
             return;
         }
         onClose(player, player.getOpenInventory());
+    }
+
+    public void callClose(@NotNull Player player, @Nullable InventoryView inventory) {
+        if (refreshing) {
+            return;
+        }
+        onClose(player, inventory);
     }
 
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {

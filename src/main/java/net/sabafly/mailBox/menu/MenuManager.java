@@ -54,26 +54,28 @@ public class MenuManager implements Listener {
         if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-        if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder menu) {
+        if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder holder) {
             if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
-                InventoryMenu<?> m = menu.menu();
-                while (m.getNextMenu() != null) {
-                    m = m.getNextMenu();
-                    m.callClose(player);
+                Menu m = holder.menu();
+                while ((m instanceof InventoryMenu<?> inv) && inv.getNextMenu() != null) {
+                    inv.callClose(player, event.getView());
+                    m = inv.getNextMenu();
                 }
+                m.callClose(player);
                 return;
             }
             CompletableFuture<Void> future = new CompletableFuture<>();
             MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
                 try {
-                    menu.menu().callClose(player);
+                    holder.menu().callClose(player, event.getView());
                 } catch (Exception e) {
                     future.completeExceptionally(e);
+                    MailBox.logger().error("Error while closing menu", e);
                     return;
                 }
                 future.complete(null);
             }));
-            future.thenRun(menu.menu()::onCloseComplete);
+            future.thenRun(holder.menu()::onCloseComplete);
             Bukkit.getAsyncScheduler().runNow(plugin, t -> future.join());
         }
     }

@@ -9,6 +9,7 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -202,6 +203,8 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentVaultValueMenu(this, p, attachment -> {
+                            if (!isTemplate && !EconomyUtils.getEconomy().withdrawPlayer(player, attachment.value()).transactionSuccess())
+                                return;
                             if (attachment != null) {
                                 addAttachment(attachment);
                             }
@@ -229,7 +232,8 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
                     clickRegistry.setItem(i + 18, attachments.get(i).getPreview(attachment -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
-                            attachments.remove(finalI).cancel(player1);
+                            var a = attachments.remove(finalI);
+                            if (!isTemplate || !(a instanceof VaultValueAttachment)) a.cancel(player1);
                             refresh();
                         } else if (clickType.isLeftClick() && isTemplate) {
                             openMenu(new StringInputMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {
@@ -243,7 +247,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                                 } catch (Exception e) {
                                     MailBox.logger().error("Error while setting expiration", e);
                                 }
-                            }, attachments.get(finalI).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(""),
+                            }, attachments.get(finalI).expireDuration().map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
                                     false, 30));
                         }
                     });

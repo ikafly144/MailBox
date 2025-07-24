@@ -56,8 +56,8 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                 DialogInput.text("text", title)
                                         .initial(defaultText)
                                         .multiline(TextDialogInput.MultilineOptions.create(
-                                                multiline ? 30 : 1,
-                                                multiline ? 72 : null
+                                                null,
+                                                multiline ? 72 : 20
                                         ))
                                         .maxLength(maxLength)
                                         .labelVisible(false)
@@ -69,7 +69,12 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                 .action(DialogAction.customClick(
                                         (response, audience) -> {
                                             String text = response.getText("text");
-                                            if (text != null && !text.isBlank()) {
+                                            if (text == null) {
+                                                text = "";
+                                            }
+                                            if (!multiline) text = text.replaceAll("\n", "");
+                                            text = text.trim();
+                                            if (!text.isBlank()) {
                                                 try {
                                                     consumer.accept(text);
                                                 } catch (Exception e) {

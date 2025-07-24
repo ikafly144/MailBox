@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -69,11 +68,8 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
         return new VaultValueAttachment(received ? LocalDateTime.now() : null, config().mail.getExpirationTime(), value);
     }
 
-    public static @NotNull Optional<VaultValueAttachment> createNew(double value, @NotNull Player player, @Nullable Duration expireTime) {
-        if (!EconomyUtils.getEconomy().withdrawPlayer(player, value).transactionSuccess()) {
-            return Optional.empty();
-        }
-        return Optional.of(new VaultValueAttachment(null, expireTime, value));
+    public static @NotNull VaultValueAttachment createNew(double value,  @Nullable Duration expireTime) {
+        return new VaultValueAttachment(null, expireTime, value);
     }
 
 }
