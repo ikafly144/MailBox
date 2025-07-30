@@ -62,6 +62,7 @@ public class Mail implements Comparable<Mail> {
         this.title = title;
         this.content = content;
         this.attachments = new ArrayList<>(attachments);
+        this.attachments.forEach(attachment -> attachment.setReceivedTime(sentTime));
         this.read = read;
         this.sentTime = sentTime;
     }

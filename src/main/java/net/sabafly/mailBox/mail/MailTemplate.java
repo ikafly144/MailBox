@@ -154,13 +154,13 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     public @NotNull Mail createMail(@NotNull MailUser user) {
         List<Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
         String title = this.title
-                .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
-                .replace("{interval}", (intervalCount() + 1) + "")
-                .replace("{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
+                .replaceAll("\\{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replaceAll("\\{interval}", (intervalCount() + 1) + "")
+                .replaceAll("\\{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
         String content = this.content
-                .replace("{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
-                .replace("{interval}", (intervalCount() + 1) + "")
-                .replace("{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
+                .replaceAll("\\{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replaceAll("\\{interval}", (intervalCount() + 1) + "")
+                .replaceAll("\\{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
         return Mail.createNow(sender, user, title, content, newAttachments);
     }
 

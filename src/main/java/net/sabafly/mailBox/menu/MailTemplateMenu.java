@@ -79,12 +79,12 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             meta.lore(config().messages.mailTemplateLore
-                    .replace("{sender}", Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                    .replace("{start}", Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue))
-                    .replace("{end}", Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue))
-                    .replace("{interval}", Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue))
-                    .replace("{attachments}", mail.attachment().size() + "")
-                    .replace("{auto_send}", mail.autoSend() ? config().messages.enabled : config().messages.disabled)
+                   .replaceAll("\\{sender}", Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
+                   .replaceAll("\\{start}", Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue))
+                   .replaceAll("\\{end}", Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue))
+                   .replaceAll("\\{interval}", Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue))
+                   .replaceAll("\\{attachments}", mail.attachment().size() + "")
+                   .replaceAll("\\{auto_send}", mail.autoSend() ? config().messages.enabled : config().messages.disabled)
                     .transform(s -> List.of(s.split("\n")))
                     .stream().filter(s -> !s.isBlank()).map(miniMessage()::deserialize).toList());
         });

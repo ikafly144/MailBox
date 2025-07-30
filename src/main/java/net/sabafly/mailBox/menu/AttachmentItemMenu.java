@@ -36,7 +36,7 @@ public class AttachmentItemMenu extends InventoryMenu<AttachmentItemMenu> {
         }
         try {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
-                    .map(item -> new ItemAttachment(item, false, null, Duration.ofSeconds(0)))
+                    .map(item -> new ItemAttachment(item, false, null, Duration.ZERO))
                     .ifPresent(consumer);
         } catch (Exception e) {
             MailBox.logger().error("Error while setting item attachment", e);

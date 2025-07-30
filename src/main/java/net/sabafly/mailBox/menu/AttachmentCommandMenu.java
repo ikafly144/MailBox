@@ -1,7 +1,5 @@
 package net.sabafly.mailBox.menu;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -14,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -60,7 +59,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
         display.editMeta(meta -> {
             meta.itemName(miniMessage().deserialize(config().messages.displayItem));
             meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
-                    .replace("{action}", config().messages.clickActionSet))));
+                    .replaceAll("\\{action}", config().messages.clickActionSet))));
         });
         clickRegistry.setItem(5, display, (player, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -71,7 +70,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
         limeWool.editMeta(meta -> {
             meta.itemName(miniMessage().deserialize(config().messages.append));
             meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
-                    .replace("{action}", config().messages.clickActionCreate))));
+                    .replaceAll("\\{action}", config().messages.clickActionCreate))));
         });
         clickRegistry.setItem(8, limeWool, (player, clickType) -> {
             if (clickType.isLeftClick() && name != null && command != null && displayItem != null) {
@@ -79,9 +78,9 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
                     consumer.accept(new CommandAttachment(
                             name,
                             false,
-                            RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(displayItem.getType().key()),
+                            displayItem,
                             null,
-                            config().mail.getExpirationTime(),
+                            Duration.ZERO,
                             command
                     ));
                 } catch (Exception e) {
@@ -100,7 +99,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
             meta.itemName(miniMessage().deserialize(config().messages.setCommand));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo
-                            .replace("{action}", config().messages.clickActionSet)),
+                            .replaceAll("\\{action}", config().messages.clickActionSet)),
                     miniMessage().deserialize(config().messages.commandValue,
                             TagResolver.builder()
                                     .tag("command", Tag.inserting(Optional.ofNullable(command)
@@ -118,7 +117,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
             meta.itemName(miniMessage().deserialize(config().messages.setName));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo
-                            .replace("{action}", config().messages.clickActionSet)),
+                            .replaceAll("\\{action}", config().messages.clickActionSet)),
                     miniMessage().deserialize(config().messages.nameValue,
                             TagResolver.builder()
                                     .tag("name", Tag.inserting(Optional.ofNullable(name)

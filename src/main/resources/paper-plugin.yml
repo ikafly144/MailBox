@@ -2,7 +2,8 @@ name: MailBox
 version: '${version}'
 main: net.sabafly.mailBox.MailBox
 api-version: '1.21'
-authors: [ ikafly ]
+authors: [ ikafly144 ]
+website: https://github.com/ikafly144/MailBox
 loader: net.sabafly.mailBox.Loader
 dependencies:
   server:

@@ -2,7 +2,7 @@ package net.sabafly.mailBox.mail.attachments;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemType;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,29 +13,23 @@ import java.util.UUID;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-@SuppressWarnings("UnstableApiUsage")
 public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     private final String command;
 
-    public CommandAttachment(@NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
-        super(name, Type.COMMAND, received, itemType, receivedTime, expireDuration);
+    public CommandAttachment(@NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
+        super(name, Type.COMMAND, opened, previewItem, receivedTime, expireDuration);
         this.command = command;
     }
 
-    public CommandAttachment(@NotNull UUID id, @NotNull String name, boolean received, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
-        super(id, name, Type.COMMAND, received, itemType, receivedTime, expireDuration);
+    public CommandAttachment(@NotNull UUID id, @NotNull String name, boolean received, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
+        super(id, name, Type.COMMAND, received, previewItem, receivedTime, expireDuration);
         this.command = command;
-    }
-
-    @Override
-    protected @NotNull ItemType defaultPreviewType() {
-        return ItemType.COMMAND_BLOCK;
     }
 
     @Override
     public void apply(@NotNull Player player) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{player}", player.getName()));
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player}", player.getName()));
     }
 
     @Override
@@ -47,12 +41,12 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
         return command.getBytes();
     }
 
-    public static @NotNull CommandAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @Nullable ItemType itemType, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
-        return new CommandAttachment(id, name, received, itemType, receivedTime, expireDuration, new String(data));
+    public static @NotNull CommandAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
+        return new CommandAttachment(id, name, received, previewItem, receivedTime, expireDuration, new String(data));
     }
 
     @Override
-    public @NotNull CommandAttachment create(boolean received) {
-        return new CommandAttachment(miniMessage().serialize(getName()), received, getPreviewType(), null, config().mail.getExpirationTime(), command);
+    public @NotNull CommandAttachment create(boolean opened) {
+        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), config().mail.getExpirationTime(), command);
     }
 }

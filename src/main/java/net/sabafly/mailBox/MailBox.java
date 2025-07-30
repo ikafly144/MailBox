@@ -71,9 +71,9 @@ public final class MailBox extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        scheduleManager.stop();
-        this.database.close();
-        threadedQueue.stop();
+        if (scheduleManager != null) scheduleManager.stop();
+        if (database != null) database.close();
+        if (threadedQueue != null) threadedQueue.stop();
     }
 
     public static MailBox getInstance() {

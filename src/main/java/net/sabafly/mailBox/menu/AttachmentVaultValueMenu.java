@@ -15,7 +15,7 @@ public class AttachmentVaultValueMenu extends StringInputMenu {
 
     public AttachmentVaultValueMenu(InventoryMenu<?> parent, Player player, Consumer<VaultValueAttachment> consumer) {
         super(parent, player, miniMessage().deserialize(config().messages.attachmentAppendVault
-                .replace("{currency}", EconomyUtils.getEconomy().currencyNamePlural())
+               .replaceAll("\\{currency}", EconomyUtils.getEconomy().currencyNamePlural())
         ), value -> {
             try {
                 consumer.accept(VaultValueAttachment.createNew(Double.parseDouble(value), config().mail.expirationTime.value()

@@ -91,10 +91,10 @@ public class MailMenu extends InventoryMenu<MailMenu> {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             List<Component> lore = config().messages.mailMenuMailLore
-                    .replace("{sender}", Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                    .replace("{time}", DateUtils.format(mail.getSentTime()))
-                    .replace("{attachments}", mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened()).count() + ")")
-                    .replace("{read}", mail.isRead() ? config().messages.read : config().messages.unread)
+                   .replaceAll("\\{sender}", Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
+                   .replaceAll("\\{time}", DateUtils.format(mail.getSentTime()))
+                   .replaceAll("\\{attachments}", mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened()).count() + ")")
+                   .replaceAll("\\{read}", mail.isRead() ? config().messages.read : config().messages.unread)
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)
                     .collect(Collectors.toCollection(ArrayList::new));

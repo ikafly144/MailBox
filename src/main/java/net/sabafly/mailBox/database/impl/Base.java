@@ -1,8 +1,5 @@
 package net.sabafly.mailBox.database.impl;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.mail.Attachment;
@@ -11,8 +8,8 @@ import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.MailUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Keyed;
-import org.bukkit.inventory.ItemType;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,9 +22,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
-import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-
-@SuppressWarnings({"FieldCanBeLocal", "CallToPrintStackTrace", "UnstableApiUsage"})
+@SuppressWarnings({"FieldCanBeLocal", "CallToPrintStackTrace"})
 public abstract class Base implements Database {
 
     private QueryRunner runner;
@@ -57,7 +52,7 @@ public abstract class Base implements Database {
                 type VARCHAR(255) NOT NULL,
                 name TEXT NOT NULL,
                 received BOOLEAN NOT NULL,
-                item_type TEXT,
+                preview_item LONGBLOB DEFAULT NULL,
                 data LONGBLOB NOT NULL,
                 receive_time TIMESTAMP,
                 expire_duration BIGINT,
@@ -86,7 +81,7 @@ public abstract class Base implements Database {
                 type VARCHAR(255) NOT NULL,
                 name TEXT NOT NULL,
                 received BOOLEAN NOT NULL,
-                item_type TEXT,
+                preview_item LONGBLOB DEFAULT NULL,
                 data LONGBLOB NOT NULL,
                 expire_duration BIGINT,
                 PRIMARY KEY (id)
@@ -131,9 +126,29 @@ public abstract class Base implements Database {
         reload();
     }
 
+    @SuppressWarnings("PrimitiveArrayArgumentToVarargsMethod")
     @Override
     public void reload() {
         try (Connection conn = getConnection()) {
+            var fallbackPreview = ItemStack.of(Material.STONE).serializeAsBytes();
+            runner.execute(conn, """
+                    ALTER TABLE mailbox_mail_attachments ADD COLUMN IF NOT EXISTS preview_item LONGBLOB DEFAULT NULL
+                    """);
+            runner.execute(conn, """
+                    ALTER TABLE mailbox_mail_attachments DROP COLUMN IF EXISTS item_type
+                    """);
+            runner.execute(conn, """
+                    UPDATE mailbox_mail_attachments SET preview_item = ? WHERE preview_item IS NULL
+                    """, fallbackPreview);
+            runner.execute(conn, """
+                    ALTER TABLE mailbox_template_attachments ADD COLUMN IF NOT EXISTS preview_item LONGBLOB DEFAULT NULL
+                    """);
+            runner.execute(conn, """
+                    ALTER TABLE mailbox_template_attachments DROP COLUMN IF EXISTS item_type
+                    """);
+            runner.execute(conn, """
+                    UPDATE mailbox_template_attachments SET preview_item = ? WHERE preview_item IS NULL
+                    """, fallbackPreview);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -432,10 +447,9 @@ public abstract class Base implements Database {
     @Override
     public void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-//            runner.execute(conn, "INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, item_type, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize());
             runner.execute(conn, """
-                    INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, item_type, data, receive_time, expire_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize(), attachment.getReceivedTime().map(Timestamp::valueOf).orElse(null), attachment.expireDuration().map(Duration::getSeconds).orElse(0L));
+                    INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, preview_item, data, receive_time, expire_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), Optional.ofNullable(attachment.getReceivedTime()).map(Timestamp::valueOf).orElse(null), attachment.expireDuration().map(Duration::getSeconds).orElse(0L));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -462,7 +476,7 @@ public abstract class Base implements Database {
     @Override
     public void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, item_type = ?, data = ? WHERE id = ?", attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize(), attachment.getId().toString());
+            runner.execute(conn, "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.getId().toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -478,12 +492,11 @@ public abstract class Base implements Database {
                     Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
-                    @SuppressWarnings("PatternValidation")
-                    ItemType itemType = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).get(Key.key(rs.getString("item_type")));
+                    ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     LocalDateTime receivedTime = Optional.ofNullable(rs.getTimestamp("receive_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    attachments.add(Attachment.deserialize(type, id, name, received, data, itemType, receivedTime, expireDuration));
+                    attachments.add(Attachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration));
                 }
                 return attachments;
             }, mail.getId().toString());
@@ -501,12 +514,11 @@ public abstract class Base implements Database {
                     Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
-                    @SuppressWarnings("PatternValidation")
-                    ItemType itemType = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).get(Key.key(rs.getString("item_type")));
+                    ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     LocalDateTime receivedTime = Optional.ofNullable(rs.getTimestamp("receive_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    return Attachment.deserialize(type, id, name, received, data, itemType, receivedTime, expireDuration);
+                    return Attachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration);
                 }
                 return null;
             }, id.toString()));
@@ -519,7 +531,7 @@ public abstract class Base implements Database {
     @Override
     public void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, item_type, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize());
+            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -546,7 +558,7 @@ public abstract class Base implements Database {
     @Override
     public void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, item_type = ?, data = ? WHERE id = ?", attachment.getType().name(), miniMessage().serialize(attachment.getName()), attachment.opened(), Optional.ofNullable(attachment.getPreviewType()).map(Keyed::key).map(Key::asMinimalString).orElse(null), attachment.serialize(), attachment.getId().toString());
+            runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.getId().toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -562,11 +574,10 @@ public abstract class Base implements Database {
                     Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
-                    @SuppressWarnings("PatternValidation")
-                    ItemType itemType = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).get(Key.key(rs.getString("item_type")));
+                    ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    attachments.add(Attachment.deserialize(type, id, name, received, data, itemType, null, expireDuration));
+                    attachments.add(Attachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration));
                 }
                 return attachments;
             }, template.id().toString());
@@ -584,11 +595,10 @@ public abstract class Base implements Database {
                     Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
-                    @SuppressWarnings("PatternValidation")
-                    ItemType itemType = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).get(Key.key(rs.getString("item_type")));
+                    ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    return Attachment.deserialize(type, id, name, received, data, itemType, null, expireDuration);
+                    return Attachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration);
                 }
                 return null;
             }, id.toString()));

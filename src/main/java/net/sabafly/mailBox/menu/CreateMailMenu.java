@@ -198,7 +198,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             if (player.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
                 ItemStack emerald = new ItemStack(Material.PAPER);
                 emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
-                        .replace("{currency}", EconomyUtils.getEconomy().currencyNamePlural())
+                       .replaceAll("\\{currency}", EconomyUtils.getEconomy().currencyNamePlural())
                 )));
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
@@ -230,7 +230,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         lore.add(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSetExpiration)));
                     }
                     lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
-                    clickRegistry.setItem(i + 18, attachments.get(i).getPreview(attachment -> lore), (player1, clickType) -> {
+                    clickRegistry.setItem(i + 18, attachments.get(i).createPreview(attachment -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
                             var a = attachments.remove(finalI);
                             if (!isTemplate || !(a instanceof VaultValueAttachment)) a.cancel(player1);

@@ -14,7 +14,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -94,10 +93,10 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         }
         for (int i = 0; i < mail.attachments().size(); i++) {
             int finalI = i;
-            clickRegistry.setItem(start + count + i, mail.attachments().get(i).getPreview(attachment -> {
+            clickRegistry.setItem(start + count + i, mail.attachments().get(i).createPreview(attachment -> {
                 List<Component> lore = config().messages.attachmentLore
-                        .replace("{received}", attachment.opened() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
-                        .replace("{expires}", attachment.expireDuration().map(d -> LocalDateTime.now().plus(d).format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(config().messages.expiresNever))
+                        .replaceAll("\\{received}", attachment.opened() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
+                        .replaceAll("\\{expires}", attachment.expireTime().map(t -> t.format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(config().messages.expiresNever))
                         .transform(s -> Stream.of(s.split("\n")))
                         .filter(str -> !str.isBlank()).map(miniMessage()::deserialize).collect(Collectors.toList());
                 lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
@@ -125,7 +124,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
             }
         });
         senderItem.editMeta(meta ->
-                meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(plainText().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
+                meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
         return senderItem;
     }
 }
