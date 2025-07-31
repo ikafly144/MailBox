@@ -16,10 +16,6 @@ public class Loader implements PluginLoader {
     public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
         List<String> dependencies = List.of(
-                "net.kyori:adventure-api:4.18.0",
-                "net.kyori:adventure-key:4.18.0",
-                "net.kyori:adventure-nbt:4.18.0",
-                "net.kyori:examination-api:1.3.0",
                 "com.h2database:h2:2.3.232",
                 "com.mysql:mysql-connector-j:9.2.0"
         );
