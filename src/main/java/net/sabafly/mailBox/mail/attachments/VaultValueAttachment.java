@@ -64,8 +64,8 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
         return new VaultValueAttachment(LocalDateTime.now(), config().mail.getExpirationTime(), value);
     }
 
-    public static @NotNull VaultValueAttachment createNew(double value,  @Nullable Duration expireTime) {
-        return new VaultValueAttachment(null, expireTime, value);
+    public static @NotNull VaultValueAttachment createNew(double value) {
+        return new VaultValueAttachment(null, config().mail.getExpirationTime(), value);
     }
 
 }

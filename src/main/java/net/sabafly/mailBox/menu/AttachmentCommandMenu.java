@@ -55,7 +55,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setCommand), (s) -> command = s, command, false, 2000));
             }
         });
-        final ItemStack display = new ItemStack((displayItem == null ? Material.COMMAND_BLOCK : displayItem.getType()));
+        final ItemStack display = new ItemStack((displayItem == null ? Material.STRUCTURE_VOID : displayItem.getType()));
         display.editMeta(meta -> {
             meta.itemName(miniMessage().deserialize(config().messages.displayItem));
             meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo

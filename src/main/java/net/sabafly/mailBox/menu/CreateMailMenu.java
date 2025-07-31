@@ -74,7 +74,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         ));
         clickRegistry.setItem(0, titleItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), s -> title = s));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), s -> title = s, title, false, 50));
             }
         });
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);

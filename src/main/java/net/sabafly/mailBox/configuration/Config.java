@@ -5,6 +5,7 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -161,6 +162,7 @@ public class Config extends BaseConfig {
         public String submitButton = "Submit";
         public String emptyInputError = "<red>Input cannot be empty</red>";
         public String cancelButton = "Cancel";
+        public String refreshButton = "Refresh";
     }
 
 }

@@ -18,9 +18,7 @@ public class AttachmentVaultValueMenu extends StringInputMenu {
                .replaceAll("\\{currency}", EconomyUtils.getEconomy().currencyNamePlural())
         ), value -> {
             try {
-                consumer.accept(VaultValueAttachment.createNew(Double.parseDouble(value), config().mail.expirationTime.value()
-                                .map(d -> Duration.ofSeconds(d.seconds()))
-                                .orElse(null)));
+                consumer.accept(VaultValueAttachment.createNew(Double.parseDouble(value)));
             } catch (Exception e) {
                 MailBox.logger().error("Error while setting vault value attachment", e);
             }

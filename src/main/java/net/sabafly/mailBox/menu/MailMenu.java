@@ -14,6 +14,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -62,6 +63,13 @@ public class MailMenu extends InventoryMenu<MailMenu> {
                 }
             });
         }
+        ItemStack refreshItem = ItemStack.of(Material.WIND_CHARGE);
+        refreshItem.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.refreshButton)));
+        clickRegistry.setItem(4, refreshItem, (player, clickType) -> {
+            if (clickType.isLeftClick()) {
+                refresh();
+            }
+        });
         ItemStack glassPane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         glassPane.editMeta(meta -> meta.setHideTooltip(true));
         for (int i = 0; i < 9; i++) {
