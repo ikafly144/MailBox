@@ -27,7 +27,7 @@ import java.time.Duration;
 
 public final class MailBox extends JavaPlugin implements Listener {
 
-    private ConfigLoader config;
+    private final ConfigLoader config;
     private Database database;
     @Getter
     private static ThreadedQueue<Runnable> threadedQueue;
@@ -35,6 +35,10 @@ public final class MailBox extends JavaPlugin implements Listener {
     private MenuManager menuManager;
     private ScheduleManager scheduleManager;
     private boolean vaultEnabled;
+
+    public MailBox(ConfigLoader config) {
+        this.config = config;
+    }
 
     public static Logger logger() {
         return logger;
@@ -49,9 +53,6 @@ public final class MailBox extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         threadedQueue = new ThreadedQueue<>("MailBox-Worker-Thread");
-
-        config = new ConfigLoader(getDataPath());
-        config.reload();
 
         this.database = config.config().database.loadDatabase();
         this.database.setup();

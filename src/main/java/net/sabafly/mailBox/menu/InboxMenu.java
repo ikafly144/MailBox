@@ -14,7 +14,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,18 +27,18 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
-public class MailMenu extends InventoryMenu<MailMenu> {
+public class InboxMenu extends InventoryMenu<InboxMenu> {
 
     private int page;
 
-    public MailMenu(Player player) {
+    public InboxMenu(Player player) {
         this(player, 1);
     }
 
-    public MailMenu(Player player, int page) {
+    public InboxMenu(Player player, int page) {
         super(player, 45, menu -> {
             final MailUser user = database().getUser(player.getUniqueId());
-            return miniMessage().deserialize(config().messages.mailMenuTitle + " " + config().messages.page + " " + menu.page + "/" + (database().countMails(user, TriState.NOT_SET) / 27 + 1) + " " + config().messages.mails + " (" + database().countMails(user, TriState.NOT_SET) + "/" + config().mail.maxMailCount + ")");
+            return miniMessage().deserialize(config().messages.inboxMenuTitle + " " + config().messages.page + " " + menu.page + "/" + (database().countMails(user, TriState.NOT_SET) / 27 + 1) + " " + config().messages.mails + " (" + database().countMails(user, TriState.NOT_SET) + "/" + config().mail.maxMailCount + ")");
         });
         this.page = page;
     }

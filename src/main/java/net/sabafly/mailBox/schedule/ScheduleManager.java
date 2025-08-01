@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -47,7 +48,7 @@ public class ScheduleManager {
                     if (!Optional.ofNullable(template.permission()).map(p -> player.permissionValue(p) == TriState.TRUE).orElse(true))
                         continue;
                     long intervalCount = template.intervalCount();
-                    MailBox.getThreadedQueue().submit(() -> {
+                    Bukkit.getAsyncScheduler().runNow(plugin, r -> {
                         if (database().hasUserTemplate(user, template, (int) intervalCount)) {
                             Optional<LocalDateTime> time = database().getUserTemplateTime(user, template, (int) intervalCount);
                             if (template.interval() == null || time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
@@ -59,22 +60,46 @@ public class ScheduleManager {
                         database().createUserTemplate(user, template, (int) intervalCount);
                     });
                 }
-                MailBox.getThreadedQueue().submit(() -> checkNotify(player, user));
+                Bukkit.getAsyncScheduler().runNow(plugin, r -> checkNotify(player, user, false));
             });
         }, 0, 1, TimeUnit.SECONDS);
     }
 
-    public static void checkNotify(Player player, MailUser user) {
-        List<Mail> mails = database().getAllUserNotification(user);
-        database().deleteAllUserNotification(user);
-        if (mails.isEmpty()) return;
-        int size = mails.size();
-        size -= (int) database().getAllMails(user, TriState.FALSE).stream()
-                .filter(Mail::isRead)
-                .count();
-        if (size == 0) return;
-        player.sendMessage(miniMessage().deserialize(config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(size))).build()));
-        player.playSound(Sound.sound().type(org.bukkit.Sound.UI_TOAST_IN).build());
+    public static void checkNotify(Player player, MailUser user, boolean login) {
+        boolean notified = false;
+        try {
+            if (login) {
+                SortedSet<Mail> mails = database().getAllMails(user, TriState.FALSE);
+                long unreceivedAttachments = database().getAllMails(user, TriState.NOT_SET)
+                        .stream().mapToLong(mail -> mail.attachments().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
+                if (!mails.isEmpty()) {
+                    player.sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
+                    player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
+                    notified = true;
+                }
+                if (unreceivedAttachments > 0) {
+                    player.sendMessage(miniMessage().deserialize(config().messages.unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
+                    player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
+                    notified = true;
+                }
+            }
+            List<Mail> notifications = database().getAllUserNotification(user);
+            database().deleteAllUserNotification(user);
+            if (notifications.isEmpty()) return;
+            int size = notifications.size();
+            size -= (int) database().getAllMails(user, TriState.FALSE).stream()
+                    .filter(Mail::isRead)
+                    .count();
+            if (size != 0) {
+                player.sendMessage(miniMessage().deserialize(config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(size))).build()));
+                player.playSound(Sound.sound().type(org.bukkit.Sound.UI_TOAST_IN).build());
+                notified = true;
+            }
+        } finally {
+            if (notified) {
+                player.sendMessage(miniMessage().deserialize(config().messages.howToOpenMail, TagResolver.builder().tag("command", Tag.inserting(Component.text("/mail"))).build()));
+            }
+        }
     }
 
     public void stop() {

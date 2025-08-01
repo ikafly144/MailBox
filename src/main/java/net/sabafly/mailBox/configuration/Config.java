@@ -5,7 +5,6 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -163,6 +162,18 @@ public class Config extends BaseConfig {
         public String emptyInputError = "<red>Input cannot be empty</red>";
         public String cancelButton = "Cancel";
         public String refreshButton = "Refresh";
+        public String sendMailRecipientInput = "Recipient";
+        public String sendMailMenuTitle = "<red>Send</red><white>Mail</white>";
+        public String sendMailButton = "Send Mail";
+        public String invalidRecipientError = "<red>Invalid recipient name</red>";
+        public String notRegisteredError = "<red>Recipient is not registered</red>";
+        public String inboxButton = "Inbox";
+        public String inboxTooltip = "Open your inbox to view and manage your mails.";
+        public String sendMailTooltip = "Send a mail to another player.";
+        public String nextButton = "Next";
+        public String inboxMenuTitle = "<red>Inbox</red><white>Menu</white>";
+        public String reloadSuccess = "<green>Configuration reloaded successfully</green>";
+        public String howToOpenMail = "<gray>Use <command> or press <yellow><key:key.quickActions></yellow> to open your mail box.</gray>";
     }
 
 }

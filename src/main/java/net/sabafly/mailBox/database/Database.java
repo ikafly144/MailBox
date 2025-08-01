@@ -26,6 +26,9 @@ public interface Database {
 
     @NotNull MailUser getUser(@NotNull UUID uuid);
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    boolean isUserExists(@NotNull UUID uuid);
+
     @NotNull List<@NotNull MailUser> getAllUsers();
 
     default @NotNull SortedSet<@NotNull Mail> getMails(@NotNull MailUser user, @NotNull TriState read, int page) {

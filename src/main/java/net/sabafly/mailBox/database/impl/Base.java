@@ -155,6 +155,21 @@ public abstract class Base implements Database {
     }
 
     @Override
+    public boolean isUserExists(@NotNull UUID uuid) {
+        try (Connection conn = getConnection()) {
+            return runner.query(conn, "SELECT COUNT(*) FROM mailbox_users WHERE uuid = ?", rs -> {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+                return false;
+            }, uuid.toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new IllegalStateException("Failed to check if user exists");
+    }
+
+    @Override
     public @NotNull MailUser getUser(@NotNull UUID uuid) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, """

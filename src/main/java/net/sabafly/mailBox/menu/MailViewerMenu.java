@@ -53,7 +53,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
     @Override
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (openPreviousMenu) {
-            setNextMenu(new MailMenu(player));
+            setNextMenu(new InboxMenu(player));
         }
     }
 
