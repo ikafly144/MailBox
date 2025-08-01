@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'net.sabafly'
-version = '1.0.0-beta.8'
+version = '1.0.0-rc.1'
 
 repositories {
     mavenCentral()
@@ -34,6 +34,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     compileOnly('org.apache.commons:commons-lang3:3.18.0')
+    implementation("com.vdurmont:semver4j:3.1.0")
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
 }
 
@@ -74,6 +75,7 @@ shadowJar {
     minimize()
     relocate("com.zaxxer.hikari", "net.sabafly.libs.com.zaxxer.hikari")
     relocate("org.apache.commons.dbutils", "net.sabafly.libs.org.apache.commons.dbutils")
+    relocate("com.vdurmont.semver4j", "net.sabafly.libs.com.vdurmont.semver4j")
 }
 
 build {

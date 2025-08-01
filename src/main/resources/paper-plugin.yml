@@ -1,6 +1,6 @@
 name: MailBox
 version: '${version}'
-api-version: '1.21'
+api-version: '1.21.6'
 authors: [ ikafly144 ]
 website: https://github.com/ikafly144/MailBox
 bootstrapper: net.sabafly.mailBox.Bootstrapper

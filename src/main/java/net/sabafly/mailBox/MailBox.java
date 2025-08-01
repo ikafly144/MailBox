@@ -1,6 +1,7 @@
 package net.sabafly.mailBox;
 
 import com.google.gson.Gson;
+import com.vdurmont.semver4j.Semver;
 import io.papermc.paper.ServerBuildInfo;
 import lombok.Getter;
 import net.sabafly.mailBox.commands.MailCommands;
@@ -67,7 +68,7 @@ public final class MailBox extends JavaPlugin implements Listener {
         new MailCommands(this).registerCommands();
 
         Bukkit.getScheduler().runTask(this, this::loadVault);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 60 * 60 * 20);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 6 * 60 * 60 * 20);
     }
 
     @Override
@@ -124,12 +125,13 @@ public final class MailBox extends JavaPlugin implements Listener {
                     .thenApplyAsync(HttpResponse::body).thenAcceptAsync(buf -> {
                         var raw = new Gson().fromJson(buf, Object.class);
                         // .[0].version_number
-                        var version = ((java.util.List<?>) raw).getFirst();
-                        var versionNumber = ((java.util.Map<?, ?>) version).get("version_number");
-                        if (!getPluginMeta().getVersion().equals(versionNumber)) {
+                        var versionString = ((java.util.Map<?, ?>) ((java.util.List<?>) raw).getFirst()).get("version_number");
+                        if (new Semver(getPluginMeta().getVersion()).isLowerThan(new Semver((String) versionString))) {
                             getSLF4JLogger().info("A new version is available");
-                            getSLF4JLogger().info("Latest version: {}", versionNumber);
+                            getSLF4JLogger().info("Latest version: {}", versionString);
                             getSLF4JLogger().info("Current version: {}", getPluginMeta().getVersion());
+                        } else {
+                            getSLF4JLogger().info("No updates available");
                         }
                     }).join();
         } catch (Exception e) {
