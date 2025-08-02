@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -98,10 +99,10 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             List<Component> lore = config().messages.mailMenuMailLore
-                   .replaceAll("\\{sender}", Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                   .replaceAll("\\{time}", DateUtils.format(mail.getSentTime()))
-                   .replaceAll("\\{attachments}", mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened()).count() + ")")
-                   .replaceAll("\\{read}", mail.isRead() ? config().messages.read : config().messages.unread)
+                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName)))
+                   .replaceAll("\\{time}", Matcher.quoteReplacement(DateUtils.format(mail.getSentTime())))
+                   .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened()).count() + ")"))
+                   .replaceAll("\\{read}", Matcher.quoteReplacement(mail.isRead() ? config().messages.read : config().messages.unread))
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)
                     .collect(Collectors.toCollection(ArrayList::new));

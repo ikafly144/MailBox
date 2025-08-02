@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
@@ -29,7 +30,7 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     @Override
     public void apply(@NotNull Player player) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player}", player.getName()));
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player}", Matcher.quoteReplacement(player.getName())));
     }
 
     @Override

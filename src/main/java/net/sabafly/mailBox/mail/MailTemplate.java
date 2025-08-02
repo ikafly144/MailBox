@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static net.sabafly.mailBox.MailBox.config;
@@ -154,13 +155,13 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     public @NotNull Mail createMail(@NotNull MailUser user) {
         List<Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
         String title = this.title
-                .replaceAll("\\{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString())))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
-                .replaceAll("\\{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
+                .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
         String content = this.content
-                .replaceAll("\\{player}", Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString()))
+                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString())))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
-                .replaceAll("\\{date}", LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat)));
+                .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
         return Mail.createNow(sender, user, title, content, newAttachments);
     }
 

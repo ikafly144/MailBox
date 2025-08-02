@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
@@ -79,12 +80,12 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             meta.lore(config().messages.mailTemplateLore
-                   .replaceAll("\\{sender}", Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName))
-                   .replaceAll("\\{start}", Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue))
-                   .replaceAll("\\{end}", Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue))
-                   .replaceAll("\\{interval}", Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue))
-                   .replaceAll("\\{attachments}", mail.attachment().size() + "")
-                   .replaceAll("\\{auto_send}", mail.autoSend() ? config().messages.enabled : config().messages.disabled)
+                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName)))
+                   .replaceAll("\\{start}", Matcher.quoteReplacement(Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue)))
+                   .replaceAll("\\{end}", Matcher.quoteReplacement(Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue)))
+                   .replaceAll("\\{interval}", Matcher.quoteReplacement(Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue)))
+                   .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachment().size() + ""))
+                   .replaceAll("\\{auto_send}", Matcher.quoteReplacement(mail.autoSend() ? config().messages.enabled : config().messages.disabled))
                     .transform(s -> List.of(s.split("\n")))
                     .stream().filter(s -> !s.isBlank()).map(miniMessage()::deserialize).toList());
         });

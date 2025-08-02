@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
@@ -198,7 +199,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             if (player.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
                 ItemStack emerald = new ItemStack(Material.PAPER);
                 emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
-                       .replaceAll("\\{currency}", EconomyUtils.getEconomy().currencyNamePlural())
+                       .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
                 )));
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {

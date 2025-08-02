@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
@@ -15,7 +16,7 @@ public class AttachmentVaultValueMenu extends StringInputMenu {
 
     public AttachmentVaultValueMenu(InventoryMenu<?> parent, Player player, Consumer<VaultValueAttachment> consumer) {
         super(parent, player, miniMessage().deserialize(config().messages.attachmentAppendVault
-               .replaceAll("\\{currency}", EconomyUtils.getEconomy().currencyNamePlural())
+               .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
         ), value -> {
             try {
                 consumer.accept(VaultValueAttachment.createNew(Double.parseDouble(value)));

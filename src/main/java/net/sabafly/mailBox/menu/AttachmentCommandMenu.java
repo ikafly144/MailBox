@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
@@ -59,7 +60,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
         display.editMeta(meta -> {
             meta.itemName(miniMessage().deserialize(config().messages.displayItem));
             meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
-                    .replaceAll("\\{action}", config().messages.clickActionSet))));
+                    .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet)))));
         });
         clickRegistry.setItem(5, display, (player, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -99,7 +100,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
             meta.itemName(miniMessage().deserialize(config().messages.setCommand));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo
-                            .replaceAll("\\{action}", config().messages.clickActionSet)),
+                            .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet))),
                     miniMessage().deserialize(config().messages.commandValue,
                             TagResolver.builder()
                                     .tag("command", Tag.inserting(Optional.ofNullable(command)
@@ -117,7 +118,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
             meta.itemName(miniMessage().deserialize(config().messages.setName));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo
-                            .replaceAll("\\{action}", config().messages.clickActionSet)),
+                            .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet))),
                     miniMessage().deserialize(config().messages.nameValue,
                             TagResolver.builder()
                                     .tag("name", Tag.inserting(Optional.ofNullable(name)
