@@ -5,7 +5,6 @@ import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import org.bukkit.entity.Player;
 
-import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
