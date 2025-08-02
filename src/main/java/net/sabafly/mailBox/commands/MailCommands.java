@@ -12,6 +12,7 @@ import net.sabafly.mailBox.mail.MailUser;
 import net.sabafly.mailBox.menu.CreateMailMenu;
 import net.sabafly.mailBox.menu.InboxMenu;
 import net.sabafly.mailBox.menu.MailTemplateMenu;
+import net.sabafly.mailBox.menu.SendMailMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -71,6 +72,12 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
         );
         event.registrar().register(Commands.literal("sendmail")
                 .requires(context -> context.getSender().hasPermission("mailbox.send"))
+                .executes(context -> {
+                    if (!(context.getSource().getExecutor() instanceof Player player))
+                        throw new TagParseCommandSyntaxException("Player required");
+                    new SendMailMenu(player).open();
+                    return Command.SINGLE_SUCCESS;
+                })
                 .then(Commands.argument("player", StringArgumentType.word())
                         .suggests((context, builder) -> {
                             if (!(context.getSource().getExecutor() instanceof Player))
