@@ -14,11 +14,8 @@ import io.papermc.paper.registry.keys.DialogKeys;
 import io.papermc.paper.registry.keys.tags.DialogTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickCallback;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.sabafly.mailBox.configuration.ConfigLoader;
-import net.sabafly.mailBox.menu.InboxMenu;
-import net.sabafly.mailBox.menu.SendMailMenu;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,12 +27,6 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 public final class Bootstrapper implements PluginBootstrap {
 
     public static final @NotNull Key CONTENT_DIALOG_KEY = Key.key("mailbox:mail_menu");
-    public static final DialogAction.CustomClickAction INBOX_ACTION = DialogAction.customClick((response, audience) -> {
-        if (audience instanceof Player player) new InboxMenu(player).open();
-    }, ClickCallback.Options.builder().uses(ClickCallback.UNLIMITED_USES).build());
-    public static final DialogAction.CustomClickAction SEND_MAIL_ACTION = DialogAction.customClick((response, audience) -> {
-        if (audience instanceof Player player) new SendMailMenu(player).open();
-    }, ClickCallback.Options.builder().uses(ClickCallback.UNLIMITED_USES).build());
 
     private ConfigLoader config;
 
@@ -47,11 +38,11 @@ public final class Bootstrapper implements PluginBootstrap {
                 DialogKeys.create(CONTENT_DIALOG_KEY),
                 builder -> builder.type(DialogType.multiAction(List.of(
                                         ActionButton.builder(miniMessage().deserialize(config.config().messages.inboxButton))
-                                                .action(INBOX_ACTION)
+                                                .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:mail")))
                                                 .tooltip(miniMessage().deserialize(config.config().messages.inboxTooltip))
                                                 .build(),
                                         ActionButton.builder(miniMessage().deserialize(config.config().messages.sendMailButton))
-                                                .action(SEND_MAIL_ACTION)
+                                                .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:sendmail")))
                                                 .tooltip(miniMessage().deserialize(config.config().messages.sendMailTooltip))
                                                 .build()
                                 ))
