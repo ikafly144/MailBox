@@ -126,9 +126,16 @@ public final class MailBox extends JavaPlugin implements Listener {
                         var raw = new Gson().fromJson(buf, Object.class);
                         // .[0].version_number
                         var versionString = ((java.util.Map<?, ?>) ((java.util.List<?>) raw).getFirst()).get("version_number");
-                        if (new Semver(getPluginMeta().getVersion()).isLowerThan(new Semver((String) versionString))) {
-                            getSLF4JLogger().info("A new version is available");
-                            getSLF4JLogger().info("Latest version: {}", versionString);
+                        final Semver version = new Semver((String) versionString);
+                        if (new Semver(getPluginMeta().getVersion()).isLowerThan(version)) {
+                            if (version.isStable()) {
+                                getSLF4JLogger().info("A new version is available");
+                                getSLF4JLogger().info("Latest version: {}", versionString);
+                            } else {
+                                getSLF4JLogger().info("A new development version is available");
+                                getSLF4JLogger().info("Development version: {}", versionString);
+                                getSLF4JLogger().warn("This version may not be stable and could contain bugs.");
+                            }
                             getSLF4JLogger().info("Current version: {}", getPluginMeta().getVersion());
                         } else {
                             getSLF4JLogger().info("No updates available");
