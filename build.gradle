@@ -29,7 +29,9 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         transitive = false
     }
-    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("com.zaxxer:HikariCP:6.2.1"){
+        transitive = false
+    }
     implementation("commons-dbutils:commons-dbutils:1.8.1")
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
