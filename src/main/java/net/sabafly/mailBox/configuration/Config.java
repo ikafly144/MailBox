@@ -53,7 +53,7 @@ public class Config extends BaseConfig {
         public int maxAttachmentCount = 27;
         public DurationOrDisabled expirationTime = new DurationOrDisabled(Optional.of(Duration.of("7d")));
 
-        public @Nullable java.time.Duration getExpirationTime() {
+        public @Nullable java.time.Duration getExpirationDuration() {
             return expirationTime.value().map(Duration::seconds).map(java.time.Duration::ofSeconds).orElse(null);
         }
     }
@@ -140,6 +140,7 @@ public class Config extends BaseConfig {
         public String clickActionSet = "<green>Set</green>";
         public String clickActionUnset = "<red>Unset</red>";
         public String clickActionSetExpiration = "<green>Set Expiration</green>";
+        public String clickActionEdit = "<green>Edit</green>";
 
         public String unreceived = "Unreceived";
         public String page = "page";

@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.menu;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.MailBox;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
@@ -31,7 +33,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
     private final MailTemplate template;
 
     public MailTemplateEditMenu(Player player, MailTemplate template) {
-        super(player, 9, miniMessage().deserialize(config().messages.mailTemplateEditMenuTitle));
+        super(player, 18, miniMessage().deserialize(config().messages.mailTemplateEditMenuTitle));
         this.template = template;
     }
 
@@ -114,12 +116,6 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
                 refresh();
             }
         });
-        ItemStack attachments = new ItemStack(Material.NAME_TAG);
-        attachments.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.attachments));
-            meta.lore(List.of(miniMessage().deserialize("<yellow>" + template.attachment().size())));
-        });
-        clickRegistry.setItem(6, attachments);
         ItemStack delete = new ItemStack(Material.BARRIER);
         delete.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.delete)));
         clickRegistry.setItem(8, delete, (player, clickType) -> {
@@ -128,6 +124,49 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
                     database().deleteMailTemplate(template);
                     ThreadUtils.runSync(player::closeInventory);
                 });
+            }
+        });
+        ItemStack paper = new ItemStack(Material.PAPER);
+        paper.editMeta(meta -> {
+            meta.itemName(miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(template.title()))).build()));
+            meta.lore(List.of(
+                    miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSet))
+            ));
+        });
+        clickRegistry.setItem(9, paper, (player, clickType) -> {
+            if (clickType.isLeftClick()) {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), value -> {
+                    template.title(value);
+                    refresh();
+                }, template.title(), false, 80));
+            }
+        });
+        ItemStack book = new ItemStack(Material.WRITABLE_BOOK);
+        book.editMeta(meta -> {
+            meta.itemName(miniMessage().deserialize(config().messages.contentInfo, TagResolver.builder().tag("length", Tag.inserting(Component.text(template.content().length()))).build()));
+            meta.lore(List.of(
+                    miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionEdit))
+            ));
+        });
+        clickRegistry.setItem(10, book, (player, clickType) -> {
+            if (clickType.isLeftClick()) {
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setContent), value -> {
+                    template.content(value);
+                    refresh();
+                }, template.content(), true, 2000));
+            }
+        });
+        ItemStack attachments = new ItemStack(Material.CHEST);
+        attachments.editMeta(meta -> {
+            meta.itemName(miniMessage().deserialize(config().messages.attachments));
+            meta.lore(List.of(
+                    miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionEdit)),
+                    miniMessage().deserialize("<yellow>" + template.attachment().size())
+            ));
+        });
+        clickRegistry.setItem(11, attachments, (player, clickType) -> {
+            if (clickType.isLeftClick()) {
+                openMenu(new CreateMailMenu.AttachmentMenu(this, player, template.attachment(), this.template::attachment, true));
             }
         });
     }

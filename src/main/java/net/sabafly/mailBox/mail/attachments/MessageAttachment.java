@@ -51,6 +51,6 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment> {
 
     @Override
     public @NotNull MessageAttachment create(boolean opened) {
-        return new MessageAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), config().mail.getExpirationTime(), message);
+        return new MessageAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), message);
     }
 }

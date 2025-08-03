@@ -92,7 +92,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         attachmentItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.setAttachment)));
         clickRegistry.setItem(2, attachmentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new AttachmentMenu(this, p, attachments, attachments -> this.attachments = attachments));
+                openMenu(new AttachmentMenu(this, p, attachments, attachments -> this.attachments = attachments, target == null));
             }
         });
         if (target == null) {
@@ -141,23 +141,23 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
     public static class AttachmentMenu extends InventoryMenu<AttachmentMenu> {
 
-        private final CreateMailMenu menu;
+        private final Menu menu;
         private final Consumer<List<@NotNull Attachment<?>>> consumer;
         private final List<@NotNull Attachment<?>> attachments;
 
         private final boolean isTemplate;
 
-        public AttachmentMenu(CreateMailMenu menu, Player player, @NotNull List<@NotNull Attachment<?>> attachments, Consumer<List<@NotNull Attachment<?>>> consumer) {
+        public AttachmentMenu(Menu menu, Player player, @NotNull List<@NotNull Attachment<?>> attachments, Consumer<List<@NotNull Attachment<?>>> consumer, boolean isTemplate) {
             super(player, 45, miniMessage().deserialize(config().messages.attachmentMenuTitle));
             this.menu = menu;
             this.consumer = consumer;
             this.attachments = attachments;
-            this.isTemplate = menu.target == null;
+            this.isTemplate = isTemplate;
         }
 
         private void addAttachment(Attachment<?> attachment) {
             if (attachment != null) {
-                if (!isTemplate) attachment.expireDuration(config().mail.getExpirationTime());
+                if (!isTemplate) attachment.expireDuration(config().mail.getExpirationDuration());
                 attachments.add(attachment);
             }
         }

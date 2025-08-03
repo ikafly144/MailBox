@@ -45,9 +45,14 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     @Override
     public void open() {
+        var read = mail.isRead();
         mail.setRead(true);
         database().updateMail(mail);
-        super.open();
+        if (!read) {
+            new ContentMenu(player, mail.getTitle(), mail.getContent(), this).open();
+        } else {
+            super.open();
+        }
     }
 
     @Override

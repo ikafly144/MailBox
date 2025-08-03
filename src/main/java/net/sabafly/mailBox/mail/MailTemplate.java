@@ -17,9 +17,9 @@ import static net.sabafly.mailBox.MailBox.config;
 
 public final class MailTemplate implements Comparable<MailTemplate> {
     private final @NotNull UUID id;
-    private final @NotNull String title;
-    private final @NotNull String content;
-    private final @NotNull List<@NotNull Attachment<?>> attachment;
+    private @NotNull String title;
+    private @NotNull String content;
+    private @NotNull List<@NotNull Attachment<?>> attachment;
 
     @Setter
     private boolean autoSend;
@@ -73,8 +73,16 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         return title;
     }
 
+    public void title(@NotNull String title) {
+        this.title = title;
+    }
+
     public @NotNull String content() {
         return content;
+    }
+
+    public void content(@NotNull String content) {
+        this.content = content;
     }
 
     public @NotNull List<@NotNull Attachment<?>> attachment() {
@@ -82,8 +90,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     }
 
     public void attachment(@NotNull List<@NotNull Attachment<?>> attachment) {
-        this.attachment.clear();
-        this.attachment.addAll(attachment);
+        this.attachment = new ArrayList<>(attachment);
     }
 
     public boolean autoSend() {

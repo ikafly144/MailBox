@@ -60,6 +60,6 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
 
     @Override
     public @NotNull ItemAttachment create(boolean opened) {
-        return new ItemAttachment(itemStack, false, LocalDateTime.now(), config().mail.getExpirationTime());
+        return new ItemAttachment(itemStack, false, LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()));
     }
 }

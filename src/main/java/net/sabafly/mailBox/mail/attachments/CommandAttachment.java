@@ -48,6 +48,6 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     @Override
     public @NotNull CommandAttachment create(boolean opened) {
-        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), config().mail.getExpirationTime(), command);
+        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), command);
     }
 }

@@ -353,10 +353,13 @@ public abstract class Base implements Database {
     @Override
     public void updateMailTemplate(@NotNull MailTemplate template) {
         try (Connection conn = getConnection()) {
+            var old = getTemplateAttachments(template);
             runner.execute(conn, """
                     UPDATE mailbox_templates SET title = ?, content = ?, auto_send = ?, sender = ?, start_time = ?, end_time = ?, send_interval = ?, permission = ? WHERE id = ?
                     """, template.title(), template.content(), template.autoSend(), template.sender() == null ? null : template.sender().uuid().toString(), template.startTime(), template.endTime(), template.intervalSeconds(), template.permission(), template.id().toString());
             template.attachment().forEach(attachment -> updateTemplateAttachment(template, attachment));
+            // Delete attachments that are no longer in the template
+            old.stream().filter(a -> !template.attachment().contains(a)).forEach(a -> deleteTemplateAttachment(template, a));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -491,7 +494,7 @@ public abstract class Base implements Database {
     @Override
     public void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.getId().toString());
+            runner.execute(conn, "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -546,7 +549,7 @@ public abstract class Base implements Database {
     @Override
     public void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data) VALUES (?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize());
+            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data, EXPIRE_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().orElse(null));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -573,7 +576,10 @@ public abstract class Base implements Database {
     @Override
     public void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.getId().toString());
+            int row = runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
+            if (row == 0) {
+                createTemplateAttachment(template, attachment);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

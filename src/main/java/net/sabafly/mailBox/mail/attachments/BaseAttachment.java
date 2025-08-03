@@ -93,7 +93,7 @@ public abstract class BaseAttachment<T extends BaseAttachment<T>> implements Att
 
     @Override
     public boolean isExpired() {
-        return expireDuration != null && receivedTime != null && !isTemplate() && LocalDateTime.now().isAfter(receivedTime.plus(expireDuration));
+        return expireTime().map(t -> t.isBefore(LocalDateTime.now())).orElse(false);
     }
 
     @Override
@@ -119,4 +119,12 @@ public abstract class BaseAttachment<T extends BaseAttachment<T>> implements Att
                 '}';
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj instanceof BaseAttachment<?> that) {
+            return id.equals(that.id);
+        }
+        return false;
+    }
 }
