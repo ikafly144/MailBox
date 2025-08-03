@@ -68,7 +68,7 @@ processResources {
 shadowJar {
     archiveBaseName = 'MailBox'
     archiveClassifier = ''
-    archiveVersion = ""
+    archiveVersion = "${version}"
 
     exclude("plugin.yml")
 
