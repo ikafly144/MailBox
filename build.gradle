@@ -33,8 +33,8 @@ dependencies {
         transitive = false
     }
     implementation("commons-dbutils:commons-dbutils:1.8.1")
-    compileOnly("org.projectlombok:lombok:1.18.36")
-    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
     compileOnly('org.apache.commons:commons-lang3:3.18.0')
     implementation("com.vdurmont:semver4j:3.1.0")
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
