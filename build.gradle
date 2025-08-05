@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     compileOnly("com.h2database:h2:2.3.232")
-    compileOnly("com.mysql:mysql-connector-j:9.2.0")
+    compileOnly("com.mysql:mysql-connector-j:9.4.0")
     compileOnly("org.spongepowered:configurate-yaml:4.3.0-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         transitive = false
