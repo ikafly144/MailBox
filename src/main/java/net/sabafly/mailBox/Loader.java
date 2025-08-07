@@ -17,7 +17,7 @@ public class Loader implements PluginLoader {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
         List<String> dependencies = List.of(
                 "com.h2database:h2:2.3.232",
-                "com.mysql:mysql-connector-j:9.2.0"
+                "com.mysql:mysql-connector-j:9.4.0"
         );
 
         for (String dependency : dependencies) {
