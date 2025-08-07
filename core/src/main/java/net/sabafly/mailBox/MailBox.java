@@ -13,6 +13,7 @@ import net.sabafly.mailBox.listener.PlayerListener;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
+import net.sabafly.mailbox.IMailBox;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,7 +27,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public final class MailBox extends JavaPlugin implements Listener {
+public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
     private final ConfigLoader config;
     private Database database;
