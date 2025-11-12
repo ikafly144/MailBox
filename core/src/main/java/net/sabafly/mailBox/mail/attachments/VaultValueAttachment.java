@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
@@ -38,7 +39,7 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
     public void apply(@NotNull Player player) {
         EconomyUtils.getEconomy().depositPlayer(player, value);
         player.sendMessage(miniMessage().deserialize(config().messages.deposit
-                .replaceAll("\\{value}", EconomyUtils.getEconomy().format(value))
+                .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(value)))
         ));
     }
 
@@ -46,7 +47,7 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
     public void cancel(@NotNull Player player) {
         EconomyUtils.getEconomy().depositPlayer(player, value);
         player.sendMessage(miniMessage().deserialize(config().messages.deposit
-                .replaceAll("\\{value}", EconomyUtils.getEconomy().format(value))
+                .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(value)))
         ));
     }
 
