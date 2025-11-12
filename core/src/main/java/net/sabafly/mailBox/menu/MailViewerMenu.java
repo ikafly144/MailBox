@@ -118,14 +118,16 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private @NotNull ItemStack getSenderItem() {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
-        senderItem.editMeta(meta -> {
-            if (meta instanceof SkullMeta skullMeta) {
-                try {
-                    skullMeta.setPlayerProfile(mail.getSender() == null ? null : Bukkit.getOfflinePlayer(mail.getSender().uuid()).getPlayerProfile());
-                } catch (IllegalArgumentException ignored) {
+        if (mail.getSender() != null) {
+            senderItem.editMeta(meta -> {
+                if (meta instanceof SkullMeta skullMeta) {
+                    try {
+                        skullMeta.setPlayerProfile(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getPlayerProfile());
+                    } catch (IllegalArgumentException ignored) {
+                    }
                 }
-            }
-        });
+            });
+        }
         senderItem.editMeta(meta ->
                 meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
         return senderItem;

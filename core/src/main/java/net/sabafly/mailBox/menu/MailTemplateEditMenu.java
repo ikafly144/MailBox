@@ -225,14 +225,16 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
 
     private @NotNull ItemStack getSender() {
         ItemStack sender = new ItemStack(Material.PLAYER_HEAD);
-        if (template.sender() != null) sender.editMeta(meta -> {
-            if (meta instanceof SkullMeta skullMeta) {
-                try {
-                    skullMeta.setPlayerProfile((Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
-                } catch (IllegalArgumentException ignored) {
+        if (template.sender() != null) {
+            sender.editMeta(meta -> {
+                if (meta instanceof SkullMeta skullMeta) {
+                    try {
+                        skullMeta.setPlayerProfile((Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
+                    } catch (IllegalArgumentException ignored) {
+                    }
                 }
-            }
-        });
+            });
+        }
         sender.editMeta(meta -> {
             meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(template.sender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(template.sender().uuid()).getName()).orElse(template.sender().uuid().toString())))).build()));
             meta.lore(List.of(
