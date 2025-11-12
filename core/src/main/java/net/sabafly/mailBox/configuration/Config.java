@@ -42,6 +42,8 @@ public class Config extends BaseConfig {
 
     }
 
+    public boolean enableGameMenuShortcut = true;
+
     public MailConfig mail = new MailConfig();
 
     @ConfigSerializable

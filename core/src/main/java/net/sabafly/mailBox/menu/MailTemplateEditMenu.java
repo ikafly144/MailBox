@@ -225,10 +225,10 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
 
     private @NotNull ItemStack getSender() {
         ItemStack sender = new ItemStack(Material.PLAYER_HEAD);
-        sender.editMeta(meta -> {
+        if (template.sender() != null) sender.editMeta(meta -> {
             if (meta instanceof SkullMeta skullMeta) {
                 try {
-                    skullMeta.setPlayerProfile((template.sender() == null ? Bukkit.getOfflinePlayer( config().messages.systemName) : Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
+                    skullMeta.setPlayerProfile((Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
                 } catch (IllegalArgumentException ignored) {
                 }
             }

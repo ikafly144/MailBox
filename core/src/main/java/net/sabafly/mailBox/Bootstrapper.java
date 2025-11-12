@@ -56,12 +56,14 @@ public final class Bootstrapper implements PluginBootstrap {
                         event.registrar().addToTag(DialogTagKeys.QUICK_ACTIONS, List.of(
                                 DialogKeys.create(CONTENT_DIALOG_KEY)
                         ))));
-        context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)
-                .newHandler(event ->
-                        event.registrar().addToTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, List.of(
-                                DialogKeys.create(CONTENT_DIALOG_KEY)
-                        )))
-        );
+        if (config.config().enableGameMenuShortcut) {
+            context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)
+                    .newHandler(event ->
+                            event.registrar().addToTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, List.of(
+                                    DialogKeys.create(CONTENT_DIALOG_KEY)
+                            )))
+            );
+        }
     }
 
     @Override
