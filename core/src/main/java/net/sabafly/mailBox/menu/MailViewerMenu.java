@@ -96,7 +96,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         }
         for (int i = 0; i < mail.attachments().size(); i++) {
             int finalI = i;
-            clickRegistry.setItem(start + count + i, mail.attachments().get(i).createPreview(attachment -> {
+            clickRegistry.setItem(start + count + i, mail.getAttachmentsInternal().get(i).createPreview(attachment -> {
                 List<Component> lore = config().messages.attachmentLore
                         .replaceAll("\\{received}", attachment.opened() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
                         .replaceAll("\\{expires}", attachment.expireTime().map(t -> t.format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(config().messages.expiresNever))
@@ -105,7 +105,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                 lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
                 return lore;
             }), (p, clickType) -> {
-                final Attachment<?> attachment = mail.attachments().get(finalI);
+                final Attachment<?> attachment = mail.getAttachmentsInternal().get(finalI);
                 if (clickType.isLeftClick() && !attachment.opened() && !attachment.isExpired()) {
                     attachment.apply(p);
                     attachment.setOpened(true);

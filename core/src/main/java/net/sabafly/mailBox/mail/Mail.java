@@ -2,6 +2,8 @@ package net.sabafly.mailBox.mail;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.sabafly.mailbox.api.mail.User;
+import net.sabafly.mailbox.api.mail.attachments.MailAttachment;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -16,7 +18,7 @@ import java.util.UUID;
 
 import static net.sabafly.mailBox.MailBox.database;
 
-public class Mail implements Comparable<Mail> {
+public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail {
 
     @NotNull
     @Getter
@@ -95,8 +97,32 @@ public class Mail implements Comparable<Mail> {
         attachments.addAll(mailAttachments);
     }
 
-    public @NotNull List<@NotNull Attachment<?>> attachments() {
+    @Override
+    public @NotNull String title() {
+        return title;
+    }
+
+    @Override
+    public @NotNull String content() {
+        return content;
+    }
+
+    public @NotNull List<@NotNull MailAttachment> attachments() {
+        return List.copyOf(attachments);
+    }
+    @ApiStatus.Internal
+    public @NotNull List<@NotNull Attachment<?>> getAttachmentsInternal() {
         return attachments;
+    }
+
+    @Override
+    public @NotNull User sender() {
+        return database().getUser(sender);
+    }
+
+    @Override
+    public @NotNull User receiver() {
+        return database().getUser(receiver);
     }
 
     @Nullable

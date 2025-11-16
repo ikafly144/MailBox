@@ -43,6 +43,8 @@ public class Config extends BaseConfig {
     }
 
     public boolean enableGameMenuShortcut = true;
+    public String rightArrowItem = "arrow";
+    public String leftArrowItem = "arrow";
 
     public MailConfig mail = new MailConfig();
 
@@ -174,7 +176,7 @@ public class Config extends BaseConfig {
         public String inboxTooltip = "Open your inbox to view and manage your mails.";
         public String sendMailTooltip = "Send a mail to another player.";
         public String nextButton = "Next";
-        public String inboxMenuTitle = "<red>Inbox</red><white>Menu</white>";
+        public String inboxMenuTitle = "<red>Inbox</red><white>Menu</white> page {page}/{totalPages}";
         public String reloadSuccess = "<green>Configuration reloaded successfully</green>";
         public String howToOpenMail = "<gray>Use <command> or press <yellow><key:key.quickActions></yellow> to open your mail box.</gray>";
     }

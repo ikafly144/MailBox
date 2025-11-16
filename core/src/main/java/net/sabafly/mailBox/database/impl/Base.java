@@ -170,16 +170,20 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull MailUser getUser(@NotNull UUID uuid) {
+    public @NotNull MailUser getUser(@Nullable UUID uuid) {
+        if (uuid == null) {
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        }
         try (Connection conn = getConnection()) {
+            UUID finalUuid = uuid;
             return runner.query(conn, """
                     SELECT * FROM mailbox_users WHERE uuid = ?
                     """, rs -> {
                 if (rs.next()) {
                     return new MailUser(UUID.fromString(rs.getString("uuid")));
                 }
-                MailUser user = new MailUser(uuid);
-                runner.execute(conn, "INSERT INTO mailbox_users (uuid) VALUES (?)", uuid.toString());
+                MailUser user = new MailUser(finalUuid);
+                runner.execute(conn, "INSERT INTO mailbox_users (uuid) VALUES (?)", finalUuid.toString());
                 return user;
             }, uuid.toString());
         } catch (SQLException e) {
@@ -307,7 +311,9 @@ public abstract class Base implements Database {
             runner.execute(conn, """
                     INSERT INTO mailbox_mails (id, sender, receiver, title, content, is_read, sentTime) VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, mail.getId().toString(), mail.getSenderId(), mail.getReceiver().uuid().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime());
-            mail.attachments().forEach(attachment -> createMailAttachment(mail, attachment));
+            mail.attachments().forEach(attachment -> {
+                if (attachment instanceof Attachment<?> attach) createMailAttachment(mail, attach);
+            });
             createUserNotification(mail.getReceiver(), mail);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -320,7 +326,9 @@ public abstract class Base implements Database {
             runner.execute(conn, """
                     UPDATE mailbox_mails SET sender = ?, receiver = ?, title = ?, content = ?, is_read = ?, sentTime = ? WHERE id = ?
                     """, mail.getSenderId(), mail.getReceiver().uuid().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime(), mail.getId().toString());
-            mail.attachments().forEach(attachment -> updateMailAttachment(mail, attachment));
+            mail.attachments().forEach(attachment -> {
+                if (attachment instanceof Attachment<?> attach) updateMailAttachment(mail, attach);
+            });
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -10,13 +10,18 @@ import net.sabafly.mailBox.configuration.ConfigLoader;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.executor.ThreadedQueue;
 import net.sabafly.mailBox.listener.PlayerListener;
+import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
-import net.sabafly.mailbox.IMailBox;
+import net.sabafly.mailbox.api.IMailBox;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.net.URI;
@@ -26,6 +31,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.UUID;
 
 public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
@@ -49,7 +55,6 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
     @Override
     public void onLoad() {
         logger = getSLF4JLogger();
-        menuManager = new MenuManager(this);
     }
 
     @Override
@@ -59,7 +64,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         this.database = config.config().database.loadDatabase();
         this.database.setup();
 
-        menuManager.register();
+        menuManager = MenuManager.register();
 
         scheduleManager = new ScheduleManager(this);
         scheduleManager.start();
@@ -67,6 +72,15 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         new PlayerListener().register(this);
 
         new MailCommands(this).registerCommands();
+
+        if (!currentVersion().isStable()) {
+            logger().warn("===============================");
+            logger().warn(" You are running a development version ");
+            logger().warn(" May contain bugs and unstable features ");
+            logger().warn(" Current version: " + getPluginMeta().getVersion());
+            logger().warn(" Please report any issues you find ");
+            logger().warn("===============================");
+        }
 
         Bukkit.getScheduler().runTask(this, this::loadVault);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 6 * 60 * 60 * 20);
@@ -81,6 +95,22 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
     public static MailBox getInstance() {
         return getPlugin(MailBox.class);
+    }
+
+    @Override
+    public @Nullable net.sabafly.mailbox.api.mail.Mail createMail(@NotNull String subject, @NotNull String content, @Nullable User sender, @NotNull User receiver) {
+        Mail mail = new Mail(UUID.randomUUID(), sender != null ? sender.id() : null, receiver.id(), subject, content, java.util.Collections.emptyList(), false, java.time.LocalDateTime.now());
+        try {
+            database().createMail(mail);
+            return mail;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public @NotNull User getUser(@NotNull Player player) {
+        return database().getUser(player.getUniqueId());
     }
 
     public static Config config() {
@@ -128,7 +158,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
                         // .[0].version_number
                         var versionString = ((java.util.Map<?, ?>) ((java.util.List<?>) raw).getFirst()).get("version_number");
                         final Semver version = new Semver((String) versionString);
-                        if (new Semver(getPluginMeta().getVersion()).isLowerThan(version)) {
+                        if (currentVersion().isLowerThan(version)) {
                             if (version.isStable()) {
                                 getSLF4JLogger().info("A new version is available");
                                 getSLF4JLogger().info("Latest version: {}", versionString);
@@ -145,6 +175,10 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to check for updates: {}", e.getLocalizedMessage());
         }
+    }
+
+    private @NotNull Semver currentVersion() {
+        return new Semver(getPluginMeta().getVersion());
     }
 
 }

@@ -10,6 +10,7 @@ import net.sabafly.mailBox.mail.MailUser;
 import net.sabafly.mailBox.utils.DateUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -28,9 +29,13 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
+@SuppressWarnings("UnstableApiUsage")
 public class InboxMenu extends InventoryMenu<InboxMenu> {
 
     private int page;
+    private long cooldown = 0;
+
+    private static final NamespacedKey MAIL_INBOX_KEY = new NamespacedKey("mailbox", "inbox_menu");
 
     public InboxMenu(Player player) {
         this(player, 1);
@@ -39,24 +44,33 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
     public InboxMenu(Player player, int page) {
         super(player, 45, menu -> {
             final MailUser user = database().getUser(player.getUniqueId());
-            return miniMessage().deserialize(config().messages.inboxMenuTitle + " " + config().messages.page + " " + menu.page + "/" + (database().countMails(user, TriState.NOT_SET) / 27 + 1) + " " + config().messages.mails + " (" + database().countMails(user, TriState.NOT_SET) + "/" + config().mail.maxMailCount + ")");
+            return miniMessage().deserialize(
+                    config().messages.inboxMenuTitle
+                            .replaceAll("\\{unread_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.FALSE))))
+                            .replaceAll("\\{total_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.NOT_SET))))
+                            .replaceAll("\\{page}", Matcher.quoteReplacement(String.valueOf(menu.page)))
+                            .replaceAll("\\{total_pages}", Matcher.quoteReplacement(String.valueOf((int) Math.ceil(database().countMails(user, TriState.NOT_SET) / 27.0))))
+                            .replaceAll("\\{max_mail_count}", Matcher.quoteReplacement(String.valueOf(config().mail.maxMailCount)))
+                            .replaceAll("\\{player_name}", Matcher.quoteReplacement(player.getName()))
+            );
         });
         this.page = page;
     }
 
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
-        ItemStack arrow = new ItemStack(Material.ARROW);
-        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
-        if (page > 1) clickRegistry.setItem(0, arrow, (player, clickType) -> {
+        ItemStack leftArrow = Bukkit.getItemFactory().createItemStack(config().leftArrowItem);
+        leftArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
+        if (page > 1) clickRegistry.setItem(0, leftArrow, (player, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
                 refresh();
             }
         });
-        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
+        ItemStack rightArrow = Bukkit.getItemFactory().createItemStack(config().rightArrowItem);
+        rightArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
         if (database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
-            clickRegistry.setItem(8, arrow, (player, clickType) -> {
+            clickRegistry.setItem(8, rightArrow, (player, clickType) -> {
                 if (clickType.isLeftClick() && database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
                     page++;
                     refresh();
@@ -65,8 +79,16 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         }
         ItemStack refreshItem = ItemStack.of(Material.WIND_CHARGE);
         refreshItem.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.refreshButton)));
+        refreshItem.editMeta(meta -> {
+            var cooldown = meta.getUseCooldown();
+            cooldown.setCooldownGroup(MAIL_INBOX_KEY);
+            meta.setUseCooldown(cooldown);
+        });
+        if (System.currentTimeMillis() <= this.cooldown)
+            player.setCooldown(MAIL_INBOX_KEY, (int) ((this.cooldown - System.currentTimeMillis()) / 50));
         clickRegistry.setItem(4, refreshItem, (player, clickType) -> {
-            if (clickType.isLeftClick()) {
+            if (clickType.isLeftClick() && System.currentTimeMillis() > this.cooldown) {
+                this.cooldown = System.currentTimeMillis() + 5000;
                 refresh();
             }
         });
@@ -81,7 +103,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             clickRegistry.setItem(slot, createMailItem(mail), (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     openMenu(new MailViewerMenu(player, mail, true));
-                } else if (clickType.isRightClick() && mail.attachments().stream().allMatch(a -> a.opened() || a.isExpired())) {
+                } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
                     database().deleteMail(mail);
                     refresh();
                 }
@@ -101,7 +123,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             List<Component> lore = config().messages.mailMenuMailLore
                    .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName)))
                    .replaceAll("\\{time}", Matcher.quoteReplacement(DateUtils.format(mail.getSentTime())))
-                   .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.attachments().stream().filter(a -> !a.opened() && !a.isExpired()).count() + ")"))
+                    .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.getAttachmentsInternal().stream().filter(a -> !a.opened() && !a.isExpired()).count() + ")"))
                    .replaceAll("\\{read}", Matcher.quoteReplacement(mail.isRead() ? config().messages.read : config().messages.unread))
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)

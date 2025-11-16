@@ -71,7 +71,7 @@ public class ScheduleManager {
             if (login) {
                 SortedSet<Mail> mails = database().getAllMails(user, TriState.FALSE);
                 long unreceivedAttachments = database().getAllMails(user, TriState.NOT_SET)
-                        .stream().mapToLong(mail -> mail.attachments().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
+                        .stream().mapToLong(mail -> mail.getAttachmentsInternal().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
                 if (!mails.isEmpty()) {
                     player.sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
                     player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());

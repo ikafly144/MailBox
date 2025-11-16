@@ -5,6 +5,7 @@ import net.sabafly.mailBox.mail.attachments.CommandAttachment;
 import net.sabafly.mailBox.mail.attachments.ItemAttachment;
 import net.sabafly.mailBox.mail.attachments.MessageAttachment;
 import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
+import net.sabafly.mailbox.api.mail.attachments.MailAttachment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-public interface Attachment<T extends Attachment<T>> extends Cloneable {
+public interface Attachment<T extends Attachment<T>> extends Cloneable, MailAttachment {
 
     @NotNull
     UUID getId();
@@ -94,6 +95,31 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable {
     @NotNull
     default T create() {
         return create(false);
+    }
+
+    @Override
+    default UUID id() {
+        return getId();
+    }
+
+    @Override
+    default boolean isRead() {
+        return opened();
+    }
+
+    @Override
+    default void open() {
+        setOpened(true);
+    }
+
+    @Override
+    default @NotNull String name() {
+        return getPlainName();
+    }
+
+    @Override
+    default @NotNull ItemStack icon() {
+        return getPreviewItem();
     }
 
     enum Type {

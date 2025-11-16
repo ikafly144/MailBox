@@ -7,6 +7,7 @@ import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.MailUser;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +25,7 @@ public interface Database {
 
     void close();
 
-    @NotNull MailUser getUser(@NotNull UUID uuid);
+    @NotNull MailUser getUser(@Nullable UUID uuid);
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isUserExists(@NotNull UUID uuid);
