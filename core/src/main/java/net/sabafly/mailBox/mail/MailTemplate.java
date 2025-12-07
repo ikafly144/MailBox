@@ -169,7 +169,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
                 .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString())))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
                 .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
-        return Mail.createNow(sender, user, title, content, newAttachments);
+        return Mail.createSystemNow(sender, user, title, content, newAttachments);
     }
 
     @Override

@@ -20,6 +20,9 @@ repositories {
     }
     maven { url = "https://repo.codemc.io/repository/maven-snapshots/" }
     maven { url = 'https://jitpack.io' }
+    maven {
+        url = 'https://repo.extendedclip.com/releases/'
+    }
 }
 
 dependencies {
@@ -38,7 +41,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.42")
     compileOnly('org.apache.commons:commons-lang3:3.20.0')
     implementation("com.vdurmont:semver4j:3.1.0")
-    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
+    compileOnly('me.clip:placeholderapi:2.11.7')
+    paperweight.paperDevBundle("1.21.11-rc2-R0.1-SNAPSHOT")
 }
 
 def targetJavaVersion = 21
@@ -91,8 +95,9 @@ tasks {
         downloadPlugins {
             github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
             modrinth("luckperms", "v5.5.0-bukkit")
+            modrinth("placeholderapi", "2.11.7")
             modrinth("emeraldbank", "1.1.1")
         }
-        minecraftVersion("1.21.8")
+        minecraftVersion("1.21.11-rc2")
     }
 }

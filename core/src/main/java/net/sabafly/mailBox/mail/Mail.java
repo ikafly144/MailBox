@@ -2,6 +2,7 @@ package net.sabafly.mailBox.mail;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.sabafly.mailBox.utils.PlaceholderUtils;
 import net.sabafly.mailbox.api.mail.User;
 import net.sabafly.mailbox.api.mail.attachments.MailAttachment;
 import org.bukkit.OfflinePlayer;
@@ -41,12 +42,13 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     private final LocalDateTime sentTime;
 
     @NotNull
-    public static Mail createNow(Player sender, OfflinePlayer receiver, String title, String content, List<Attachment<?>> attachments) {
+    public static Mail createSystemNow(Player sender, OfflinePlayer receiver, String title, String content, List<Attachment<?>> attachments) {
         return new Mail(UUID.randomUUID(), sender.getUniqueId(), receiver.getUniqueId(), title, content, attachments, false, LocalDateTime.now());
     }
 
-    public static Mail createNow(@Nullable MailUser sender, @NotNull MailUser receiver, String title, String content, List<Attachment<?>> attachments) {
-        return new Mail(UUID.randomUUID(), Optional.ofNullable(sender).map(MailUser::uuid).orElse(null), receiver.uuid(), title, content, attachments, false, LocalDateTime.now());
+    // For system mails with any sender
+    public static Mail createSystemNow(@Nullable MailUser sender, @NotNull MailUser receiver, String title, String content, List<Attachment<?>> attachments) {
+        return new Mail(UUID.randomUUID(), Optional.ofNullable(sender).map(MailUser::uuid).orElse(null), receiver.uuid(), PlaceholderUtils.setPlaceholder(receiver.offlinePlayer(), title), PlaceholderUtils.setPlaceholder(receiver.offlinePlayer(), content), attachments, false, LocalDateTime.now());
     }
 
     public Mail(

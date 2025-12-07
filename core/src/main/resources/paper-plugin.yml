@@ -12,6 +12,10 @@ dependencies:
       required: false
       load: BEFORE
       join-classpath: true
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+      join-classpath: true
 permissions:
   mailBox.admin:
     description: Allows the user to use all MailBox commands

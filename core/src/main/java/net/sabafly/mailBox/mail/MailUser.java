@@ -2,6 +2,7 @@ package net.sabafly.mailBox.mail;
 
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -24,4 +25,10 @@ public record MailUser(@NotNull UUID uuid) implements User {
         // TODO: 名前をデータベースに保存する
         return Objects.requireNonNull(Bukkit.getOfflinePlayer(uuid).getName());
     }
+
+    @NotNull
+    public OfflinePlayer offlinePlayer() {
+        return Bukkit.getOfflinePlayer(uuid);
+    }
+
 }

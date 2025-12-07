@@ -43,6 +43,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
     private MenuManager menuManager;
     private ScheduleManager scheduleManager;
     private boolean vaultEnabled;
+    private boolean placeholderApiEnabled;
 
     public MailBox(ConfigLoader config) {
         this.config = config;
@@ -83,6 +84,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         }
 
         Bukkit.getScheduler().runTask(this, this::loadVault);
+        Bukkit.getScheduler().runTask(this, this::loadPlaceholderAPI);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 6 * 60 * 60 * 20);
     }
 
@@ -140,6 +142,17 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
                 return;
             }
             vaultEnabled = true;
+        }
+    }
+
+    public static boolean isPlaceholderApiEnabled() {
+        return getInstance().placeholderApiEnabled;
+    }
+
+    private void loadPlaceholderAPI() {
+        if (getInstance().getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            logger().info("PlaceholderAPI found! Enabling support for it.");
+            placeholderApiEnabled = true;
         }
     }
 

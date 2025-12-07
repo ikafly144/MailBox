@@ -122,12 +122,12 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
-                    if (database().countMails(database().getUser(p.getUniqueId()),TriState.NOT_SET)>=config().mail.maxMailCount) {
+                    if (database().countMails(database().getUser(p.getUniqueId()), TriState.NOT_SET) >= config().mail.maxMailCount) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        Mail mail = Mail.createNow(p, target, title, content, attachments);
+                        Mail mail = Mail.createSystemNow(p, target, title, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
                     }));
@@ -199,7 +199,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             if (player.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
                 ItemStack emerald = new ItemStack(Material.PAPER);
                 emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
-                       .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
+                        .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
                 )));
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {

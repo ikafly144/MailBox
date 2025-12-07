@@ -10,6 +10,7 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.utils.PlaceholderUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +22,6 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 import static net.sabafly.mailBox.MailBox.database;
 
@@ -73,12 +73,12 @@ public class ScheduleManager {
                 long unreceivedAttachments = database().getAllMails(user, TriState.NOT_SET)
                         .stream().mapToLong(mail -> mail.getAttachmentsInternal().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
                 if (!mails.isEmpty()) {
-                    player.sendMessage(miniMessage().deserialize(config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
+                    player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
                     player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
                     notified = true;
                 }
                 if (unreceivedAttachments > 0) {
-                    player.sendMessage(miniMessage().deserialize(config().messages.unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
+                    player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
                     player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
                     notified = true;
                 }
@@ -91,13 +91,13 @@ public class ScheduleManager {
                     .filter(Mail::isRead)
                     .count();
             if (size != 0) {
-                player.sendMessage(miniMessage().deserialize(config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(size))).build()));
+                player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(size))).build()));
                 player.playSound(Sound.sound().type(org.bukkit.Sound.UI_TOAST_IN).build());
                 notified = true;
             }
         } finally {
             if (notified) {
-                player.sendMessage(miniMessage().deserialize(config().messages.howToOpenMail, TagResolver.builder().tag("command", Tag.inserting(Component.text("/mail"))).build()));
+                player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.howToOpenMail, TagResolver.builder().tag("command", Tag.inserting(Component.text("/mail"))).build()));
             }
         }
     }
