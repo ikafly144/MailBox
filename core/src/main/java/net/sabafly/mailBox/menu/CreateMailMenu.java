@@ -158,7 +158,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     }
                     if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
                         int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
-                        if (!EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
+                        if (totalPrice > 0 &&!EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
                             p.sendMessage(miniMessage().
                                     deserialize(
                                             config().messages.notEnoughMoney,
