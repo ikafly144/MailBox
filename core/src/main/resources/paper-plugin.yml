@@ -22,6 +22,7 @@ permissions:
     default: op
     children:
       mailbox.template: true
+      mailbox.template.send: true
       mailbox.attachment.command: true
       mailbox.attachment.message: true
   mailBox.use:
