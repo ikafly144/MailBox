@@ -3,6 +3,7 @@ package net.sabafly.mailBox.menu;
 import io.papermc.paper.configuration.type.Duration;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -115,19 +117,62 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             });
         } else {
             ItemStack sendItem = new ItemStack(Material.GREEN_WOOL);
-            sendItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.send)));
+            sendItem.editMeta(meta -> {
+                meta.itemName(miniMessage().deserialize(config().messages.send));
+                if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
+                    int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
+                    List<Component> lore = new ArrayList<>();
+                    if (config().mail.mailPrice > 0) {
+                        lore.add(miniMessage().deserialize(
+                                config().messages.mailPriceInfo,
+                                Placeholder.component("price", Component.text(config().mail.mailPrice)),
+                                Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
+                        ));
+                    }
+                    if (config().mail.attachmentPrice > 0) {
+                        lore.add(miniMessage().deserialize(
+                                config().messages.attachmentPriceInfo,
+                                Placeholder.component("price", Component.text(config().mail.attachmentPrice)),
+                                Placeholder.component("count", Component.text(attachments.size())),
+                                Placeholder.component("total_price", Component.text(totalPrice)),
+                                Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
+                        ));
+                        lore.add(miniMessage().deserialize(
+                                config().messages.totalPriceInfo,
+                                Placeholder.component("price", Component.text(totalPrice)),
+                                Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
+                        ));
+                    }
+                    meta.lore(lore);
+                }
+            });
             clickRegistry.setItem(8, sendItem, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (title == null || content == null) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
-                    if (database().countMails(database().getUser(p.getUniqueId()), TriState.NOT_SET) >= config().mail.maxMailCount) {
+                    if (database().countMails(database().getUser(target.getUniqueId()), TriState.NOT_SET) >= config().mail.maxMailCount) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
+                    if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
+                        int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
+                        if (!EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
+                            p.sendMessage(miniMessage().
+                                    deserialize(
+                                            config().messages.notEnoughMoney,
+                                            Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural())),
+                                            Placeholder.component("price", Component.text(totalPrice)),
+                                            Placeholder.component("missing_amount", Component.text(new DecimalFormat("#.##########").format(totalPrice - EconomyUtils.getEconomy().getBalance(p)))),
+                                            Placeholder.component("mail_price", Component.text(config().mail.mailPrice)),
+                                            Placeholder.component("attachment_price", Component.text(config().mail.attachmentPrice))
+                                    ));
+                            return;
+                        }
+                    }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        Mail mail = Mail.createSystemNow(p, target, title, content, attachments);
+                        Mail mail = Mail.createFromPlayerNow(p, target, title, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
                     }));

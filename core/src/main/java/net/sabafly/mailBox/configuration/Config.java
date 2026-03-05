@@ -5,6 +5,7 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -43,6 +44,7 @@ public class Config extends BaseConfig {
     }
 
     public boolean enableGameMenuShortcut = true;
+    public boolean enableQuickAction = true;
     public String rightArrowItem = "arrow";
     public String leftArrowItem = "arrow";
 
@@ -53,6 +55,8 @@ public class Config extends BaseConfig {
         public int zoneOffset = 0;
         public String dateFormat = "yyyy-MM-dd HH:mm:ss";
         public int maxMailCount = 100;
+        public int mailPrice = 0;
+        public int attachmentPrice = 0;
         @Range(from = 1, to = 27)
         public int maxAttachmentCount = 27;
         public DurationOrDisabled expirationTime = new DurationOrDisabled(Optional.of(Duration.of("7d")));
@@ -179,6 +183,11 @@ public class Config extends BaseConfig {
         public String inboxMenuTitle = "<red>Inbox</red><white>Menu</white> page {page}/{total_pages}";
         public String reloadSuccess = "<green>Configuration reloaded successfully</green>";
         public String howToOpenMail = "<gray>Use <command> or press <yellow><key:key.quickActions></yellow> to open your mail box.</gray>";
+        public String sendTemplateSuccess = "Sent <template> to <count> players.";
+        public String notEnoughMoney = "<red>You don't have <missing_amount> <currency> to perform this action</red>";
+        public String mailPriceInfo ="<gray>Mail Price: <yellow><price> <currency></yellow></gray>";
+        public String attachmentPriceInfo = "<gray>Attachment Price: <yellow><price> <currency> × <count></yellow></gray>";
+        public String totalPriceInfo = "<gray>Total Price: <yellow><price> <currency></yellow></gray>";
     }
 
 }

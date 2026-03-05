@@ -159,17 +159,17 @@ public final class MailTemplate implements Comparable<MailTemplate> {
                 "permission=" + permission + ']';
     }
 
-    public @NotNull Mail createMail(@NotNull MailUser user) {
+    public @NotNull Mail createMail(@NotNull MailUser receiver) {
         List<Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
         String title = this.title
-                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString())))
+                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(receiver.uuid()).getName()).orElse(receiver.uuid().toString())))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
                 .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
         String content = this.content
-                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(user.uuid()).getName()).orElse(user.uuid().toString())))
+                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(receiver.uuid()).getName()).orElse(receiver.uuid().toString())))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
                 .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
-        return Mail.createSystemNow(sender, user, title, content, newAttachments);
+        return Mail.createFromPlayerNow(sender, receiver, title, content, newAttachments);
     }
 
     @Override

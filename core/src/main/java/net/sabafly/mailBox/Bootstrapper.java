@@ -51,11 +51,13 @@ public final class Bootstrapper implements PluginBootstrap {
                                 .build())
                         .base(DialogBase.builder(miniMessage().deserialize(config.config().messages.mailMenuTitle)).build())
         )));
-        context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)
-                .newHandler(event ->
-                        event.registrar().addToTag(DialogTagKeys.QUICK_ACTIONS, List.of(
-                                DialogKeys.create(CONTENT_DIALOG_KEY)
-                        ))));
+        if (config.config().enableQuickAction) {
+            context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)
+                    .newHandler(event ->
+                            event.registrar().addToTag(DialogTagKeys.QUICK_ACTIONS, List.of(
+                                    DialogKeys.create(CONTENT_DIALOG_KEY)
+                            ))));
+        }
         if (config.config().enableGameMenuShortcut) {
             context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)
                     .newHandler(event ->
