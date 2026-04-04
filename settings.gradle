@@ -1,4 +1,4 @@
-rootProject.name = 'MailBox'
+rootProject.name = "MailBox"
 
 include("mailbox-api")
 project(":mailbox-api").projectDir = file("api")
