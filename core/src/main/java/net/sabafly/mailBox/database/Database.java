@@ -4,7 +4,6 @@ import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailbox.api.mail.User;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;

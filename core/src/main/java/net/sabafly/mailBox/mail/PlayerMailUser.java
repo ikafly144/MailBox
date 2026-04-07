@@ -1,7 +1,6 @@
 package net.sabafly.mailBox.mail;
 
 import net.sabafly.mailbox.api.mail.User;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 

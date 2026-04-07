@@ -6,7 +6,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.PlayerMailUser;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
@@ -129,19 +128,17 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
             });
         }
         senderItem.editMeta(meta ->
-                {
-                    meta.customName(miniMessage().deserialize(
-                            config().messages.senderValue,
-                            TagResolver.builder().tag(
-                                    "sender",
-                                    Tag.inserting(
-                                            miniMessage().deserialize(
-                                                    mail.getSender().name()
-                                            )
-                                    )
-                            ).build()
-                    ));
-                }
+                meta.customName(miniMessage().deserialize(
+                        config().messages.senderValue,
+                        TagResolver.builder().tag(
+                                "sender",
+                                Tag.inserting(
+                                        miniMessage().deserialize(
+                                                mail.getSender().name()
+                                        )
+                                )
+                        ).build()
+                ))
         );
         return senderItem;
     }

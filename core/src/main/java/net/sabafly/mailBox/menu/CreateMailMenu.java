@@ -77,7 +77,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 miniMessage().deserialize(config().messages.setSubject) :
                 miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(subject))).build())
         ));
-        clickRegistry.setItem(0, subjectItem, (p, clickType) -> {
+        clickRegistry.setItem(0, subjectItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSubject), s -> subject = s, subject, false, 50));
             }
@@ -87,7 +87,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 miniMessage().deserialize(config().messages.setContent) :
                 miniMessage().deserialize(config().messages.contentInfo, TagResolver.builder().tag("length", Tag.inserting(Component.text(content.length()))).build())
         ));
-        clickRegistry.setItem(1, contentItem, (p, clickType) -> {
+        clickRegistry.setItem(1, contentItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setContent), str -> this.content = str, this.content, true, 2000));
             }
@@ -288,7 +288,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         lore.add(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSetExpiration)));
                     }
                     lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
-                    clickRegistry.setItem(i + 18, attachments.get(i).createPreview(attachment -> lore), (player1, clickType) -> {
+                    clickRegistry.setItem(i + 18, attachments.get(i).createPreview(_ -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
                             var a = attachments.remove(finalI);
                             if (!isTemplate || !(a instanceof VaultValueAttachment)) a.cancel(player1);

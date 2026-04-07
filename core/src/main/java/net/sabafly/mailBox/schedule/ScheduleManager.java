@@ -11,7 +11,6 @@ import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.utils.PlaceholderUtils;
-import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +36,7 @@ public class ScheduleManager {
     }
 
     public void start() {
-        task = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
+        task = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, _ -> {
             List<MailTemplate> templates = database().getAllMailTemplates().stream()
                     .filter(MailTemplate::autoSend)
                     .filter(mailTemplate -> mailTemplate.startTime() != null && mailTemplate.startTime().isBefore(LocalDateTime.now()))
@@ -50,7 +49,7 @@ public class ScheduleManager {
                     if (!Optional.ofNullable(template.permission()).map(p -> player.permissionValue(p) == TriState.TRUE).orElse(true))
                         continue;
                     long intervalCount = template.intervalCount();
-                    Bukkit.getAsyncScheduler().runNow(plugin, r -> {
+                    Bukkit.getAsyncScheduler().runNow(plugin, _ -> {
                         if (database().hasUserTemplate(playerMailUser, template, (int) intervalCount)) {
                             Optional<LocalDateTime> time = database().getUserTemplateTime(playerMailUser, template, (int) intervalCount);
                             if (template.interval() == null || time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
@@ -62,7 +61,7 @@ public class ScheduleManager {
                         database().createUserTemplate(playerMailUser, template, (int) intervalCount);
                     });
                 }
-                Bukkit.getAsyncScheduler().runNow(plugin, r -> checkNotify(player, playerMailUser, false));
+                Bukkit.getAsyncScheduler().runNow(plugin, _ -> checkNotify(player, playerMailUser, false));
             });
         }, 0, 1, TimeUnit.SECONDS);
     }

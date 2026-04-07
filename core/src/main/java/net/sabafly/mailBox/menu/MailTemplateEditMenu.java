@@ -51,7 +51,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
             meta.itemName(miniMessage().deserialize(config().messages.autoSend));
             meta.lore(List.of(miniMessage().deserialize(template.autoSend() ? config().messages.enabled : config().messages.disabled)));
         });
-        clickRegistry.setItem(0, autoSend, (player, clickType) -> {
+        clickRegistry.setItem(0, autoSend, (_, clickType) -> {
             if (clickType.isLeftClick()) {
                 template.setAutoSend(!template.autoSend());
                 refresh();

@@ -7,7 +7,6 @@ import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.utils.DateUtils;
 import net.sabafly.mailbox.api.mail.User;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;

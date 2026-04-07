@@ -2,7 +2,6 @@ package net.sabafly.mailBox.listener;
 
 import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.schedule.ScheduleManager;
-import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

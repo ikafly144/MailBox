@@ -31,12 +31,6 @@ public class UserDeserializer implements JsonDeserializer<User>, JsonSerializer<
         };
     }
 
-    public static <U extends User> JsonElement getDefaultUserJson(Class<U> userClass) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", getTypeName(userClass));
-        return jsonObject;
-    }
-
     @Override
     public JsonElement serialize(User src, Type typeOfSrc, JsonSerializationContext context) {
         var element = new GsonBuilder()
