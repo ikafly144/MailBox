@@ -8,27 +8,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.UUID;
 
-public record MailUser(@NotNull UUID uuid) implements User {
+public record PlayerMailUser(@NotNull OfflinePlayer offlinePlayer) implements User {
 
     @Override
     public @NotNull String toString() {
-        return uuid.toString();
+        return offlinePlayer.toString();
     }
 
     @Override
     public @NotNull UUID id() {
-        return uuid;
+        return offlinePlayer.getUniqueId();
     }
 
     @Override
     public @NotNull String name() {
         // TODO: 名前をデータベースに保存する
-        return Objects.requireNonNull(Bukkit.getOfflinePlayer(uuid).getName());
+        return Objects.requireNonNullElse(offlinePlayer.getName(), offlinePlayer.getUniqueId().toString());
     }
 
     @NotNull
     public OfflinePlayer offlinePlayer() {
-        return Bukkit.getOfflinePlayer(uuid);
+        return offlinePlayer;
     }
 
 }

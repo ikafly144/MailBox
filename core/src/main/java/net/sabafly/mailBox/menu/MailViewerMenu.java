@@ -5,6 +5,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,7 +65,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         final ItemStack senderItem = getSenderItem();
         clickRegistry.setItem(0, senderItem);
         ItemStack titleItem = new ItemStack(Material.NAME_TAG);
-        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
+        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
         clickRegistry.setItem(1, titleItem);
         ItemStack contentItem = new ItemStack(Material.BOOK);
         contentItem.editMeta(meta -> {
@@ -118,18 +118,31 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private @NotNull ItemStack getSenderItem() {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
-        if (mail.getSender() != null) {
+        if (mail.getSender() instanceof PlayerMailUser(org.bukkit.OfflinePlayer offlinePlayer)) {
             senderItem.editMeta(meta -> {
                 if (meta instanceof SkullMeta skullMeta) {
                     try {
-                        skullMeta.setPlayerProfile(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getPlayerProfile());
+                        skullMeta.setPlayerProfile(offlinePlayer.getPlayerProfile());
                     } catch (IllegalArgumentException ignored) {
                     }
                 }
             });
         }
         senderItem.editMeta(meta ->
-                meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(mail.getSender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(mail.getSender().uuid()).getName()).orElse(mail.getSender().uuid().toString())))).build())));
+                {
+                    meta.customName(miniMessage().deserialize(
+                            config().messages.senderValue,
+                            TagResolver.builder().tag(
+                                    "sender",
+                                    Tag.inserting(
+                                            miniMessage().deserialize(
+                                                    mail.getSender().name()
+                                            )
+                                    )
+                            ).build()
+                    ));
+                }
+        );
         return senderItem;
     }
 }

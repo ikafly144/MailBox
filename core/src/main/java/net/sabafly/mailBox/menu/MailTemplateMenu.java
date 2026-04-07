@@ -5,6 +5,7 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.utils.DateUtils;
+import net.sabafly.mailbox.api.mail.User;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
@@ -74,13 +75,13 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
     private ItemStack createMailItem(MailTemplate mail) {
         ItemStack item = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(ItemTypeKeys.WRITABLE_BOOK).createItemStack();
         item.editMeta(meta -> {
-            meta.itemName(plainText().deserialize(mail.title()));
+            meta.itemName(plainText().deserialize(mail.subject()));
             if (mail.autoSend()) {
                 meta.addEnchant(Enchantment.INFINITY, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             meta.lore(config().messages.mailTemplateLore
-                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.ofNullable(mail.sender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName)))
+                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.of(mail.sender()).map(User::name).orElse(config().messages.systemName)))
                    .replaceAll("\\{start}", Matcher.quoteReplacement(Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue)))
                    .replaceAll("\\{end}", Matcher.quoteReplacement(Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue)))
                    .replaceAll("\\{interval}", Matcher.quoteReplacement(Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue)))

@@ -5,8 +5,6 @@ import lombok.Setter;
 import net.sabafly.mailBox.utils.PlaceholderUtils;
 import net.sabafly.mailbox.api.mail.User;
 import net.sabafly.mailbox.api.mail.attachments.MailAttachment;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static net.sabafly.mailBox.MailBox.database;
@@ -24,10 +21,10 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     @NotNull
     @Getter
     private final UUID id;
-    @Nullable
-    private final UUID sender;
     @NotNull
-    private final UUID receiver;
+    private final User sender;
+    @NotNull
+    private final User receiver;
     @NotNull
     @Getter
     private final String title;
@@ -42,19 +39,34 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     private final LocalDateTime sentTime;
 
     @NotNull
-    public static Mail createFromPlayerNow(@NotNull Player sender, OfflinePlayer receiver, String title, String content, List<Attachment<?>> attachments) {
-        return new Mail(UUID.randomUUID(), sender.getUniqueId(), receiver.getUniqueId(), title, content, attachments, false, LocalDateTime.now());
+    public static Mail createFromUserNow(@NotNull User sender, User receiver, String title, String content, List<Attachment<?>> attachments) {
+        return new Mail(UUID.randomUUID(), sender, receiver, title, content, attachments, false, LocalDateTime.now());
     }
 
     // For system mails with any sender
-    public static Mail createFromPlayerNow(@Nullable MailUser sender, @NotNull MailUser receiver, String title, String content, List<Attachment<?>> attachments) {
-        return new Mail(UUID.randomUUID(), Optional.ofNullable(sender).map(MailUser::uuid).orElse(null), receiver.uuid(), PlaceholderUtils.setPlaceholder(receiver.offlinePlayer(), title), PlaceholderUtils.setPlaceholder(receiver.offlinePlayer(), content), attachments, false, LocalDateTime.now());
+    public static Mail createFromTemplateNow(@NotNull User sender, @NotNull User receiver, String title, String content, List<Attachment<?>> attachments) {
+        return new Mail(
+                UUID.randomUUID(),
+                sender,
+                receiver,
+                applyPlaceholder(receiver, title),
+                applyPlaceholder(receiver, content),
+                attachments,
+                false,
+                LocalDateTime.now());
     }
+
+    private static String applyPlaceholder(User user, String text) {
+        return user instanceof PlayerMailUser(
+                org.bukkit.OfflinePlayer offlinePlayer
+        ) ? PlaceholderUtils.setPlaceholder(offlinePlayer, text) : text;
+    }
+
 
     public Mail(
             @NotNull UUID id,
-            @Nullable UUID sender,
-            @NotNull UUID receiver,
+            @NotNull User sender,
+            @NotNull User receiver,
             @NotNull String title,
             @NotNull String content,
             @NotNull List<Attachment<?>> attachments,
@@ -86,12 +98,12 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
         return result;
     }
 
-    public @Nullable MailUser getSender() {
-        return sender == null ? null : database().getUser(sender);
+    public @NotNull User getSender() {
+        return database().registerUser(sender);
     }
 
-    public @NotNull MailUser getReceiver() {
-        return database().getUser(receiver);
+    public @NotNull User getReceiver() {
+        return database().registerUser(receiver);
     }
 
     public void attachments(@NotNull List<@NotNull Attachment<?>> mailAttachments) {
@@ -100,7 +112,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     }
 
     @Override
-    public @NotNull String title() {
+    public @NotNull String subject() {
         return title;
     }
 
@@ -112,6 +124,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     public @NotNull List<@NotNull MailAttachment> attachments() {
         return List.copyOf(attachments);
     }
+
     @ApiStatus.Internal
     public @NotNull List<@NotNull Attachment<?>> getAttachmentsInternal() {
         return attachments;
@@ -119,17 +132,17 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
 
     @Override
     public @NotNull User sender() {
-        return database().getUser(sender);
+        return database().registerUser(sender);
     }
 
     @Override
     public @NotNull User receiver() {
-        return database().getUser(receiver);
+        return database().registerUser(receiver);
     }
 
     @Nullable
     @ApiStatus.Internal
     public String getSenderId() {
-        return sender == null ? null : sender.toString();
+        return sender.id().toString();
     }
 }

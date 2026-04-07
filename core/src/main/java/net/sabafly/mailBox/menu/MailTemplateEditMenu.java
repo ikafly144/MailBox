@@ -5,6 +5,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.utils.DateUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.Bukkit;
@@ -65,7 +66,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
                     refresh();
                 }));
             } else if (clickType.isRightClick()) {
-                template.setSender(null);
+                template.setSender(MailBox.getInstance().getSystemUser());
                 refresh();
             }
         });
@@ -128,17 +129,17 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         });
         ItemStack paper = new ItemStack(Material.PAPER);
         paper.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(template.title()))).build()));
+            meta.itemName(miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(template.subject()))).build()));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSet))
             ));
         });
         clickRegistry.setItem(9, paper, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), value -> {
-                    template.title(value);
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSubject), value -> {
+                    template.setSubject(value);
                     refresh();
-                }, template.title(), false, 80));
+                }, template.subject(), false, 80));
             }
         });
         ItemStack book = new ItemStack(Material.WRITABLE_BOOK);
@@ -151,7 +152,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         clickRegistry.setItem(10, book, (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setContent), value -> {
-                    template.content(value);
+                    template.setContent(value);
                     refresh();
                 }, template.content(), true, 2000));
             }
@@ -225,18 +226,18 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
 
     private @NotNull ItemStack getSender() {
         ItemStack sender = new ItemStack(Material.PLAYER_HEAD);
-        if (template.sender() != null) {
+        if (template.sender() instanceof PlayerMailUser(OfflinePlayer offlinePlayer)) {
             sender.editMeta(meta -> {
                 if (meta instanceof SkullMeta skullMeta) {
                     try {
-                        skullMeta.setPlayerProfile((Bukkit.getOfflinePlayer(template.sender().uuid())).getPlayerProfile());
+                        skullMeta.setPlayerProfile(offlinePlayer.getPlayerProfile());
                     } catch (IllegalArgumentException ignored) {
                     }
                 }
             });
         }
         sender.editMeta(meta -> {
-            meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(template.sender() == null ? config().messages.systemName : Optional.ofNullable(Bukkit.getOfflinePlayer(template.sender().uuid()).getName()).orElse(template.sender().uuid().toString())))).build()));
+            meta.customName(miniMessage().deserialize(config().messages.senderValue, TagResolver.builder().tag("sender", Tag.inserting(miniMessage().deserialize(template.sender().name()))).build()));
             meta.lore(List.of(
                     miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSet)),
                     miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionUnset))

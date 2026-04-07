@@ -2,17 +2,20 @@ package net.sabafly.mailBox.database.impl;
 
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.database.Database;
-import net.sabafly.mailBox.mail.Attachment;
-import net.sabafly.mailBox.mail.Mail;
-import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.gson.deserializer.JsonBuilder;
+import net.sabafly.mailBox.mail.*;
+import net.sabafly.mailbox.api.mail.User;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,14 +25,18 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+import static net.sabafly.mailBox.MailBox.config;
+
 @SuppressWarnings({"FieldCanBeLocal", "CallToPrintStackTrace"})
 public abstract class Base implements Database {
 
+    private static final UUID ZERO_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private QueryRunner runner;
 
     private final String CREATE_TABLE_USERS = """
             CREATE TABLE IF NOT EXISTS mailbox_users (
-                uuid VARCHAR(36) PRIMARY KEY
+                uuid VARCHAR(36) PRIMARY KEY,
+                user_data LONGBLOB DEFAULT NULL
             )
             """;
 
@@ -149,6 +156,11 @@ public abstract class Base implements Database {
             runner.execute(conn, """
                     UPDATE mailbox_template_attachments SET preview_item = ? WHERE preview_item IS NULL
                     """, fallbackPreview);
+
+            runner.execute(conn, """
+                    ALTER TABLE mailbox_users ADD COLUMN IF NOT EXISTS user_data LONGBLOB DEFAULT NULL
+                    """);
+            registerUser(DummyMailUser.createUser(ZERO_UUID, config().messages.systemName));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -169,23 +181,59 @@ public abstract class Base implements Database {
         throw new IllegalStateException("Failed to check if user exists");
     }
 
+    private @NotNull UUID sanitizeUUID(@Nullable final UUID uuid) {
+        return uuid == null ? ZERO_UUID : uuid;
+    }
+
+    @SuppressWarnings("unchecked")
+    private @Nullable <U extends User> U readUser(ResultSet rs) throws SQLException {
+        return Optional.ofNullable(rs.getBinaryStream("user_data"))
+                .map(InputStreamReader::new)
+                .map(reader -> (U) JsonBuilder.builder().create().fromJson(reader, User.class))
+                .orElse(null);
+    }
+
     @Override
-    public @NotNull MailUser getUser(@Nullable UUID uuid) {
-        if (uuid == null) {
-            uuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    public @NonNull <U extends User> U registerUser(@NonNull U user) {
+        U existingUser = getUser(user.id());
+        if (existingUser != null) {
+            return existingUser;
         }
         try (Connection conn = getConnection()) {
-            UUID finalUuid = uuid;
+            var result = runner.query(conn, """
+                    SELECT * FROM mailbox_users WHERE uuid = ?
+                    """, rs -> {
+                if (rs.next()) {
+                    return rs;
+                }
+                return null;
+            }, user.id().toString());
+            if (result != null) {
+                runner.execute(conn, """
+                        UPDATE mailbox_users SET user_data = ? WHERE uuid = ?
+                        """, JsonBuilder.builder().create().toJson(user).getBytes(StandardCharsets.UTF_8), user.id().toString());
+            } else {
+                runner.execute(conn, """
+                        INSERT INTO mailbox_users (uuid, user_data) VALUES (?, ?)
+                        """, user.id().toString(), JsonBuilder.builder().create().toJson(user).getBytes(StandardCharsets.UTF_8));
+            }
+            return user;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to register user", e);
+        }
+    }
+
+    @Override
+    public @Nullable <U extends User> U getUser(@Nullable final UUID uuid) {
+        try (Connection conn = getConnection()) {
             return runner.query(conn, """
                     SELECT * FROM mailbox_users WHERE uuid = ?
                     """, rs -> {
                 if (rs.next()) {
-                    return new MailUser(UUID.fromString(rs.getString("uuid")));
+                    return readUser(rs);
                 }
-                MailUser user = new MailUser(finalUuid);
-                runner.execute(conn, "INSERT INTO mailbox_users (uuid) VALUES (?)", finalUuid.toString());
-                return user;
-            }, uuid.toString());
+                return null;
+            }, sanitizeUUID(uuid).toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -193,12 +241,12 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull List<@NotNull MailUser> getAllUsers() {
+    public @NotNull List<@NotNull User> getAllUsers() {
         try (Connection conn = getConnection()) {
             return runner.query(conn, "SELECT * FROM mailbox_users", rs -> {
-                List<MailUser> users = new ArrayList<>();
+                List<User> users = new ArrayList<>();
                 while (rs.next()) {
-                    users.add(new MailUser(UUID.fromString(rs.getString("uuid"))));
+                    users.add(new PlayerMailUser(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))));
                 }
                 return users;
             });
@@ -209,7 +257,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull SortedSet<Mail> getMails(@NotNull MailUser user, @NotNull TriState read, int limit, int offset) {
+    public @NotNull SortedSet<Mail> getMails(@NotNull User user, @NotNull TriState read, int limit, int offset) {
         try (Connection conn = getConnection()) {
             if (read != TriState.NOT_SET) {
                 return runner.query(conn, """
@@ -218,18 +266,20 @@ public abstract class Base implements Database {
                     SortedSet<Mail> mails = new TreeSet<>();
                     while (rs.next()) {
                         UUID id = UUID.fromString(rs.getString("id"));
-                        UUID sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
-                        UUID receiver = UUID.fromString(rs.getString("receiver"));
+                        UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(ZERO_UUID);
+                        User sender = getUser(senderId);
+                        UUID receiverId = UUID.fromString(rs.getString("receiver"));
+                        User receiver = getUser(receiverId);
                         String title = rs.getString("title");
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
+                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
                     return mails;
-                }, user.uuid().toString(), read.toBoolean(), limit, offset);
+                }, user.id().toString(), read.toBoolean(), limit, offset);
             } else {
                 return runner.query(conn, """
                         SELECT * FROM mailbox_mails WHERE receiver = ? ORDER BY sentTime DESC LIMIT ? OFFSET ?
@@ -237,18 +287,20 @@ public abstract class Base implements Database {
                     SortedSet<Mail> mails = new TreeSet<>();
                     while (rs.next()) {
                         UUID id = UUID.fromString(rs.getString("id"));
-                        UUID sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
-                        UUID receiver = UUID.fromString(rs.getString("receiver"));
+                        UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(ZERO_UUID);
+                        User sender = getUser(senderId);
+                        UUID receiverId = UUID.fromString(rs.getString("receiver"));
+                        User receiver = getUser(receiverId);
                         String title = rs.getString("title");
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
+                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
                     return mails;
-                }, user.uuid().toString(), limit, offset);
+                }, user.id().toString(), limit, offset);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -257,7 +309,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public int countMails(@NotNull MailUser user, @NotNull TriState read) {
+    public int countMails(@NotNull User user, @NotNull TriState read) {
         try (Connection conn = getConnection()) {
             if (read != TriState.NOT_SET) {
                 return runner.query(conn, "SELECT COUNT(*) FROM mailbox_mails WHERE receiver = ? AND is_read = ?", rs -> {
@@ -265,14 +317,14 @@ public abstract class Base implements Database {
                         return rs.getInt(1);
                     }
                     return 0;
-                }, user.uuid().toString(), read.toBoolean());
+                }, user.id().toString(), read.toBoolean());
             } else {
                 return runner.query(conn, "SELECT COUNT(*) FROM mailbox_mails WHERE receiver = ?", rs -> {
                     if (rs.next()) {
                         return rs.getInt(1);
                     }
                     return 0;
-                }, user.uuid().toString());
+                }, user.id().toString());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -287,13 +339,15 @@ public abstract class Base implements Database {
                     SELECT * FROM mailbox_mails WHERE id = ?
                     """, rs -> {
                 if (rs.next()) {
-                    UUID sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
-                    UUID receiver = UUID.fromString(rs.getString("receiver"));
+                    UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(ZERO_UUID);
+                    User sender = getUser(senderId);
+                    UUID receiverId = UUID.fromString(rs.getString("receiver"));
+                    User receiver = getUser(receiverId);
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     boolean read = rs.getBoolean("is_read");
                     LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                    Mail mail = new Mail(id, sender, receiver, title, content, List.of(), read, sentTime);
+                    Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), read, sentTime);
                     mail.attachments(getMailAttachments(mail));
                     return mail;
                 }
@@ -310,7 +364,7 @@ public abstract class Base implements Database {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_mails (id, sender, receiver, title, content, is_read, sentTime) VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, mail.getId().toString(), mail.getSenderId(), mail.getReceiver().uuid().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime());
+                    """, mail.getId().toString(), mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime());
             mail.attachments().forEach(attachment -> {
                 if (attachment instanceof Attachment<?> attach) createMailAttachment(mail, attach);
             });
@@ -325,7 +379,7 @@ public abstract class Base implements Database {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     UPDATE mailbox_mails SET sender = ?, receiver = ?, title = ?, content = ?, is_read = ?, sentTime = ? WHERE id = ?
-                    """, mail.getSenderId(), mail.getReceiver().uuid().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime(), mail.getId().toString());
+                    """, mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime(), mail.getId().toString());
             mail.attachments().forEach(attachment -> {
                 if (attachment instanceof Attachment<?> attach) updateMailAttachment(mail, attach);
             });
@@ -351,7 +405,7 @@ public abstract class Base implements Database {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_templates (id, title, content, auto_send, sender, start_time, end_time, send_interval, permission) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, template.id().toString(), template.title(), template.content(), template.autoSend(), template.sender() == null ? null : template.sender().uuid().toString(), template.startTime(), template.endTime(), template.intervalSeconds(), template.permission());
+                    """, template.id().toString(), template.subject(), template.content(), template.autoSend(), template.sender().id().toString(), template.startTime(), template.endTime(), template.intervalSeconds(), template.permission());
             template.attachment().forEach(attachment -> createTemplateAttachment(template, attachment));
         } catch (SQLException e) {
             e.printStackTrace();
@@ -364,7 +418,7 @@ public abstract class Base implements Database {
             var old = getTemplateAttachments(template);
             runner.execute(conn, """
                     UPDATE mailbox_templates SET title = ?, content = ?, auto_send = ?, sender = ?, start_time = ?, end_time = ?, send_interval = ?, permission = ? WHERE id = ?
-                    """, template.title(), template.content(), template.autoSend(), template.sender() == null ? null : template.sender().uuid().toString(), template.startTime(), template.endTime(), template.intervalSeconds(), template.permission(), template.id().toString());
+                    """, template.subject(), template.content(), template.autoSend(), template.sender().id().toString(), template.startTime(), template.endTime(), template.intervalSeconds(), template.permission(), template.id().toString());
             template.attachment().forEach(attachment -> updateTemplateAttachment(template, attachment));
             // Delete attachments that are no longer in the template
             old.stream().filter(a -> !template.attachment().contains(a)).forEach(a -> deleteTemplateAttachment(template, a));
@@ -383,12 +437,13 @@ public abstract class Base implements Database {
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     boolean autoSend = rs.getBoolean("auto_send");
-                    MailUser sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).map(this::getUser).orElse(null);
+                    UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
+                    User sender = getUser(senderId);
                     Date startTime = rs.getTimestamp("start_time");
                     Date endTime = rs.getTimestamp("end_time");
                     Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, LocalDateTime.ofInstant(startTime.toInstant(), ZoneId.systemDefault()), LocalDateTime.ofInstant(endTime.toInstant(), ZoneId.systemDefault()), interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), LocalDateTime.ofInstant(startTime.toInstant(), ZoneId.systemDefault()), LocalDateTime.ofInstant(endTime.toInstant(), ZoneId.systemDefault()), interval, permission);
                     template.attachment(getTemplateAttachments(template));
                     return template;
                 }
@@ -412,12 +467,13 @@ public abstract class Base implements Database {
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     boolean autoSend = rs.getBoolean("auto_send");
-                    @Nullable MailUser sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).map(this::getUser).orElse(null);
+                    UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
+                    User sender = getUser(senderId);
                     @Nullable LocalDateTime startTime = Optional.ofNullable(rs.getTimestamp("start_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable LocalDateTime endTime = Optional.ofNullable(rs.getTimestamp("end_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     @Nullable String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, startTime, endTime, interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), startTime, endTime, interval, permission);
                     template.attachment(getTemplateAttachments(template));
                     templates.add(template);
                 }
@@ -441,12 +497,13 @@ public abstract class Base implements Database {
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     boolean autoSend = rs.getBoolean("auto_send");
-                    @Nullable MailUser sender = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).map(this::getUser).orElse(null);
+                    UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(ZERO_UUID);
+                    User sender = getUser(senderId);
                     @Nullable LocalDateTime startTime = rs.getTimestamp("start_time") == null ? null : LocalDateTime.ofInstant(rs.getTimestamp("start_time").toInstant(), ZoneId.systemDefault());
                     @Nullable LocalDateTime endTime = rs.getTimestamp("end_time") == null ? null : LocalDateTime.ofInstant(rs.getTimestamp("end_time").toInstant(), ZoneId.systemDefault());
                     @Nullable Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     @Nullable String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, startTime, endTime, interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), startTime, endTime, interval, permission);
                     template.attachment(getTemplateAttachments(template));
                     templates.add(template);
                 }
@@ -502,7 +559,17 @@ public abstract class Base implements Database {
     @Override
     public void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
+            runner.execute(
+                    conn,
+                    "UPDATE mailbox_mail_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?",
+                    attachment.getType().name(),
+                    attachment.getPlainName(),
+                    attachment.opened(),
+                    Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(),
+                    attachment.serialize(),
+                    attachment.expireDuration().map(Duration::getSeconds).orElse(0L),
+                    attachment.getId().toString()
+            );
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -638,11 +705,11 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public boolean hasUserTemplate(@NotNull MailUser user, @NotNull MailTemplate template, int interval) {
+    public boolean hasUserTemplate(@NotNull User user, @NotNull MailTemplate template, int interval) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, """
                     SELECT * FROM mailbox_user_templates WHERE user_id = ? AND template_id = ? AND interval_count = ?
-                    """, ResultSet::next, user.uuid().toString(), template.id().toString(), interval);
+                    """, ResultSet::next, user.id().toString(), template.id().toString(), interval);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -650,7 +717,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull Optional<@NotNull LocalDateTime> getUserTemplateTime(@NotNull MailUser user, @NotNull MailTemplate template, int interval) {
+    public @NotNull Optional<@NotNull LocalDateTime> getUserTemplateTime(@NotNull User user, @NotNull MailTemplate template, int interval) {
         try (Connection conn = getConnection()) {
             return Optional.ofNullable(runner.query(conn, """
                     SELECT received_time FROM mailbox_user_templates WHERE user_id = ? AND template_id = ? AND interval_count = ?
@@ -660,7 +727,7 @@ public abstract class Base implements Database {
                     return LocalDateTime.ofInstant(receivedTime.toInstant(), ZoneId.systemDefault());
                 }
                 return null;
-            }, user.uuid().toString(), template.id().toString(), interval));
+            }, user.id().toString(), template.id().toString(), interval));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -668,7 +735,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull List<@NotNull Pair<MailTemplate, Integer>> getUserTemplates(@NotNull MailUser user, int page) {
+    public @NotNull List<@NotNull Pair<MailTemplate, Integer>> getUserTemplates(@NotNull User user, int page) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, """
                     SELECT * FROM mailbox_user_templates WHERE user_id = ? ORDER BY received_time DESC LIMIT ? OFFSET ?
@@ -681,7 +748,7 @@ public abstract class Base implements Database {
                     templates.add(Pair.of(template, interval));
                 }
                 return templates;
-            }, user.uuid().toString(), PAGE_SIZE, (page - 1) * PAGE_SIZE);
+            }, user.id().toString(), PAGE_SIZE, (page - 1) * PAGE_SIZE);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -689,12 +756,12 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull List<@NotNull MailUser> getUserTemplatesByTemplate(@NotNull MailTemplate template, int interval, int page) {
+    public @NotNull List<@NotNull User> getUserTemplatesByTemplate(@NotNull MailTemplate template, int interval, int page) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, """
                     SELECT user_id FROM mailbox_user_templates WHERE template_id = ? AND interval_count = ? ORDER BY received_time DESC LIMIT ? OFFSET ?
                     """, rs -> {
-                List<MailUser> users = new ArrayList<>();
+                List<User> users = new ArrayList<>();
                 while (rs.next()) {
                     UUID userId = UUID.fromString(rs.getString("user_id"));
                     users.add(getUser(userId));
@@ -708,50 +775,50 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void createUserTemplate(@NotNull MailUser user, @NotNull MailTemplate template, int interval) {
+    public void createUserTemplate(@NotNull User user, @NotNull MailTemplate template, int interval) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_user_templates (user_id, template_id, interval_count, received_time) VALUES (?, ?, ?, ?)
-                    """, user.uuid().toString(), template.id().toString(), interval, Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+                    """, user.id().toString(), template.id().toString(), interval, Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void deleteUserTemplate(@NotNull MailUser user, @NotNull MailTemplate template, int interval) {
+    public void deleteUserTemplate(@NotNull User user, @NotNull MailTemplate template, int interval) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     DELETE FROM mailbox_user_templates WHERE user_id = ? AND template_id = ? AND interval_count = ?
-                    """, user.uuid().toString(), template.id().toString(), interval);
+                    """, user.id().toString(), template.id().toString(), interval);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    protected void createUserNotification(@NotNull MailUser user, @NotNull Mail mail) {
+    protected void createUserNotification(@NotNull User user, @NotNull Mail mail) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_user_notifications (user_id, mail_id, sent_time) VALUES (?, ?, ?)
-                    """, user.uuid().toString(), mail.getId().toString(), Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
+                    """, user.id().toString(), mail.getId().toString(), Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void deleteAllUserNotification(@NotNull MailUser user) {
+    public void deleteAllUserNotification(@NotNull User user) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     DELETE FROM mailbox_user_notifications WHERE user_id = ?
-                    """, user.uuid().toString());
+                    """, user.id().toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public @NotNull List<@NotNull Mail> getAllUserNotification(@NotNull MailUser user) {
+    public @NotNull List<@NotNull Mail> getAllUserNotification(@NotNull User user) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, """
                     SELECT mail_id FROM mailbox_user_notifications WHERE user_id = ? ORDER BY sent_time DESC LIMIT ? OFFSET ?
@@ -762,7 +829,7 @@ public abstract class Base implements Database {
                     mails.add(getMail(id).orElseThrow());
                 }
                 return mails;
-            }, user.uuid().toString(), Integer.MAX_VALUE, 0);
+            }, user.id().toString(), Integer.MAX_VALUE, 0);
         } catch (SQLException e) {
             e.printStackTrace();
         }

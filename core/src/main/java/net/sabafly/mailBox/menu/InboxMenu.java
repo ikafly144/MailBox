@@ -6,7 +6,6 @@ import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Mail;
-import net.sabafly.mailBox.mail.MailUser;
 import net.sabafly.mailBox.utils.DateUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,7 +41,9 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
 
     public InboxMenu(Player player, int page) {
         super(player, 45, menu -> {
-            final MailUser user = database().getUser(player.getUniqueId());
+            var user = database().getUser(player.getUniqueId());
+            if (user == null)
+                throw new IllegalStateException("User not found");
             return miniMessage().deserialize(
                     config().messages.inboxMenuTitle
                             .replaceAll("\\{unread_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.FALSE))))
@@ -121,7 +121,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             List<Component> lore = config().messages.mailMenuMailLore
-                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.ofNullable(mail.getSender()).map(sender -> Bukkit.getOfflinePlayer(sender.uuid()).getName()).orElse(config().messages.systemName)))
+                    .replaceAll("\\{sender}", Matcher.quoteReplacement(mail.getSender().name()))
                    .replaceAll("\\{time}", Matcher.quoteReplacement(DateUtils.format(mail.getSentTime())))
                     .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.getAttachmentsInternal().stream().filter(a -> !a.opened() && !a.isExpired()).count() + ")"))
                    .replaceAll("\\{read}", Matcher.quoteReplacement(mail.isRead() ? config().messages.read : config().messages.unread))

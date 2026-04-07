@@ -1,11 +1,14 @@
 package net.sabafly.mailbox.api;
 
-import net.sabafly.mailbox.api.mail.Mail;
+import net.sabafly.mailbox.api.mail.Template;
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 public interface IMailBox {
 
@@ -13,8 +16,11 @@ public interface IMailBox {
         return (IMailBox) Bukkit.getServer().getPluginManager().getPlugin("MailBox");
     }
 
-    @Nullable Mail createMail(@NotNull String subject, @NotNull String content, @Nullable User sender, @NotNull User receiver);
-
     @Nullable User getUser(@NotNull Player player);
+
+    @NotNull User getSystemUser();
+
+    @Contract("_ -> new")
+    @NotNull Template createTemplate(@NotNull Consumer<Template.Builder> builderConsumer);
 
 }

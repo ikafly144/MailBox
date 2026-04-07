@@ -5,7 +5,6 @@ import io.papermc.paper.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -98,8 +97,8 @@ public class Config extends BaseConfig {
         public String unread = "<red>Unread</red>";
         public String content = "Content";
         public String contentInfo = "Content: <bold><length> letters</bold>";
-        public String titleValue = "Title: <bold><title></bold>";
-        public String setTitle = "Set Title";
+        public String subjectValue = "Subject: <bold><subject></bold>";
+        public String setSubject = "Set Subject";
         public String setContent = "Set Content";
         public String attachmentAppendItem = "<gray>Append Item</gray>";
         public String attachmentAppendCommand = "<gray>Append Command</gray>";
@@ -188,6 +187,7 @@ public class Config extends BaseConfig {
         public String mailPriceInfo ="<gray>Mail Price: <yellow><price> <currency></yellow></gray>";
         public String attachmentPriceInfo = "<gray>Attachment Price: <yellow><price> <currency> × <count></yellow></gray>";
         public String totalPriceInfo = "<gray>Total Price: <yellow><price> <currency></yellow></gray>";
+        public String userNotFound = "<red>User <name> not found</red>";
     }
 
 }

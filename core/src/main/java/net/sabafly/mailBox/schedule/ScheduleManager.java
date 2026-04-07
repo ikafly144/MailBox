@@ -9,8 +9,9 @@ import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.utils.PlaceholderUtils;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -43,29 +44,30 @@ public class ScheduleManager {
                     .filter(mailTemplate -> mailTemplate.endTime() == null || mailTemplate.endTime().isAfter(LocalDateTime.now()))
                     .toList();
             Bukkit.getOnlinePlayers().forEach(player -> {
-                final MailUser user = database().getUser(player.getUniqueId());
+                if (!(database().getUser(player.getUniqueId()) instanceof PlayerMailUser playerMailUser))
+                    return;
                 for (MailTemplate template : templates) {
                     if (!Optional.ofNullable(template.permission()).map(p -> player.permissionValue(p) == TriState.TRUE).orElse(true))
                         continue;
                     long intervalCount = template.intervalCount();
                     Bukkit.getAsyncScheduler().runNow(plugin, r -> {
-                        if (database().hasUserTemplate(user, template, (int) intervalCount)) {
-                            Optional<LocalDateTime> time = database().getUserTemplateTime(user, template, (int) intervalCount);
+                        if (database().hasUserTemplate(playerMailUser, template, (int) intervalCount)) {
+                            Optional<LocalDateTime> time = database().getUserTemplateTime(playerMailUser, template, (int) intervalCount);
                             if (template.interval() == null || time.map(t -> Duration.between(t, LocalDateTime.now()).compareTo(template.interval()) < 0).orElse(false))
                                 return;
-                            database().deleteUserTemplate(user, template, (int) intervalCount);
+                            database().deleteUserTemplate(playerMailUser, template, (int) intervalCount);
                         }
-                        Mail mail = template.createMail(user);
+                        Mail mail = template.createMail(playerMailUser);
                         database().createMail(mail);
-                        database().createUserTemplate(user, template, (int) intervalCount);
+                        database().createUserTemplate(playerMailUser, template, (int) intervalCount);
                     });
                 }
-                Bukkit.getAsyncScheduler().runNow(plugin, r -> checkNotify(player, user, false));
+                Bukkit.getAsyncScheduler().runNow(plugin, r -> checkNotify(player, playerMailUser, false));
             });
         }, 0, 1, TimeUnit.SECONDS);
     }
 
-    public static void checkNotify(Player player, MailUser user, boolean login) {
+    public static void checkNotify(Player player, PlayerMailUser user, boolean login) {
         boolean notified = false;
         try {
             if (login) {

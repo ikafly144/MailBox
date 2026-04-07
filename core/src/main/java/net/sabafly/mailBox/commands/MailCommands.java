@@ -14,11 +14,12 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.commands.arguments.MailTemplateArgumentType;
 import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.menu.CreateMailMenu;
 import net.sabafly.mailBox.menu.InboxMenu;
 import net.sabafly.mailBox.menu.MailTemplateMenu;
 import net.sabafly.mailBox.menu.SendMailMenu;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.ConsoleCommandSender;
@@ -26,6 +27,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -74,7 +76,8 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                             final var targets = context.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(context.getSource());
                                                             final var template = context.getArgument("template", MailTemplate.class);
                                                             targets.stream()
-                                                                    .map(target-> database().getUser(target.getUniqueId()))
+                                                                    .map(target -> database().<PlayerMailUser>getUser(target.getUniqueId()))
+                                                                    .filter(Objects::nonNull)
                                                                     .forEach(user -> {
                                                                         final var mail = template.createMail(user);
                                                                         database().createMail(mail);
@@ -83,7 +86,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     .deserialize(
                                                                             config().messages.sendTemplateSuccess,
                                                                             Placeholder.component("count", Component.text(targets.size())),
-                                                                            Placeholder.component("template", miniMessage().deserialize(template.title()))
+                                                                            Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                                     )
                                                             );
                                                             return targets.size();
@@ -115,7 +118,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                             if (!(context.getSource().getExecutor() instanceof Player))
                                 return builder.buildFuture();
                             var databaseIds = database().getAllUsers().stream()
-                                    .map(MailUser::uuid);
+                                    .map(User::id);
                             var onlinePlayerIds = Bukkit.getOnlinePlayers().stream()
                                     .map(Player::getUniqueId)
                                     .collect(Collectors.toSet());

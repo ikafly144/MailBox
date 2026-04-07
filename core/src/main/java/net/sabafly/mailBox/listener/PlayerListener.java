@@ -1,7 +1,8 @@
 package net.sabafly.mailBox.listener;
 
-import net.sabafly.mailBox.mail.MailUser;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.schedule.ScheduleManager;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,8 +26,8 @@ public class PlayerListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerLogin(PlayerJoinEvent event) {
-        Bukkit.getAsyncScheduler().runNow(plugin, task -> {
-            MailUser user = database().getUser(event.getPlayer().getUniqueId());
+        Bukkit.getAsyncScheduler().runNow(plugin, _ -> {
+            var user = database().registerUser(new PlayerMailUser(event.getPlayer()));
             ScheduleManager.checkNotify(event.getPlayer(), user, true);
         });
     }

@@ -8,7 +8,7 @@ import java.util.List;
 public interface Mail {
 
     @NotNull
-    String title();
+    String subject();
 
     @NotNull
     String content();

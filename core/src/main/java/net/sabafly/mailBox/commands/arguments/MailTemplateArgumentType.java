@@ -20,7 +20,7 @@ import static net.sabafly.mailBox.MailBox.database;
 public class MailTemplateArgumentType implements CustomArgumentType<MailTemplate, String> {
 
     private static final DynamicCommandExceptionType NO_SUCH_TEMPLATE_EXCEPTION = new DynamicCommandExceptionType(
-            input -> () -> "No mail template found with id or title: " + input
+            input -> () -> "No mail template found with id or setSubject: " + input
     );
 
     @Override
@@ -33,7 +33,7 @@ public class MailTemplateArgumentType implements CustomArgumentType<MailTemplate
         } catch (IllegalArgumentException ignored) {
         }
         var result = database().getAllMailTemplates().stream()
-                .filter(t -> t.title().equalsIgnoreCase(input))
+                .filter(t -> t.subject().equalsIgnoreCase(input))
                 .findFirst()
                 .orElse(null);
         if (result == null) {
@@ -46,7 +46,7 @@ public class MailTemplateArgumentType implements CustomArgumentType<MailTemplate
     public <S> @NonNull CompletableFuture<Suggestions> listSuggestions(@NonNull CommandContext<S> context, SuggestionsBuilder builder) {
         var input = builder.getRemainingLowerCase();
         database().getAllMailTemplates().stream()
-                .map(MailTemplate::title)
+                .map(MailTemplate::subject)
                 .filter(title -> title.toLowerCase().startsWith(input))
                 .map(StringArgumentType::escapeIfRequired)
                 .forEach(builder::suggest);

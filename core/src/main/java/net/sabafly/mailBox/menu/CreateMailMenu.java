@@ -10,6 +10,7 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
@@ -36,7 +38,7 @@ import static net.sabafly.mailBox.MailBox.database;
 public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
     @Nullable
-    private String title = null;
+    private String subject = null;
     @Nullable
     private String content = null;
     @NotNull
@@ -70,14 +72,14 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
-        ItemStack titleItem = new ItemStack(Material.NAME_TAG);
-        titleItem.editMeta(meta -> meta.itemName(title == null ?
-                miniMessage().deserialize(config().messages.setTitle) :
-                miniMessage().deserialize(config().messages.titleValue, TagResolver.builder().tag("title", Tag.inserting(plainText().deserialize(title))).build())
+        ItemStack subjectItem = new ItemStack(Material.NAME_TAG);
+        subjectItem.editMeta(meta -> meta.itemName(subject == null ?
+                miniMessage().deserialize(config().messages.setSubject) :
+                miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(subject))).build())
         ));
-        clickRegistry.setItem(0, titleItem, (p, clickType) -> {
+        clickRegistry.setItem(0, subjectItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setTitle), s -> title = s, title, false, 50));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSubject), s -> subject = s, subject, false, 50));
             }
         });
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);
@@ -102,12 +104,12 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             createTemplate.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.createMailTemplate)));
             clickRegistry.setItem(8, createTemplate, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
-                    if (title == null || content == null) {
+                    if (subject == null || content == null) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateError))));
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        MailTemplate template = MailTemplate.createNow(null, title, content, attachments);
+                        MailTemplate template = MailTemplate.createNow(MailBox.getInstance().getSystemUser(), subject, content, attachments);
                         database().createMailTemplate(template);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateSuccess));
                     }));
@@ -148,11 +150,21 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             });
             clickRegistry.setItem(8, sendItem, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
-                    if (title == null || content == null) {
+                    if (subject == null || content == null) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
-                    if (database().countMails(database().getUser(target.getUniqueId()), TriState.NOT_SET) >= config().mail.maxMailCount) {
+                    var targetUser = database().getUser(target.getUniqueId());
+                    var playerUser = database().registerUser(new PlayerMailUser(p));
+                    if (targetUser == null) {
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(
+                                miniMessage().deserialize(
+                                        config().messages.userNotFound,
+                                        Placeholder.component("player", Component.text(Objects.requireNonNullElse(target.getName(), target.getUniqueId().toString())))
+                                ))));
+                        return;
+                    }
+                    if (database().countMails(targetUser, TriState.NOT_SET) >= config().mail.maxMailCount) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
@@ -172,7 +184,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         }
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        Mail mail = Mail.createFromPlayerNow(p, target, title, content, attachments);
+                        Mail mail = Mail.createFromUserNow(playerUser, targetUser, subject, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
                     }));

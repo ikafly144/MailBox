@@ -1,10 +1,12 @@
 package net.sabafly.mailBox.mail;
 
 import lombok.Setter;
-import org.bukkit.Bukkit;
+import net.sabafly.mailbox.api.mail.Template;
+import net.sabafly.mailbox.api.mail.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -15,16 +17,16 @@ import java.util.stream.Collectors;
 
 import static net.sabafly.mailBox.MailBox.config;
 
-public final class MailTemplate implements Comparable<MailTemplate> {
+public class MailTemplate implements Comparable<MailTemplate>, Template {
     private final @NotNull UUID id;
-    private @NotNull String title;
+    private @NotNull String subject;
     private @NotNull String content;
     private @NotNull List<@NotNull Attachment<?>> attachment;
 
     @Setter
     private boolean autoSend;
     @Setter
-    private @Nullable MailUser sender;
+    private @NotNull User sender;
     @Setter
     private @Nullable LocalDateTime startTime;
     @Setter
@@ -35,22 +37,22 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     private @Nullable String permission;
 
     public MailTemplate(MailTemplate template) {
-        this(template.id, template.title, template.content, template.attachment, template.autoSend, template.sender, template.startTime, template.endTime, template.interval, template.permission);
+        this(template.id, template.subject, template.content, template.attachment, template.autoSend, template.sender, template.startTime, template.endTime, template.interval, template.permission);
     }
 
     public MailTemplate(
             @NotNull UUID id,
-            @NotNull String title,
+            @NotNull String subject,
             @NotNull String content,
             @NotNull List<@NotNull Attachment<?>> attachment,
             boolean autoSend,
-            @Nullable MailUser sender,
+            @NotNull User sender,
             @Nullable LocalDateTime startTime,
             @Nullable LocalDateTime endTime,
             @Nullable Duration interval,
             @Nullable String permission) {
         this.id = id;
-        this.title = title;
+        this.subject = subject;
         this.content = content;
         this.attachment = new ArrayList<>(attachment);
         this.autoSend = autoSend;
@@ -61,7 +63,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         this.permission = permission;
     }
 
-    public static MailTemplate createNow(@Nullable MailUser p, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?>> attachments) {
+    public static MailTemplate createNow(@NotNull User p, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?>> attachments) {
         return new MailTemplate(UUID.randomUUID(), title, content, attachments, false, p, null, null, null, null);
     }
 
@@ -69,19 +71,20 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         return id;
     }
 
-    public @NotNull String title() {
-        return title;
+    @Override
+    public @NotNull String subject() {
+        return subject;
     }
 
-    public void title(@NotNull String title) {
-        this.title = title;
+    public void setSubject(@NotNull String title) {
+        this.subject = title;
     }
 
     public @NotNull String content() {
         return content;
     }
 
-    public void content(@NotNull String content) {
+    public void setContent(@NotNull String content) {
         this.content = content;
     }
 
@@ -97,7 +100,7 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         return autoSend;
     }
 
-    public @Nullable MailUser sender() {
+    public @NonNull User sender() {
         return sender;
     }
 
@@ -128,48 +131,48 @@ public final class MailTemplate implements Comparable<MailTemplate> {
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (MailTemplate) obj;
         return Objects.equals(this.id, that.id) &&
-                Objects.equals(this.title, that.title) &&
-                Objects.equals(this.content, that.content) &&
-                Objects.equals(this.attachment, that.attachment) &&
+               Objects.equals(this.subject, that.subject) &&
+               Objects.equals(this.content, that.content) &&
+               Objects.equals(this.attachment, that.attachment) &&
                 this.autoSend == that.autoSend &&
-                Objects.equals(this.sender, that.sender) &&
-                Objects.equals(this.startTime, that.startTime) &&
-                Objects.equals(this.endTime, that.endTime) &&
-                Objects.equals(this.interval, that.interval) &&
-                Objects.equals(this.permission, that.permission);
+               Objects.equals(this.sender, that.sender) &&
+               Objects.equals(this.startTime, that.startTime) &&
+               Objects.equals(this.endTime, that.endTime) &&
+               Objects.equals(this.interval, that.interval) &&
+               Objects.equals(this.permission, that.permission);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
+        return Objects.hash(id, subject, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
     }
 
     @Override
     public String toString() {
-        return "MailTemplate[" +
-                "id=" + id + ", " +
-                "title=" + title + ", " +
-                "content=" + content + ", " +
-                "attachment=" + attachment + ", " +
-                "autoSend=" + autoSend + ", " +
-                "sender=" + sender + ", " +
-                "startTime=" + startTime + ", " +
-                "endTime=" + endTime + ", " +
-                "interval=" + interval + ", " +
-                "permission=" + permission + ']';
+        return "Template[" +
+               "id=" + id + ", " +
+               "setSubject=" + subject + ", " +
+               "setContent=" + content + ", " +
+               "attachment=" + attachment + ", " +
+               "autoSend=" + autoSend + ", " +
+               "sender=" + sender + ", " +
+               "startTime=" + startTime + ", " +
+               "endTime=" + endTime + ", " +
+               "interval=" + interval + ", " +
+               "permission=" + permission + ']';
     }
 
-    public @NotNull Mail createMail(@NotNull MailUser receiver) {
+    public @NotNull Mail createMail(@NotNull User receiver) {
         List<Attachment<?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
-        String title = this.title
-                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(receiver.uuid()).getName()).orElse(receiver.uuid().toString())))
+        String title = this.subject
+                .replaceAll("\\{player}", Matcher.quoteReplacement(receiver.name()))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
                 .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
         String content = this.content
-                .replaceAll("\\{player}", Matcher.quoteReplacement(Optional.ofNullable(Bukkit.getOfflinePlayer(receiver.uuid()).getName()).orElse(receiver.uuid().toString())))
+                .replaceAll("\\{player}", Matcher.quoteReplacement(receiver.name()))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
                 .replaceAll("\\{date}", Matcher.quoteReplacement(LocalDateTime.now().format(DateTimeFormatter.ofPattern(config().mail.dateFormat))));
-        return Mail.createFromPlayerNow(sender, receiver, title, content, newAttachments);
+        return Mail.createFromTemplateNow(sender, receiver, title, content, newAttachments);
     }
 
     @Override
@@ -180,4 +183,35 @@ public final class MailTemplate implements Comparable<MailTemplate> {
     public long intervalCount() {
         return Optional.ofNullable(this.interval()).map(d -> Duration.between(Objects.requireNonNull(this.startTime()), LocalDateTime.now()).dividedBy(d)).orElse(0L);
     }
+
+    public static final class TemplateBuilder extends MailTemplate implements Template.Builder {
+
+        public TemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?>> attachment, boolean autoSend, @NotNull User sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
+            super(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
+        }
+
+        @Override
+        public Builder subject(String subject) {
+            super.subject = subject;
+            return this;
+        }
+
+        @Override
+        public Builder content(String content) {
+            super.content = content;
+            return this;
+        }
+
+        @Override
+        public Builder sender(User sender) {
+            super.sender = sender;
+            return this;
+        }
+
+        @Override
+        public Template build() {
+            return new MailTemplate(this);
+        }
+    }
+
 }

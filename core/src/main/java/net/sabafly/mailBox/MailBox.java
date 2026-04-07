@@ -10,12 +10,14 @@ import net.sabafly.mailBox.configuration.ConfigLoader;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.executor.ThreadedQueue;
 import net.sabafly.mailBox.listener.PlayerListener;
-import net.sabafly.mailBox.mail.Mail;
+import net.sabafly.mailBox.mail.DummyMailUser;
+import net.sabafly.mailBox.mail.MailTemplate;
+import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailbox.api.IMailBox;
-import net.sabafly.mailbox.api.mail.User;
+import net.sabafly.mailbox.api.mail.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -31,7 +33,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
@@ -85,7 +87,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
         Bukkit.getScheduler().runTask(this, this::loadVault);
         Bukkit.getScheduler().runTask(this, this::loadPlaceholderAPI);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, task -> updateCheck(), 1, 6 * 60 * 60 * 20);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, _ -> updateCheck(), 1, 6 * 60 * 60 * 20);
     }
 
     @Override
@@ -100,19 +102,36 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
     }
 
     @Override
-    public @Nullable net.sabafly.mailbox.api.mail.Mail createMail(@NotNull String subject, @NotNull String content, @Nullable User sender, @NotNull User receiver) {
-        Mail mail = new Mail(UUID.randomUUID(), sender != null ? sender.id() : null, receiver.id(), subject, content, java.util.Collections.emptyList(), false, java.time.LocalDateTime.now());
-        try {
-            database().createMail(mail);
-            return mail;
-        } catch (Exception e) {
-            return null;
-        }
+    public @Nullable PlayerMailUser getUser(@NotNull Player player) {
+        return database().getUser(player.getUniqueId());
     }
 
     @Override
-    public @NotNull User getUser(@NotNull Player player) {
-        return database().getUser(player.getUniqueId());
+    public @NotNull DummyMailUser getSystemUser() {
+        DummyMailUser systemUser = database().getUser(null);
+        if (systemUser == null) {
+            systemUser = DummyMailUser.createUser(DummyMailUser.SYSTEM_UUID, config().messages.systemName);
+            return database().registerUser(systemUser);
+        }
+        return systemUser;
+    }
+
+    @Override
+    public @NotNull Template createTemplate(@NotNull Consumer<Template.Builder> builderConsumer) {
+        var builder = new MailTemplate.TemplateBuilder(
+                java.util.UUID.randomUUID(),
+                "Default Title",
+                "Default Content",
+                java.util.Collections.emptyList(),
+                false,
+                getSystemUser(),
+                null,
+                null,
+                null,
+                null
+        );
+        builderConsumer.accept(builder);
+        return builder.build();
     }
 
     public static Config config() {
