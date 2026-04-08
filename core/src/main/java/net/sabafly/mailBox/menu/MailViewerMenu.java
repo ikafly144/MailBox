@@ -117,7 +117,9 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private @NotNull ItemStack getSenderItem() {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
-        if (mail.getSender() instanceof PlayerMailUser(org.bukkit.OfflinePlayer offlinePlayer)) {
+        if (mail.getSender() instanceof PlayerMailUser(
+                org.bukkit.OfflinePlayer offlinePlayer, _
+        )) {
             senderItem.editMeta(meta -> {
                 if (meta instanceof SkullMeta skullMeta) {
                     try {

@@ -58,7 +58,8 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
 
     private static String applyPlaceholder(User user, String text) {
         return user instanceof PlayerMailUser(
-                org.bukkit.OfflinePlayer offlinePlayer
+                org.bukkit.OfflinePlayer offlinePlayer,
+                _
         ) ? PlaceholderUtils.setPlaceholder(offlinePlayer, text) : text;
     }
 

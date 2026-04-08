@@ -226,7 +226,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
 
     private @NotNull ItemStack getSender() {
         ItemStack sender = new ItemStack(Material.PLAYER_HEAD);
-        if (template.sender() instanceof PlayerMailUser(OfflinePlayer offlinePlayer)) {
+        if (template.sender() instanceof PlayerMailUser(OfflinePlayer offlinePlayer, _)) {
             sender.editMeta(meta -> {
                 if (meta instanceof SkullMeta skullMeta) {
                     try {

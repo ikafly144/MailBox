@@ -17,6 +17,7 @@ import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailbox.api.IMailBox;
+import net.sabafly.mailbox.api.exception.MailException;
 import net.sabafly.mailbox.api.mail.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -102,15 +103,17 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
     }
 
     @Override
-    public @Nullable PlayerMailUser getUser(@NotNull Player player) {
-        return database().getUser(player.getUniqueId());
+    public @NotNull PlayerMailUser getUser(@NotNull Player player) throws MailException {
+        final PlayerMailUser user = database().getUser(player.getUniqueId());
+        if (user == null) throw MailException.USER_NOT_FOUND;
+        return user;
     }
 
     @Override
     public @NotNull DummyMailUser getSystemUser() {
         DummyMailUser systemUser = database().getUser(null);
         if (systemUser == null) {
-            systemUser = DummyMailUser.createUser(DummyMailUser.SYSTEM_UUID, config().messages.systemName);
+            systemUser = DummyMailUser.SYSTEM_USER;
             return database().registerUser(systemUser);
         }
         return systemUser;

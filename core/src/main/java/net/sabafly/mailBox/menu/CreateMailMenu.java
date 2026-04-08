@@ -10,7 +10,6 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
@@ -155,7 +154,10 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         return;
                     }
                     var targetUser = database().getUser(target.getUniqueId());
-                    var playerUser = database().registerUser(new PlayerMailUser(p));
+                    var playerUser = database().getUser(player.getUniqueId());
+                    if (playerUser == null) {
+                        throw new IllegalStateException("Player user not found");
+                    }
                     if (targetUser == null) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(
                                 miniMessage().deserialize(

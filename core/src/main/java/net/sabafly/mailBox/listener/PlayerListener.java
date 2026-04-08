@@ -26,7 +26,7 @@ public class PlayerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerLogin(PlayerJoinEvent event) {
         Bukkit.getAsyncScheduler().runNow(plugin, _ -> {
-            var user = database().registerUser(new PlayerMailUser(event.getPlayer()));
+            var user = database().registerUser(new PlayerMailUser(event.getPlayer(), PlayerMailUser.keyOf(event.getPlayer())));
             ScheduleManager.checkNotify(event.getPlayer(), user, true);
         });
     }
