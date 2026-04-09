@@ -12,20 +12,21 @@ import java.util.UUID;
 
 import static net.sabafly.mailBox.MailBox.config;
 
-public class DummyMailUser implements User {
+public sealed class DummyMailUser implements User permits PluginMailUser {
 
     public static final UUID SYSTEM_UUID = new UUID(0, 0);
+    @ApiStatus.Internal
     public static final DummyMailUser SYSTEM_USER = new DummyMailUser(SYSTEM_UUID, config().messages.systemName, "system");
 
     @Contract("_, _, _ -> new")
     @ApiStatus.Internal
-    public static @NotNull DummyMailUser createUser(@NotNull UUID uuid, @NotNull String name, @KeyPattern.Value String keyValue) {
+    public static @NotNull DummyMailUser createUser(@NotNull UUID uuid, @NotNull String name, @NotNull @KeyPattern.Value String keyValue) {
         return new DummyMailUser(uuid, name, keyValue);
     }
 
     @Contract("_, _ -> new")
     @ApiStatus.Internal
-    public static @NotNull DummyMailUser createUser(@NotNull String name, @KeyPattern.Value String keyValue) {
+    public static @NotNull DummyMailUser createUser(@NotNull String name, @NotNull @KeyPattern.Value String keyValue) {
         return new DummyMailUser(UUID.randomUUID(), name, keyValue);
     }
 
@@ -33,10 +34,14 @@ public class DummyMailUser implements User {
     private final String name;
     private final Key key;
 
-    private DummyMailUser(UUID uuid, String name, @KeyPattern.Value String keyValue) {
+    private DummyMailUser(@NotNull UUID uuid, @NotNull String name, @NotNull @KeyPattern.Value String keyValue) {
+        this(uuid, name, Key.key(MailBox.getInstance(), keyValue));
+    }
+
+    protected DummyMailUser(@NotNull UUID uuid, @NotNull String name, @NotNull Key key) {
         this.uuid = uuid;
         this.name = name;
-        this.key = Key.key(MailBox.getInstance(), keyValue);
+        this.key = key;
     }
 
     @Override

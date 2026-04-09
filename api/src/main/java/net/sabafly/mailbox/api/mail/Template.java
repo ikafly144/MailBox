@@ -10,13 +10,15 @@ public interface Template {
 
     @NotNull User sender();
 
-    interface Builder extends Template, MailBuilder<Template> {
+    void send(User target);
 
-        Builder subject(String subject);
+    interface Builder<B extends Builder<?>> extends Template, MailBuilder<Template> {
 
-        Builder content(String content);
+        B subject(String subject);
 
-        Builder sender(User sender);
+        B content(String content);
+
+        B sender(User sender);
 
         Template build();
 

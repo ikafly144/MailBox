@@ -32,41 +32,41 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     private final boolean moveable;
     private final @NotNull Function<@NotNull T, @NotNull Component> title;
 
-    public InventoryMenu(Player player, int size, Component title) {
-        this(player, size, title, false);
+    public InventoryMenu(Player viewer, int size, Component title) {
+        this(viewer, size, title, false);
     }
 
-    public InventoryMenu(Player player, int size, Component title, boolean moveable) {
-        this(player, size, menu -> title, moveable);
+    public InventoryMenu(Player viewer, int size, Component title, boolean moveable) {
+        this(viewer, size, menu -> title, moveable);
     }
 
-    public InventoryMenu(Player player, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
-        this(player, i, title, false);
+    public InventoryMenu(Player viewer, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
+        this(viewer, i, title, false);
     }
 
-    public InventoryMenu(Player player, int size, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
-        this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), size, title.apply(menu)), title, moveable);
+    public InventoryMenu(Player viewer, int size, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(viewer, menu -> Bukkit.createInventory(new MenuHolder(menu), size, title.apply(menu)), title, moveable);
     }
 
-    public InventoryMenu(Player player, InventoryType type, Component title) {
-        this(player, type, title, false);
+    public InventoryMenu(Player viewer, InventoryType type, Component title) {
+        this(viewer, type, title, false);
     }
 
-    public InventoryMenu(Player player, InventoryType type, Component title, boolean moveable) {
-        this(player, type, menu -> title, moveable);
+    public InventoryMenu(Player viewer, InventoryType type, Component title, boolean moveable) {
+        this(viewer, type, _ -> title, moveable);
     }
 
-    public InventoryMenu(Player player, InventoryType type, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
-        this(player, menu -> Bukkit.createInventory(new MenuHolder(menu), type, title.apply(menu)), title, moveable);
+    public InventoryMenu(Player viewer, InventoryType type, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(viewer, menu -> Bukkit.createInventory(new MenuHolder(menu), type, title.apply(menu)), title, moveable);
     }
 
-    private InventoryMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
-        this(player, inventory, title, moveable, null);
+    private InventoryMenu(Player viewer, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable) {
+        this(viewer, inventory, title, moveable, null);
     }
 
     @SuppressWarnings("unchecked")
-    private InventoryMenu(Player player, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable, @Nullable InventoryMenu<?> nextMenu) {
-        super(player);
+    private InventoryMenu(Player viewer, Function<T, Inventory> inventory, @NotNull Function<@NotNull T, @NotNull Component> title, boolean moveable, @Nullable InventoryMenu<?> nextMenu) {
+        super(viewer);
         this.inventorySupplier = inventory;
         this.moveable = moveable;
         this.title = title;
@@ -77,7 +77,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     public void open() {
         ThreadUtils.runSync(() -> {
             refresh();
-            player.openInventory(inventory);
+            viewer.openInventory(inventory);
         });
     }
 
@@ -94,7 +94,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
             inventory.clear();
             inventory = inventorySupplier.apply((T) this);
             setItems(clickRegistry);
-            player.openInventory(inventory);
+            viewer.openInventory(inventory);
         } catch (Exception e) {
             MailBox.logger().error("Error while refreshing menu", e);
             throw new RuntimeException(e);
@@ -110,7 +110,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     @Override
     protected final void openMenu(@NotNull Menu menu) {
         setNextMenu(menu);
-        player.closeInventory();
+        viewer.closeInventory();
     }
 
     protected final void setNextMenu(@NotNull Menu menu) {

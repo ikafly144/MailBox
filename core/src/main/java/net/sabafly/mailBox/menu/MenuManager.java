@@ -22,13 +22,13 @@ public class MenuManager implements Listener {
     private final Plugin plugin;
 
     public MenuManager() {
-        this.plugin = Objects.requireNonNull((MailBox) IMailBox.getInstance());
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.plugin = MailBox.getInstance();
     }
 
     public static MenuManager register() {
         if (INSTANCE == null) {
             INSTANCE = new MenuManager();
+            INSTANCE.plugin.getServer().getPluginManager().registerEvents(INSTANCE, INSTANCE.plugin);
         }
         return INSTANCE;
     }

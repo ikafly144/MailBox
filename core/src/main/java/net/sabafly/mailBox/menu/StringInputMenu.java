@@ -49,8 +49,8 @@ public class StringInputMenu extends DialogMenu implements Menu {
 
     @Override
     public void open() {
-        parent.callClose(player);
-        this.player.showDialog(Dialog.create(builder -> builder.empty()
+        parent.callClose(viewer);
+        this.viewer.showDialog(Dialog.create(builder -> builder.empty()
                 .base(DialogBase.builder(title)
                         .inputs(List.of(
                                 DialogInput.text("text", title)

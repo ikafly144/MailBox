@@ -7,10 +7,10 @@ import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
 import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +23,7 @@ import static net.sabafly.mailBox.MailBox.database;
 @SuppressWarnings("UnstableApiUsage")
 public class SendMailMenu extends DialogMenu {
 
+    @SuppressWarnings("PatternValidation")
     public static final DialogAction.CustomClickAction OPEN_SEND_MENU_ACTION = DialogAction.customClick((response, audience) -> {
         if (audience instanceof Player player) {
             String recipient = response.getText("recipient");
@@ -30,13 +31,17 @@ public class SendMailMenu extends DialogMenu {
                 player.sendMessage(miniMessage().deserialize(config().messages.emptyInputError));
                 return;
             }
+            if (!Key.parseable(recipient)) {
+                player.sendMessage(miniMessage().deserialize(config().messages.invalidRecipientError));
+                return;
+            }
             try {
-                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(recipient);
-                if (!database().isUserExists(targetPlayer.getUniqueId())) {
+                User target = database().getUserByAddress(Key.key(recipient));
+                if (target == null) {
                     player.sendMessage(miniMessage().deserialize(config().messages.notRegisteredError));
                     return;
                 }
-                new CreateMailMenu(player, targetPlayer).open();
+                new CreateMailMenu(player, target).open();
             } catch (Exception e) {
                 player.sendMessage(miniMessage().deserialize(config().messages.invalidRecipientError));
             }
@@ -69,6 +74,6 @@ public class SendMailMenu extends DialogMenu {
 
     @Override
     public void open() {
-        player.showDialog(Dialog.create(factory -> createDialog(factory.empty())));
+        viewer.showDialog(Dialog.create(factory -> createDialog(factory.empty())));
     }
 }

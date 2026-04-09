@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.utils.DateUtils;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,31 +31,36 @@ import static net.sabafly.mailBox.MailBox.database;
 @SuppressWarnings("UnstableApiUsage")
 public class InboxMenu extends InventoryMenu<InboxMenu> {
 
+    private final User owner;
     private int page;
     private long cooldown = 0;
 
     private static final NamespacedKey MAIL_INBOX_KEY = new NamespacedKey("mailbox", "inbox_menu");
 
-    public InboxMenu(Player player) {
-        this(player, 1);
+    public InboxMenu(Player viewer, @NotNull User owner) {
+        this(viewer, owner, 1);
     }
 
-    public InboxMenu(Player player, int page) {
-        super(player, 45, menu -> {
-            var user = database().getUser(player.getUniqueId());
+    public InboxMenu(Player viewer, @NotNull User owner, int page) {
+        this.page = page;
+        this.owner = owner;
+        super(viewer, 45, menu -> {
+            var user = database().getUser(viewer.getUniqueId());
             if (user == null)
                 throw new IllegalStateException("User not found");
+            var footer = new StringBuilder();
+            if (!owner.id().equals(viewer.identity().uuid()))
+                footer.append(" ").append(config().messages.inboxOwner.replace("{owner}", owner.name()));
             return miniMessage().deserialize(
-                    config().messages.inboxMenuTitle
+                    (config().messages.inboxMenuTitle + footer)
                             .replaceAll("\\{unread_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.FALSE))))
                             .replaceAll("\\{total_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.NOT_SET))))
                             .replaceAll("\\{page}", Matcher.quoteReplacement(String.valueOf(menu.page)))
                             .replaceAll("\\{total_pages}", Matcher.quoteReplacement(String.valueOf((int) Math.ceil(database().countMails(user, TriState.NOT_SET) / 27.0))))
                             .replaceAll("\\{max_mail_count}", Matcher.quoteReplacement(String.valueOf(config().mail.maxMailCount)))
-                            .replaceAll("\\{player_name}", Matcher.quoteReplacement(player.getName()))
+                            .replaceAll("\\{player_name}", Matcher.quoteReplacement(viewer.getName()))
             );
         });
-        this.page = page;
     }
 
     @Override
@@ -69,9 +75,9 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         });
         ItemStack rightArrow = Bukkit.getItemFactory().createItemStack(config().rightArrowItem);
         rightArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
-        if (database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
+        if (database().countMails(owner, TriState.NOT_SET) > page * 27) {
             clickRegistry.setItem(8, rightArrow, (player, clickType) -> {
-                if (clickType.isLeftClick() && database().countMails(database().getUser(player.getUniqueId()), TriState.NOT_SET) > page * 27) {
+                if (clickType.isLeftClick() && database().countMails(owner, TriState.NOT_SET) > page * 27) {
                     page++;
                     refresh();
                 }
@@ -85,7 +91,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             meta.setUseCooldown(cooldown);
         });
         if (System.currentTimeMillis() <= this.cooldown)
-            player.setCooldown(MAIL_INBOX_KEY, (int) ((this.cooldown - System.currentTimeMillis()) / 50));
+            viewer.setCooldown(MAIL_INBOX_KEY, (int) ((this.cooldown - System.currentTimeMillis()) / 50));
         clickRegistry.setItem(4, refreshItem, (player, clickType) -> {
             if (clickType.isLeftClick() && System.currentTimeMillis() > this.cooldown) {
                 this.cooldown = System.currentTimeMillis() + 5000;
@@ -98,11 +104,11 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             clickRegistry.setItem(9 + i, glassPane);
         }
         int slot = 18;
-        database().deleteAllUserNotification(database().getUser(player.getUniqueId()));
-        for (Mail mail : database().getMails(database().getUser(player.getUniqueId()), TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
+        database().deleteAllUserNotification(owner);
+        for (Mail mail : database().getMails(owner, TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
             clickRegistry.setItem(slot, createMailItem(mail), (p, clickType) -> {
                 if (clickType.isLeftClick()) {
-                    openMenu(new MailViewerMenu(player, mail, true));
+                    openMenu(new MailViewerMenu(viewer, owner, mail, true));
                 } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
                     database().deleteMail(mail);
                     refresh();

@@ -6,10 +6,10 @@ import org.jetbrains.annotations.NotNull;
 public abstract class SimpleMenu implements Menu {
 
     @NotNull
-    protected Player player;
+    protected Player viewer;
 
-    protected SimpleMenu(@NotNull Player player) {
-        this.player = player;
+    protected SimpleMenu(@NotNull Player viewer) {
+        this.viewer = viewer;
     }
 
     protected abstract void openMenu(@NotNull Menu menu);

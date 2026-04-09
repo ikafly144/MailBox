@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.menu;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -8,7 +9,6 @@ import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.utils.DateUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -60,9 +60,12 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         clickRegistry.setItem(1, getSender(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSender), value -> {
-                    OfflinePlayer p = Bukkit.getOfflinePlayer(value);
-                    if (!p.hasPlayedBefore()) return;
-                    template.setSender(database().getUser(p.getUniqueId()));
+                    @SuppressWarnings("PatternValidation")
+                    var sender = database().getUserByAddress(Key.key(value));
+                    if (sender == null) {
+                        throw new IllegalStateException("User not found!");
+                    }
+                    template.setSender(sender);
                     refresh();
                 }));
             } else if (clickType.isRightClick()) {
@@ -167,7 +170,7 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         });
         clickRegistry.setItem(11, attachments, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new CreateMailMenu.AttachmentMenu(this, player, template.attachment(), this.template::attachment, true));
+                openMenu(new CreateMailMenu.AttachmentMenu(this, player, template.attachment(), this.template::setAttachment, true));
             }
         });
     }

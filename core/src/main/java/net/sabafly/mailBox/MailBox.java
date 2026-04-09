@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.vdurmont.semver4j.Semver;
 import io.papermc.paper.ServerBuildInfo;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 import net.sabafly.mailBox.commands.MailCommands;
 import net.sabafly.mailBox.configuration.Config;
 import net.sabafly.mailBox.configuration.ConfigLoader;
@@ -13,18 +14,21 @@ import net.sabafly.mailBox.listener.PlayerListener;
 import net.sabafly.mailBox.mail.DummyMailUser;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.PlayerMailUser;
+import net.sabafly.mailBox.mail.PluginMailUser;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailbox.api.IMailBox;
 import net.sabafly.mailbox.api.exception.MailException;
+import net.sabafly.mailbox.api.mail.PluginUser;
 import net.sabafly.mailbox.api.mail.Template;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.net.URI;
@@ -109,17 +113,25 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         return user;
     }
 
-    @Override
     public @NotNull DummyMailUser getSystemUser() {
-        DummyMailUser systemUser = database().getUser(null);
-        if (systemUser == null) {
-            systemUser = DummyMailUser.SYSTEM_USER;
-            return database().registerUser(systemUser);
-        }
-        return systemUser;
+        return database().getOrCreateUser(DummyMailUser.SYSTEM_USER);
     }
 
     @Override
+    public @NotNull PluginUser registerPluginUser(@NotNull Plugin plugin, @NotNull String name) throws MailException {
+        var pluginUser = PluginMailUser.createPlugin(name, plugin);
+        if (!database().createUser(pluginUser)) throw MailException.ALREADY_EXIST_USER;
+        return pluginUser;
+    }
+
+    @SuppressWarnings("PatternValidation")
+    @Override
+    public @NotNull PluginUser getPluginUser(@NotNull Plugin plugin, @NotNull String name) throws MailException {
+        PluginMailUser user = database().getUserByAddress(Key.key(plugin.getName(), User.sanitizeName(name)));
+        if (user == null) throw MailException.USER_NOT_FOUND;
+        return user;
+    }
+
     public @NotNull Template createTemplate(@NotNull Consumer<Template.Builder> builderConsumer) {
         var builder = new MailTemplate.TemplateBuilder(
                 java.util.UUID.randomUUID(),

@@ -1,6 +1,7 @@
 package net.sabafly.mailBox.mail;
 
 import lombok.Setter;
+import net.sabafly.mailbox.api.mail.PluginUser;
 import net.sabafly.mailbox.api.mail.Template;
 import net.sabafly.mailbox.api.mail.User;
 import org.jetbrains.annotations.ApiStatus;
@@ -16,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.database;
 
 public class MailTemplate implements Comparable<MailTemplate>, Template {
     private final @NotNull UUID id;
@@ -92,7 +94,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         return attachment;
     }
 
-    public void attachment(@NotNull List<@NotNull Attachment<?>> attachment) {
+    public void setAttachment(@NotNull List<@NotNull Attachment<?>> attachment) {
         this.attachment = new ArrayList<>(attachment);
     }
 
@@ -176,6 +178,11 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
     }
 
     @Override
+    public void send(User target) {
+        database().createMail(createMail(target));
+    }
+
+    @Override
     public int compareTo(@NotNull MailTemplate o) {
         return id.compareTo(o.id);
     }
@@ -184,26 +191,75 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         return Optional.ofNullable(this.interval()).map(d -> Duration.between(Objects.requireNonNull(this.startTime()), LocalDateTime.now()).dividedBy(d)).orElse(0L);
     }
 
-    public static final class TemplateBuilder extends MailTemplate implements Template.Builder {
+    public static class TemplateBuilder extends MailTemplate implements Template.Builder<TemplateBuilder> {
+
+        public static TemplateBuilder builder() {
+            return new TemplateBuilder(
+                    UUID.randomUUID(),
+                    "EMPTY",
+                    "EMPTY",
+                    List.of(),
+                    false,
+                    DummyMailUser.SYSTEM_USER,
+                    null, null, null, null
+            );
+        }
 
         public TemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?>> attachment, boolean autoSend, @NotNull User sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
             super(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
         }
 
         @Override
-        public Builder subject(String subject) {
+        public TemplateBuilder subject(String subject) {
             super.subject = subject;
             return this;
         }
 
         @Override
-        public Builder content(String content) {
+        public TemplateBuilder content(String content) {
             super.content = content;
             return this;
         }
 
         @Override
-        public Builder sender(User sender) {
+        public TemplateBuilder sender(User sender) {
+            super.sender = sender;
+            return this;
+        }
+
+        @Override
+        public MailTemplate build() {
+            return new MailTemplate(this);
+        }
+
+    }
+
+    public static final class PluginTemplateBuilder extends MailTemplate implements Template.Builder<PluginTemplateBuilder> {
+
+        private final PluginUser pluginUser;
+
+        public PluginTemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?>> attachment, boolean autoSend, @NotNull PluginUser sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
+            super(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
+            this.pluginUser = sender;
+        }
+
+        @Override
+        public PluginTemplateBuilder subject(String subject) {
+            super.subject = subject;
+            return this;
+        }
+
+        @Override
+        public PluginTemplateBuilder content(String content) {
+            super.content = content;
+            return this;
+        }
+
+        @Override
+        public PluginTemplateBuilder sender(User sender) {
+            if (!(sender instanceof PluginUser) || !((PluginUser) sender).plugin().namespace().equals(pluginUser.plugin().namespace())) {
+                throw new IllegalArgumentException("Sender must be a PluginUser of the same plugin");
+            }
             super.sender = sender;
             return this;
         }
@@ -212,6 +268,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         public Template build() {
             return new MailTemplate(this);
         }
+
     }
 
 }

@@ -27,7 +27,7 @@ public class MailTemplateArgumentType implements CustomArgumentType<MailTemplate
     public @NonNull MailTemplate parse(@NonNull StringReader reader) throws CommandSyntaxException {
         var input = getNativeType().parse(reader);
         try {
-            var id =UUID.fromString(input);
+            var id = UUID.fromString(input);
             var template = database().getMailTemplate(id).orElse(null);
             if (template != null) return template;
         } catch (IllegalArgumentException ignored) {

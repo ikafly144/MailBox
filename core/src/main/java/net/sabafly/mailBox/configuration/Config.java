@@ -148,6 +148,7 @@ public class Config extends BaseConfig {
         public String clickActionUnset = "<red>Unset</red>";
         public String clickActionSetExpiration = "<green>Set Expiration</green>";
         public String clickActionEdit = "<green>Edit</green>";
+        public String clickActionReply = "<green>Reply</green>";
 
         public String unreceived = "Unreceived";
         public String page = "page";
@@ -187,7 +188,8 @@ public class Config extends BaseConfig {
         public String mailPriceInfo ="<gray>Mail Price: <yellow><price> <currency></yellow></gray>";
         public String attachmentPriceInfo = "<gray>Attachment Price: <yellow><price> <currency> × <count></yellow></gray>";
         public String totalPriceInfo = "<gray>Total Price: <yellow><price> <currency></yellow></gray>";
-        public String userNotFound = "<red>User <name> not found</red>";
+        public String inboxOwner = "<dark_gray>{owner}'s inbox</dark_gray>";
+        public String templateAlreadyExists = "<red>A template with the name <template> already exists</red>";
     }
 
 }

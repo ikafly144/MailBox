@@ -13,9 +13,9 @@ import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
+import net.sabafly.mailbox.api.mail.User;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
@@ -44,18 +43,22 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     private List<@NotNull Attachment<?>> attachments = new ArrayList<>();
     private boolean created = false;
     @Nullable
-    private final OfflinePlayer target;
+    private final User target;
     @Nullable
-    private InventoryMenu<?> nextMenu = null;
+    private final InventoryMenu<?> nextMenu;
 
     public CreateMailMenu(@NotNull Player player, @Nullable InventoryMenu<?> nextMenu) {
-        this(player, (OfflinePlayer) null);
-        this.nextMenu = nextMenu;
+        this(player, null, nextMenu);
     }
 
-    public CreateMailMenu(@NotNull Player player, @Nullable OfflinePlayer target) {
-        super(player, 9, miniMessage().deserialize(config().messages.createMailMenuTitle));
+    public CreateMailMenu(@NotNull Player player, @Nullable User target) {
+        this(player, target, null);
+    }
+
+    public CreateMailMenu(@NotNull Player player, @Nullable User target, @Nullable InventoryMenu<?> nextMenu) {
         this.target = target;
+        this.nextMenu = nextMenu;
+        super(player, 9, miniMessage().deserialize(config().messages.createMailMenuTitle));
     }
 
     @Override
@@ -78,7 +81,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         ));
         clickRegistry.setItem(0, subjectItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setSubject), s -> subject = s, subject, false, 50));
+                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(config().messages.setSubject), s -> subject = s, subject, false, 50));
             }
         });
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);
@@ -88,7 +91,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         ));
         clickRegistry.setItem(1, contentItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setContent), str -> this.content = str, this.content, true, 2000));
+                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(config().messages.setContent), str -> this.content = str, this.content, true, 2000));
             }
         });
         ItemStack attachmentItem = new ItemStack(Material.CHEST);
@@ -98,6 +101,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 openMenu(new AttachmentMenu(this, p, attachments, attachments -> this.attachments = attachments, target == null));
             }
         });
+        // NOTE: When template mode
         if (target == null) {
             ItemStack createTemplate = new ItemStack(Material.WRITABLE_BOOK);
             createTemplate.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.createMailTemplate)));
@@ -153,20 +157,11 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
-                    var targetUser = database().getUser(target.getUniqueId());
-                    var playerUser = database().getUser(player.getUniqueId());
+                    var playerUser = database().getUser(viewer.getUniqueId());
                     if (playerUser == null) {
                         throw new IllegalStateException("Player user not found");
                     }
-                    if (targetUser == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(
-                                miniMessage().deserialize(
-                                        config().messages.userNotFound,
-                                        Placeholder.component("player", Component.text(Objects.requireNonNullElse(target.getName(), target.getUniqueId().toString())))
-                                ))));
-                        return;
-                    }
-                    if (database().countMails(targetUser, TriState.NOT_SET) >= config().mail.maxMailCount) {
+                    if (database().countMails(target, TriState.NOT_SET) >= config().mail.maxMailCount) {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
@@ -186,7 +181,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         }
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
-                        Mail mail = Mail.createFromUserNow(playerUser, targetUser, subject, content, attachments);
+                        Mail mail = Mail.createFromUserNow(playerUser, target, subject, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
                     }));
@@ -229,7 +224,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
         @Override
         void setItems(@NotNull ClickRegistry clickRegistry) {
-            if (player.hasPermission("mailbox.attachment.item")) {
+            if (viewer.hasPermission("mailbox.attachment.item")) {
                 ItemStack chest = new ItemStack(Material.CHEST);
                 chest.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendItem)));
                 clickRegistry.setItem(0, chest, (p, clickType) -> {
@@ -242,7 +237,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     }
                 });
             }
-            if (player.hasPermission("mailbox.attachment.command")) {
+            if (viewer.hasPermission("mailbox.attachment.command")) {
                 ItemStack commandBlock = new ItemStack(Material.COMMAND_BLOCK);
                 commandBlock.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendCommand)));
                 clickRegistry.setItem(1, commandBlock, (p, clickType) -> {
@@ -255,7 +250,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     }
                 });
             }
-            if (player.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
+            if (viewer.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
                 ItemStack emerald = new ItemStack(Material.PAPER);
                 emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
                         .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
@@ -263,7 +258,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentVaultValueMenu(this, p, attachment -> {
-                            if (!isTemplate && !EconomyUtils.getEconomy().withdrawPlayer(player, attachment.value()).transactionSuccess())
+                            if (!isTemplate && !EconomyUtils.getEconomy().withdrawPlayer(viewer, attachment.value()).transactionSuccess())
                                 return;
                             if (attachment != null) {
                                 addAttachment(attachment);

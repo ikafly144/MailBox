@@ -1,15 +1,13 @@
 package net.sabafly.mailbox.api;
 
 import net.sabafly.mailbox.api.exception.MailException;
-import net.sabafly.mailbox.api.mail.Template;
+import net.sabafly.mailbox.api.mail.PluginUser;
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Contract;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public interface IMailBox {
 
@@ -19,9 +17,8 @@ public interface IMailBox {
 
     @NotNull User getUser(@NotNull Player player) throws MailException;
 
-    @NotNull User getSystemUser();
+    @NotNull PluginUser registerPluginUser(@NotNull Plugin plugin, @NotNull String name) throws MailException;
 
-    @Contract("_ -> new")
-    @NotNull Template createTemplate(@NotNull Consumer<Template.Builder> builderConsumer) throws MailException;
+    @NotNull PluginUser getPluginUser(@NotNull Plugin plugin, @NotNull String name) throws MailException;
 
 }

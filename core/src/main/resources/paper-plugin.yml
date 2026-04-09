@@ -25,10 +25,12 @@ permissions:
       mailbox.template.send: true
       mailbox.attachment.command: true
       mailbox.attachment.message: true
-  mailBox.use:
+      mailbox.inbox.other: true
+  mailBox.default:
     description: Allows the user to use MailBox
     default: true
     children:
+      mailbox.inbox: true
       mailbox.send: true
       mailbox.attachment.item: true
       mailbox.attachment.vault: true

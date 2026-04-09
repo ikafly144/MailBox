@@ -100,11 +100,11 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     }
 
     public @NotNull User getSender() {
-        return database().registerUser(sender);
+        return database().getOrCreateUser(sender);
     }
 
     public @NotNull User getReceiver() {
-        return database().registerUser(receiver);
+        return database().getOrCreateUser(receiver);
     }
 
     public void attachments(@NotNull List<@NotNull Attachment<?>> mailAttachments) {
@@ -133,12 +133,12 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
 
     @Override
     public @NotNull User sender() {
-        return database().registerUser(sender);
+        return database().getOrCreateUser(sender);
     }
 
     @Override
     public @NotNull User receiver() {
-        return database().registerUser(receiver);
+        return database().getOrCreateUser(receiver);
     }
 
     @Nullable

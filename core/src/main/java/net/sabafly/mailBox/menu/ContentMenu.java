@@ -35,8 +35,8 @@ public class ContentMenu extends DialogMenu {
 
     @Override
     public void open() {
-        parent.callClose(player);
-        player.showDialog(Dialog.create(builder -> builder.empty()
+        parent.callClose(viewer);
+        viewer.showDialog(Dialog.create(builder -> builder.empty()
                 .base(DialogBase.builder(miniMessage().deserialize(title))
                         .body(List.of(
                                 DialogBody.plainMessage(plainText().deserialize(content))

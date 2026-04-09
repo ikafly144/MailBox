@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.database;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
@@ -25,9 +26,13 @@ public interface Database {
 
     void close();
 
-    @NotNull <U extends User> U registerUser(@NotNull U user);
+    boolean createUser(@NotNull User user);
+
+    @NotNull <U extends User> U getOrCreateUser(@NotNull U user);
 
     @Nullable <U extends User> U getUser(@Nullable UUID uuid);
+
+    @Nullable <U extends User> U getUserByAddress(@NotNull Key address);
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isUserExists(@NotNull UUID uuid);
@@ -42,7 +47,6 @@ public interface Database {
     default @NotNull SortedSet<@NotNull Mail> getAllMails(@NotNull User user, @NotNull TriState read) {
         return getMails(user, read, Integer.MAX_VALUE, 0);
     }
-
 
     @NotNull SortedSet<@NotNull Mail> getMails(@NotNull User user, @NotNull TriState read, int limit, int offset);
 
@@ -63,6 +67,8 @@ public interface Database {
     Optional<@NotNull MailTemplate> getMailTemplate(@NotNull UUID id);
 
     @NotNull List<@NotNull MailTemplate> getMailTemplates(int page);
+
+    @NotNull List<@NotNull MailTemplate> getMailTemplatesBySender(@NotNull User sender, int page);
 
     @NotNull List<@NotNull MailTemplate> getAllMailTemplates();
 

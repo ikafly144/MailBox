@@ -38,7 +38,7 @@ public final class Bootstrapper implements PluginBootstrap {
                 DialogKeys.create(CONTENT_DIALOG_KEY),
                 builder -> builder.type(DialogType.multiAction(List.of(
                                         ActionButton.builder(miniMessage().deserialize(config.config().messages.inboxButton))
-                                                .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:mail")))
+                                                .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:mail inbox")))
                                                 .tooltip(miniMessage().deserialize(config.config().messages.inboxTooltip))
                                                 .build(),
                                         ActionButton.builder(miniMessage().deserialize(config.config().messages.sendMailButton))

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.PlayerMailUser;
+import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
@@ -28,9 +29,11 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private final Mail mail;
     private final boolean openPreviousMenu;
+    private final User owner;
 
-    public MailViewerMenu(Player player, Mail mail, boolean openPreviousMenu) {
-        super(player, getSlot(mail.attachments().size()), miniMessage().deserialize(config().messages.mailViewerMenuTitle));
+    public MailViewerMenu(Player viewer, User owner, Mail mail, boolean openPreviousMenu) {
+        super(viewer, getSlot(mail.attachments().size()), miniMessage().deserialize(config().messages.mailViewerMenuTitle));
+        this.owner = owner;
         this.mail = mail;
         this.openPreviousMenu = openPreviousMenu;
     }
@@ -42,27 +45,37 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         return 45;
     }
 
+    private boolean isOwnerView() {
+        return owner.id().equals(viewer.identity().uuid());
+    }
+
     @Override
     public void open() {
         var read = mail.isRead();
-        mail.setRead(true);
+        if (isOwnerView()) mail.setRead(true);
         database().updateMail(mail);
         super.open();
-        if (!read)
-            openMenu(new ContentMenu(player, mail.getTitle(), mail.getContent(), this));
+        if (!read && isOwnerView())
+            openMenu(new ContentMenu(viewer, mail.getTitle(), mail.getContent(), this));
     }
 
     @Override
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (openPreviousMenu) {
-            setNextMenu(new InboxMenu(player));
+            setNextMenu(new InboxMenu(player, owner));
         }
     }
 
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
-        final ItemStack senderItem = getSenderItem();
-        clickRegistry.setItem(0, senderItem);
+        final var replyEnabled = !mail.sender().id().equals(viewer.identity().uuid());
+        final ItemStack senderItem = getSenderItem(replyEnabled);
+
+        clickRegistry.setItem(0, senderItem, (p, clickType) -> {
+            if (replyEnabled && clickType.isLeftClick() ) {
+                openMenu(new CreateMailMenu(p, mail.sender(), this));
+            }
+        });
         ItemStack titleItem = new ItemStack(Material.NAME_TAG);
         titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
         clickRegistry.setItem(1, titleItem);
@@ -115,7 +128,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         }
     }
 
-    private @NotNull ItemStack getSenderItem() {
+    private @NotNull ItemStack getSenderItem(boolean replyEnabled) {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
         if (mail.getSender() instanceof PlayerMailUser(
                 org.bukkit.OfflinePlayer offlinePlayer, _
@@ -130,17 +143,22 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
             });
         }
         senderItem.editMeta(meta ->
-                meta.customName(miniMessage().deserialize(
-                        config().messages.senderValue,
-                        TagResolver.builder().tag(
-                                "sender",
-                                Tag.inserting(
-                                        miniMessage().deserialize(
-                                                mail.getSender().name()
-                                        )
-                                )
-                        ).build()
-                ))
+                {
+                    meta.customName(miniMessage().deserialize(
+                            config().messages.senderValue,
+                            TagResolver.builder().tag(
+                                    "sender",
+                                    Tag.inserting(
+                                            miniMessage().deserialize(
+                                                    mail.getSender().name()
+                                            )
+                                    )
+                            ).build()
+                    ));
+                    if (replyEnabled) {
+                        meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReply))));
+                    }
+                }
         );
         return senderItem;
     }
