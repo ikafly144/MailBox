@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "net.sabafly"
-version = "1.1.0-alpha.3"
+version = "1.1.0-alpha.4"
 
 repositories {
     mavenCentral()
