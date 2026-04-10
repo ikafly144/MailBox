@@ -1,4 +1,6 @@
 # MailBox
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fikafly144%2FMailBox.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fikafly144%2FMailBox?ref=badge_shield)
+
 
 A powerful mail system plugin for Minecraft PaperMC servers that enables players to send and receive messages and items
 through an intuitive GUI interface with economy integration.
@@ -16,3 +18,7 @@ through an intuitive GUI interface with economy integration.
 - Active support for current Minecraft version and recent minor versions
 - No support for versions older than 1.20
 - Legacy versions available for older servers
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fikafly144%2FMailBox.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fikafly144%2FMailBox?ref=badge_large)
