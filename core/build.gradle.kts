@@ -1,6 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.kotlin.dsl.withGroovyBuilder
+import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
     java
@@ -97,14 +96,12 @@ tasks.named("build") {
     dependsOn(tasks.named("shadowJar"))
 }
 
-tasks.named("runServer") {
-    withGroovyBuilder {
-        "downloadPlugins" {
-            "github"("MilkBowl", "Vault", "1.7.3", "Vault.jar")
-            "modrinth"("luckperms", "v5.5.17-bukkit")
-            "modrinth"("placeholderapi", "2.12.2")
-            "modrinth"("emeraldbank", "1.1.2")
-        }
-        "minecraftVersion"("26.1.1")
+tasks.named<RunServer>("runServer") {
+    downloadPlugins {
+        github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
+        modrinth("luckperms", "v5.5.17-bukkit")
+        modrinth("placeholderapi", "2.12.2")
+        modrinth("emeraldbank", "1.1.2")
     }
+    minecraftVersion("26.1.1")
 }
