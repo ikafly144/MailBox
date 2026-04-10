@@ -16,7 +16,7 @@ public sealed class DummyMailUser implements User permits PluginMailUser {
 
     public static final UUID SYSTEM_UUID = new UUID(0, 0);
     @ApiStatus.Internal
-    public static final DummyMailUser SYSTEM_USER = new DummyMailUser(SYSTEM_UUID, config().messages.systemName, "system");
+    public static final DummyMailUser SYSTEM_USER = createUser(SYSTEM_UUID, config().messages.systemName, "system");
 
     @Contract("_, _, _ -> new")
     @ApiStatus.Internal

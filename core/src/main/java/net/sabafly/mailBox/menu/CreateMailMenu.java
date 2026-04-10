@@ -10,7 +10,6 @@ import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.Attachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
-import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import net.sabafly.mailbox.api.mail.User;
@@ -64,9 +63,6 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     @Override
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (getNextMenu() != null) return;
-        if (false && !created && !attachments.isEmpty()) {
-            attachments.forEach(a -> a.cancel(player));
-        }
         if (nextMenu != null) {
             setNextMenu(nextMenu);
         }
@@ -296,9 +292,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
                     clickRegistry.setItem(i + 18, attachments.get(i).createPreview(_ -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
-                            var a = attachments.remove(finalI);
-                            // TODO: remove cancel
-                            if (!isTemplate || !(a instanceof VaultValueAttachment)) a.cancel(player1);
+                            attachments.remove(finalI);
                             refresh();
                         } else if (clickType.isLeftClick() && isTemplate) {
                             openMenu(new StringInputMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {

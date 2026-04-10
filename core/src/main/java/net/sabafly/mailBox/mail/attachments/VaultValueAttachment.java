@@ -44,21 +44,13 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
     }
 
     @Override
-    public void cancel(@NotNull Player player) {
-        EconomyUtils.getEconomy().depositPlayer(player, value);
-        player.sendMessage(miniMessage().deserialize(config().messages.deposit
-                .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(value)))
-        ));
-    }
-
-    @Override
     public boolean checkRequirement(@NotNull Player player) {
-        return false;
+        return EconomyUtils.getEconomy().has(player, value);
     }
 
     @Override
     public boolean consumeRequirement(@NotNull Player player) {
-        return false;
+        return EconomyUtils.getEconomy().withdrawPlayer(player, value).transactionSuccess();
     }
 
     @Override

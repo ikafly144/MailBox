@@ -49,24 +49,20 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
     }
 
     @Override
-    public void cancel(@NotNull Player player) {
-        player.give(content());
-    }
-
-    @Override
     public boolean checkRequirement(@NotNull Player player) {
-        return player.getInventory().all(content()).values().stream().mapToInt(ItemStack::getAmount).sum() > content().getAmount();
+        return player.getInventory()
+                       .all(content().getType())
+                       .values()
+                       .stream()
+                       .filter(content()::isSimilar)
+                       .mapToInt(ItemStack::getAmount)
+                       .sum() >= content().getAmount();
     }
 
     @Override
     public boolean consumeRequirement(@NotNull Player player) {
         if (!checkRequirement(player)) return false;
-        var removed = player.getInventory().removeItem(content()).values().stream().mapToInt(ItemStack::getAmount).sum();
-        if (removed > content().getAmount()) {
-            var retItem = content();
-            retItem.setAmount(retItem.getAmount() - removed);
-            player.give(retItem);
-        }
+        player.getInventory().removeItem(content());
         return true;
     }
 
