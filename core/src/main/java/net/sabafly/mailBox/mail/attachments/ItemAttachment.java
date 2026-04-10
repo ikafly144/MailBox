@@ -32,6 +32,10 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
         return itemStack.effectiveName().append(itemStack.getAmount() > 1 ? Component.text(" ×" + itemStack.getAmount()) : Component.empty());
     }
 
+    public @NotNull ItemStack content() {
+        return itemStack.clone();
+    }
+
     @Override
     public String toString() {
         return "ItemAttachment{" +
@@ -41,12 +45,29 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment> {
 
     @Override
     public void apply(@NotNull Player player) {
-        player.getInventory().addItem(itemStack.clone()).forEach((index, item) -> player.getWorld().dropItem(player.getLocation(), item));
+        player.give(content());
     }
 
     @Override
     public void cancel(@NotNull Player player) {
-        player.getInventory().addItem(itemStack.clone()).forEach((index, item) -> player.getWorld().dropItem(player.getLocation(), item));
+        player.give(content());
+    }
+
+    @Override
+    public boolean checkRequirement(@NotNull Player player) {
+        return player.getInventory().all(content()).values().stream().mapToInt(ItemStack::getAmount).sum() > content().getAmount();
+    }
+
+    @Override
+    public boolean consumeRequirement(@NotNull Player player) {
+        if (!checkRequirement(player)) return false;
+        var removed = player.getInventory().removeItem(content()).values().stream().mapToInt(ItemStack::getAmount).sum();
+        if (removed > content().getAmount()) {
+            var retItem = content();
+            retItem.setAmount(retItem.getAmount() - removed);
+            player.give(retItem);
+        }
+        return true;
     }
 
     @Override

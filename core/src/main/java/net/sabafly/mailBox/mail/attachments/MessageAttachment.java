@@ -41,6 +41,16 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment> {
     }
 
     @Override
+    public boolean checkRequirement(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
+    public boolean consumeRequirement(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
     public byte @NotNull [] serialize() {
         return message.getBytes();
     }

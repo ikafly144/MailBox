@@ -64,7 +64,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     @Override
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
         if (getNextMenu() != null) return;
-        if (!created && !attachments.isEmpty()) {
+        if (false && !created && !attachments.isEmpty()) {
             attachments.forEach(a -> a.cancel(player));
         }
         if (nextMenu != null) {
@@ -165,9 +165,20 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
+                    if (!attachments.stream().allMatch(a -> a.checkRequirement(viewer))) {
+                        p.sendMessage(miniMessage()
+                                .deserialize(
+                                        config().messages.notEnoughAttachmentContent
+                                )
+                        );
+                        return;
+                    }
+                    if (!attachments.stream().allMatch(a -> a.consumeRequirement(viewer))) {
+                        throw new IllegalStateException("Attachment creation failed! This is bug, report this to the developer.");
+                    }
                     if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
                         int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
-                        if (totalPrice > 0 &&!EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
+                        if (totalPrice > 0 && !EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
                             p.sendMessage(miniMessage().
                                     deserialize(
                                             config().messages.notEnoughMoney,
@@ -258,8 +269,6 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentVaultValueMenu(this, p, attachment -> {
-                            if (!isTemplate && !EconomyUtils.getEconomy().withdrawPlayer(viewer, attachment.value()).transactionSuccess())
-                                return;
                             if (attachment != null) {
                                 addAttachment(attachment);
                             }
@@ -288,6 +297,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     clickRegistry.setItem(i + 18, attachments.get(i).createPreview(_ -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
                             var a = attachments.remove(finalI);
+                            // TODO: remove cancel
                             if (!isTemplate || !(a instanceof VaultValueAttachment)) a.cancel(player1);
                             refresh();
                         } else if (clickType.isLeftClick() && isTemplate) {

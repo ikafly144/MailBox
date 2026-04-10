@@ -38,6 +38,16 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
     }
 
     @Override
+    public boolean checkRequirement(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
+    public boolean consumeRequirement(@NotNull Player player) {
+        return true;
+    }
+
+    @Override
     public byte @NotNull [] serialize() {
         return command.getBytes();
     }

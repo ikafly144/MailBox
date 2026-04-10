@@ -51,7 +51,12 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable, MailAtta
 
     void apply(@NotNull Player player);
 
+    @Deprecated(forRemoval = true)
     void cancel(@NotNull Player player);
+
+    boolean checkRequirement(@NotNull Player player);
+
+    boolean consumeRequirement(@NotNull Player player);
 
     boolean opened();
 

@@ -190,6 +190,7 @@ public class Config extends BaseConfig {
         public String totalPriceInfo = "<gray>Total Price: <yellow><price> <currency></yellow></gray>";
         public String inboxOwner = "<dark_gray>{owner}'s inbox</dark_gray>";
         public String templateAlreadyExists = "<red>A template with the name <template> already exists</red>";
+        public String notEnoughAttachmentContent = "<red>You don't have some contents of attachments.</red>";
     }
 
 }
