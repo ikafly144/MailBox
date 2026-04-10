@@ -13,7 +13,7 @@ public interface Mail {
     @NotNull
     String content();
 
-    @NotNull List<@NotNull MailAttachment> attachments();
+    @NotNull List<@NotNull MailAttachment<?>> attachments();
 
     @NotNull User sender();
 

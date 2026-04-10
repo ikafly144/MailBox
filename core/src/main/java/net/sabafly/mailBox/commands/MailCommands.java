@@ -153,11 +153,11 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                         )
                                                 )
                                                 .then(Commands.literal("content")
-                                                        .then(Commands.argument("new_content", StringArgumentType.string())
+                                                        .then(Commands.argument("new_content", ArgumentTypes.component())
                                                                 .executes(context -> {
                                                                     var template = context.getArgument("template", MailTemplate.class);
-                                                                    String newContent = context.getArgument("new_content", String.class);
-                                                                    template.setContent(newContent);
+                                                                    Component newContent = context.getArgument("new_content", Component.class);
+                                                                    template.setContent(miniMessage().serialize(newContent));
                                                                     database().updateMailTemplate(template);
                                                                     return Command.SINGLE_SUCCESS;
                                                                 })

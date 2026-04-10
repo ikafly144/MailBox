@@ -5,6 +5,7 @@ import net.sabafly.mailBox.mail.attachments.CommandAttachment;
 import net.sabafly.mailBox.mail.attachments.ItemAttachment;
 import net.sabafly.mailBox.mail.attachments.MessageAttachment;
 import net.sabafly.mailBox.mail.attachments.VaultValueAttachment;
+import net.sabafly.mailbox.api.mail.attachments.AttachmentContent;
 import net.sabafly.mailbox.api.mail.attachments.MailAttachment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-public interface Attachment<T extends Attachment<T>> extends Cloneable, MailAttachment {
+public interface Attachment<T extends Attachment<T, C>, C extends AttachmentContent<?>> extends Cloneable, MailAttachment<C> {
 
     @NotNull
     UUID getId();
@@ -34,7 +35,7 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable, MailAtta
     String getPlainName();
 
     @NotNull
-    default ItemStack createPreview(@Nullable Function<@NotNull Attachment<T>,@NotNull List<@NotNull Component>> loreSupplier) {
+    default ItemStack createPreview(@Nullable Function<@NotNull Attachment<T, C>, @NotNull List<@NotNull Component>> loreSupplier) {
         ItemStack item = getPreviewItem();
         item.editMeta(meta -> {
             meta.itemName(getName());
@@ -82,7 +83,7 @@ public interface Attachment<T extends Attachment<T>> extends Cloneable, MailAtta
 
     byte @NotNull [] serialize();
 
-    static Attachment<?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireTime) {
+    static Attachment<?, ?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireTime) {
         return switch (type) {
             case ITEM -> ItemAttachment.deserialize(uuid, name, received, data, previewItem, receivedTime, expireTime);
             case VAULT_VALUE -> VaultValueAttachment.deserialize(uuid, name, received, data, previewItem, receivedTime, expireTime);

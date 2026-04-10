@@ -1,11 +1,13 @@
 package net.sabafly.mailBox.mail.attachments;
 
 import net.sabafly.mailBox.utils.EconomyUtils;
+import net.sabafly.mailbox.api.mail.attachments.VaultValueContent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -17,45 +19,41 @@ import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
-public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
+public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, VaultValueContent> {
 
-    private final double value;
+    private final VaultValueContent value;
 
     private VaultValueAttachment(@Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, double value) {
         super(EconomyUtils.getEconomy().format(value), Type.VAULT_VALUE, false, ItemType.EMERALD.createItemStack(), receivedTime, expireDuration);
-        this.value = value;
+        this.value = VaultValueContent.of(value);
     }
 
     protected VaultValueAttachment(@NotNull UUID id, boolean received, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, double value) {
         super(id, EconomyUtils.getEconomy().format(value), Type.VAULT_VALUE, received, ItemType.EMERALD.createItemStack(), receivedTime, expireDuration);
-        this.value = value;
-    }
-
-    public double value() {
-        return value;
+        this.value = VaultValueContent.of(value);
     }
 
     @Override
     public void apply(@NotNull Player player) {
-        EconomyUtils.getEconomy().depositPlayer(player, value);
+        EconomyUtils.getEconomy().depositPlayer(player, content().value());
         player.sendMessage(miniMessage().deserialize(config().messages.deposit
-                .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(value)))
+                .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(content().value())))
         ));
     }
 
     @Override
     public boolean checkRequirement(@NotNull Player player) {
-        return EconomyUtils.getEconomy().has(player, value);
+        return EconomyUtils.getEconomy().has(player, content().value());
     }
 
     @Override
     public boolean consumeRequirement(@NotNull Player player) {
-        return EconomyUtils.getEconomy().withdrawPlayer(player, value).transactionSuccess();
+        return EconomyUtils.getEconomy().withdrawPlayer(player, content().value()).transactionSuccess();
     }
 
     @Override
     public byte @NotNull [] serialize() {
-        return ByteBuffer.allocate(8).putDouble(value).array();
+        return ByteBuffer.allocate(8).putDouble(content().value()).array();
     }
 
     public static @NotNull VaultValueAttachment deserialize(@NotNull UUID id, @NotNull String ignoredName, boolean received, byte @NotNull [] data, @NotNull ItemStack ignoredPreviewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
@@ -64,11 +62,15 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment> {
 
     @Override
     public @NotNull VaultValueAttachment create(boolean opened) {
-        return new VaultValueAttachment(LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), value);
+        return new VaultValueAttachment(LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
     }
 
     public static @NotNull VaultValueAttachment createNew(double value) {
         return new VaultValueAttachment(null, config().mail.getExpirationDuration(), value);
     }
 
+    @Override
+    public @NonNull VaultValueContent content() {
+        return value;
+    }
 }

@@ -2,6 +2,7 @@ package net.sabafly.mailBox.mail.attachments;
 
 import net.kyori.adventure.text.Component;
 import net.sabafly.mailBox.mail.Attachment;
+import net.sabafly.mailbox.api.mail.attachments.AttachmentContent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 
-public abstract class BaseAttachment<T extends BaseAttachment<T>> implements Attachment<T> {
+public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends AttachmentContent<?>> implements Attachment<T, C> {
 
     @NotNull
     private final UUID id;
@@ -122,7 +123,7 @@ public abstract class BaseAttachment<T extends BaseAttachment<T>> implements Att
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj instanceof BaseAttachment<?> that) {
+        if (obj instanceof BaseAttachment<?, ?> that) {
             return id.equals(that.id);
         }
         return false;

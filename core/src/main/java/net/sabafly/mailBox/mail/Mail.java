@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail {
@@ -31,7 +33,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     @NotNull
     @Getter
     private final String content;
-    private final @NotNull List<Attachment<?>> attachments;
+    private final @NotNull List<Attachment<?, ?>> attachments;
     @Getter
     @Setter
     private boolean read;
@@ -39,12 +41,20 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     private final LocalDateTime sentTime;
 
     @NotNull
-    public static Mail createFromUserNow(@NotNull User sender, User receiver, String title, String content, List<Attachment<?>> attachments) {
-        return new Mail(UUID.randomUUID(), sender, receiver, title, content, attachments, false, LocalDateTime.now());
+    public static Mail createFromUserNow(@NotNull User sender, User receiver, String title, String content, List<Attachment<?, ?>> attachments) {
+        return new Mail(
+                UUID.randomUUID(),
+                sender,
+                receiver,
+                title,
+                miniMessage().serialize(plainText().deserialize(content)),
+                attachments,
+                false,
+                LocalDateTime.now());
     }
 
     // For system mails with any sender
-    public static Mail createFromTemplateNow(@NotNull User sender, @NotNull User receiver, String title, String content, List<Attachment<?>> attachments) {
+    public static Mail createFromTemplateNow(@NotNull User sender, @NotNull User receiver, String title, String content, List<Attachment<?, ?>> attachments) {
         return new Mail(
                 UUID.randomUUID(),
                 sender,
@@ -70,7 +80,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
             @NotNull User receiver,
             @NotNull String title,
             @NotNull String content,
-            @NotNull List<Attachment<?>> attachments,
+            @NotNull List<Attachment<?, ?>> attachments,
             boolean read,
             @NotNull LocalDateTime sentTime) {
         this.id = id;
@@ -107,7 +117,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
         return database().getOrCreateUser(receiver);
     }
 
-    public void attachments(@NotNull List<@NotNull Attachment<?>> mailAttachments) {
+    public void attachments(@NotNull List<@NotNull Attachment<?, ?>> mailAttachments) {
         attachments.clear();
         attachments.addAll(mailAttachments);
     }
@@ -122,12 +132,12 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
         return content;
     }
 
-    public @NotNull List<@NotNull MailAttachment> attachments() {
+    public @NotNull List<@NotNull MailAttachment<?>> attachments() {
         return List.copyOf(attachments);
     }
 
     @ApiStatus.Internal
-    public @NotNull List<@NotNull Attachment<?>> getAttachmentsInternal() {
+    public @NotNull List<@NotNull Attachment<?, ?>> getAttachmentsInternal() {
         return attachments;
     }
 

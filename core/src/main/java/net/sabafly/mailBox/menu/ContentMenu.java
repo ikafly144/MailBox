@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -30,7 +29,7 @@ public class ContentMenu extends DialogMenu {
         super(player);
         this.parent = parent;
         this.title = title;
-        this.content = content.replaceAll("§", "");
+        this.content = content.replace("§", "");
     }
 
     @Override
@@ -39,11 +38,11 @@ public class ContentMenu extends DialogMenu {
         viewer.showDialog(Dialog.create(builder -> builder.empty()
                 .base(DialogBase.builder(miniMessage().deserialize(title))
                         .body(List.of(
-                                DialogBody.plainMessage(plainText().deserialize(content))
+                                DialogBody.plainMessage(miniMessage().deserialize(content))
                         ))
                         .build())
                 .type(DialogType.notice(ActionButton.builder(miniMessage().deserialize(config().messages.closeButton))
-                                .action(DialogAction.customClick((response, audience) -> parent.open(), ClickCallback.Options.builder().build()))
+                                .action(DialogAction.customClick((_, _) -> parent.open(), ClickCallback.Options.builder().build()))
                         .build()))
         ));
     }

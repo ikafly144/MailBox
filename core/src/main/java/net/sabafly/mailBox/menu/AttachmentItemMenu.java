@@ -38,7 +38,7 @@ public class AttachmentItemMenu extends InventoryMenu<AttachmentItemMenu> {
             Optional.ofNullable(inventory.getTopInventory().getItem(4))
                     .map(item -> new ItemAttachment(item, false, null, Duration.ZERO))
                     .ifPresent(i-> {
-                        player.give(i.content());
+                        player.give(i.content().value());
                         consumer.accept(i);
                     });
         } catch (Exception e) {

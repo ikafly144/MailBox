@@ -39,7 +39,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     @Nullable
     private String content = null;
     @NotNull
-    private List<@NotNull Attachment<?>> attachments = new ArrayList<>();
+    private List<@NotNull Attachment<?, ?>> attachments = new ArrayList<>();
     private boolean created = false;
     @Nullable
     private final User target;
@@ -203,12 +203,12 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     public static class AttachmentMenu extends InventoryMenu<AttachmentMenu> {
 
         private final Menu menu;
-        private final Consumer<List<@NotNull Attachment<?>>> consumer;
-        private final List<@NotNull Attachment<?>> attachments;
+        private final Consumer<List<@NotNull Attachment<?, ?>>> consumer;
+        private final List<@NotNull Attachment<?, ?>> attachments;
 
         private final boolean isTemplate;
 
-        public AttachmentMenu(Menu menu, Player player, @NotNull List<@NotNull Attachment<?>> attachments, Consumer<List<@NotNull Attachment<?>>> consumer, boolean isTemplate) {
+        public AttachmentMenu(Menu menu, Player player, @NotNull List<@NotNull Attachment<?, ?>> attachments, Consumer<List<@NotNull Attachment<?, ?>>> consumer, boolean isTemplate) {
             super(player, 45, miniMessage().deserialize(config().messages.attachmentMenuTitle));
             this.menu = menu;
             this.consumer = consumer;
@@ -216,7 +216,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             this.isTemplate = isTemplate;
         }
 
-        private void addAttachment(Attachment<?> attachment) {
+        private void addAttachment(Attachment<?, ?> attachment) {
             if (attachment != null) {
                 if (!isTemplate) attachment.expireDuration(config().mail.getExpirationDuration());
                 attachments.add(attachment);

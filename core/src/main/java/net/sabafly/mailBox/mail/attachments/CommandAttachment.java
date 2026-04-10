@@ -1,10 +1,12 @@
 package net.sabafly.mailBox.mail.attachments;
 
+import net.sabafly.mailbox.api.mail.attachments.CommandContent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,23 +16,23 @@ import java.util.regex.Matcher;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
 
-public class CommandAttachment extends BaseAttachment<CommandAttachment> {
+public class CommandAttachment extends BaseAttachment<CommandAttachment, CommandContent> {
 
-    private final String command;
+    private final CommandContent command;
 
     public CommandAttachment(@NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
         super(name, Type.COMMAND, opened, previewItem, receivedTime, expireDuration);
-        this.command = command;
+        this.command = CommandContent.of(command);
     }
 
     public CommandAttachment(@NotNull UUID id, @NotNull String name, boolean received, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
         super(id, name, Type.COMMAND, received, previewItem, receivedTime, expireDuration);
-        this.command = command;
+        this.command = CommandContent.of(command);
     }
 
     @Override
     public void apply(@NotNull Player player) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("\\{player}", Matcher.quoteReplacement(player.getName())));
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), content().value().replaceAll("\\{player}", Matcher.quoteReplacement(player.getName())));
     }
 
     @Override
@@ -45,7 +47,7 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     @Override
     public byte @NotNull [] serialize() {
-        return command.getBytes();
+        return content().value().getBytes();
     }
 
     public static @NotNull CommandAttachment deserialize(@NotNull UUID id, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
@@ -54,6 +56,11 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment> {
 
     @Override
     public @NotNull CommandAttachment create(boolean opened) {
-        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), command);
+        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+    }
+
+    @Override
+    public @NonNull CommandContent content() {
+        return command;
     }
 }

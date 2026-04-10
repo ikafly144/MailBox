@@ -74,29 +74,29 @@ public interface Database {
 
     void deleteMailTemplate(@NotNull MailTemplate template);
 
-    void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
+    void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
 
-    void deleteMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
+    void deleteMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
 
     void deleteAllMailAttachments(@NotNull Mail mail);
 
-    void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?> attachment);
+    void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
 
-    @NotNull List<@NotNull Attachment<?>> getMailAttachments(@NotNull Mail mail);
+    @NotNull List<@NotNull Attachment<?, ?>> getMailAttachments(@NotNull Mail mail);
 
-    @NotNull Optional<@NotNull Attachment<?>> getMailAttachment(@NotNull UUID id);
+    @NotNull Optional<@NotNull Attachment<?, ?>> getMailAttachment(@NotNull UUID id);
 
-    void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+    void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
 
-    void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+    void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
 
     void deleteAllTemplateAttachments(@NotNull MailTemplate template);
 
-    void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?> attachment);
+    void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
 
-    @NotNull List<@NotNull Attachment<?>> getTemplateAttachments(@NotNull MailTemplate template);
+    @NotNull List<@NotNull Attachment<?, ?>> getTemplateAttachments(@NotNull MailTemplate template);
 
-    @NotNull Optional<@NotNull Attachment<?>> getTemplateAttachment(@NotNull UUID id);
+    @NotNull Optional<@NotNull Attachment<?, ?>> getTemplateAttachment(@NotNull UUID id);
 
     void createUserTemplate(@NotNull User user, @NotNull MailTemplate template, int interval);
 
