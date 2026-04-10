@@ -117,8 +117,8 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                 lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
                 return lore;
             }), (p, clickType) -> {
-                final Attachment<?> attachment = mail.getAttachmentsInternal().get(finalI);
-                if (clickType.isLeftClick() && !attachment.opened() && !attachment.isExpired()) {
+                final Attachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
+                if (clickType.isLeftClick() && !attachment.canOpen() && !attachment.isExpired()) {
                     attachment.apply(p);
                     attachment.setOpened(true);
                     database().updateMailAttachment(mail, attachment);

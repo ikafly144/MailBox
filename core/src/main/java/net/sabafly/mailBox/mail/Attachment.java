@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -57,6 +58,10 @@ public interface Attachment<T extends Attachment<T, C>, C extends AttachmentCont
     boolean consumeRequirement(@NotNull Player player);
 
     boolean opened();
+
+    default boolean canOpen() {
+        return !opened() && !isExpired();
+    }
 
     void setOpened(boolean opened);
 
@@ -111,7 +116,8 @@ public interface Attachment<T extends Attachment<T, C>, C extends AttachmentCont
     }
 
     @Override
-    default void open() {
+    default void open(@NonNull Player player) {
+        apply(player);
         setOpened(true);
     }
 

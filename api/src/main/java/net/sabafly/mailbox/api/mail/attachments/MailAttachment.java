@@ -1,5 +1,8 @@
 package net.sabafly.mailbox.api.mail.attachments;
 
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.UUID;
 
 public interface MailAttachment<C extends AttachmentContent<?>> extends Attachment<C> {
@@ -8,6 +11,6 @@ public interface MailAttachment<C extends AttachmentContent<?>> extends Attachme
 
     boolean isRead();
 
-    void open();
+    void open(@NotNull Player player);
 
 }

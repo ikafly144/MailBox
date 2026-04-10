@@ -67,4 +67,9 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
     public @NonNull MessageContent content() {
         return message;
     }
+
+    @Override
+    public boolean canOpen() {
+        return !isExpired();
+    }
 }
