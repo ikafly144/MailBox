@@ -4,6 +4,7 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.utils.DateUtils;
@@ -67,7 +68,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack leftArrow = Bukkit.getItemFactory().createItemStack(config().leftArrowItem);
         leftArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
-        if (page > 1) clickRegistry.setItem(0, leftArrow, (player, clickType) -> {
+        if (page > 1) clickRegistry.setItem(0, leftArrow, (_, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
                 refresh();
@@ -76,7 +77,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         ItemStack rightArrow = Bukkit.getItemFactory().createItemStack(config().rightArrowItem);
         rightArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
         if (database().countMails(owner, TriState.NOT_SET) > page * 27) {
-            clickRegistry.setItem(8, rightArrow, (player, clickType) -> {
+            clickRegistry.setItem(8, rightArrow, (_, clickType) -> {
                 if (clickType.isLeftClick() && database().countMails(owner, TriState.NOT_SET) > page * 27) {
                     page++;
                     refresh();
@@ -92,7 +93,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         });
         if (System.currentTimeMillis() <= this.cooldown)
             viewer.setCooldown(MAIL_INBOX_KEY, (int) ((this.cooldown - System.currentTimeMillis()) / 50));
-        clickRegistry.setItem(4, refreshItem, (player, clickType) -> {
+        clickRegistry.setItem(4, refreshItem, (_, clickType) -> {
             if (clickType.isLeftClick() && System.currentTimeMillis() > this.cooldown) {
                 this.cooldown = System.currentTimeMillis() + 5000;
                 refresh();
@@ -106,12 +107,27 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         int slot = 18;
         database().deleteAllUserNotification(owner);
         for (Mail mail : database().getMails(owner, TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
-            clickRegistry.setItem(slot, createMailItem(mail), (p, clickType) -> {
+            clickRegistry.setItem(slot, createMailItem(mail), (_, clickType) -> {
                 if (clickType.isLeftClick()) {
                     openMenu(new MailViewerMenu(viewer, owner, mail, true));
                 } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
-                    database().deleteMail(mail);
-                    refresh();
+                    if (clickType.isShiftClick()) {
+                        database().deleteMail(mail);
+                        refresh();
+                        return;
+                    }
+                    new ConfirmMenu(
+                            viewer,
+                            this,
+                            miniMessage().deserialize(config().messages.deleteMailConfirmTitle),
+                            miniMessage().deserialize(
+                                    config().messages.deleteMailConfirmContent,
+                                    Placeholder.component("mail_title", plainText().deserialize(mail.getTitle()))
+                            ),
+                            ok -> {
+                                if (ok) database().deleteMail(mail);
+                                refresh();
+                            }).open();
                 }
             });
             slot++;

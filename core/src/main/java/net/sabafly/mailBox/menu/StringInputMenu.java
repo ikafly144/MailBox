@@ -72,7 +72,7 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                             if (text == null) {
                                                 text = "";
                                             }
-                                            if (!multiline) text = text.replaceAll("\n", "");
+                                            if (!multiline) text = text.replace("\n", "");
                                             text = text.trim();
                                             if (!text.isBlank()) {
                                                 try {
@@ -90,7 +90,7 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                         ClickCallback.Options.builder().build()))
                                 .build()),
                         ActionButton.builder(miniMessage().deserialize(config().messages.cancelButton))
-                                .action(DialogAction.customClick((response, audience) -> {
+                                .action(DialogAction.customClick((_, audience) -> {
                                     if ((audience instanceof Player)) {
                                         parent.open();
                                     }

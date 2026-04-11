@@ -420,9 +420,7 @@ public abstract class Base implements Database {
             runner.execute(conn, """
                     INSERT INTO mailbox_mails (id, sender, receiver, title, content, is_read, sentTime) VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, mail.getId().toString(), mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime());
-            mail.attachments().forEach(attachment -> {
-                if (attachment instanceof IAttachment<?, ?> attach) createMailAttachment(mail, attach);
-            });
+            mail.getAttachmentsInternal().forEach(attachment -> createMailAttachment(mail, attachment));
             createUserNotification(mail.getReceiver(), mail);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -435,9 +433,7 @@ public abstract class Base implements Database {
             runner.execute(conn, """
                     UPDATE mailbox_mails SET sender = ?, receiver = ?, title = ?, content = ?, is_read = ?, sentTime = ? WHERE id = ?
                     """, mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime(), mail.getId().toString());
-            mail.attachments().forEach(attachment -> {
-                if (attachment instanceof IAttachment<?, ?> attach) updateMailAttachment(mail, attach);
-            });
+            mail.getAttachmentsInternal().forEach(attachment -> updateMailAttachment(mail, attachment));
         } catch (SQLException e) {
             e.printStackTrace();
         }

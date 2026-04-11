@@ -37,11 +37,6 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
     }
 
     @Override
-    public boolean opened() {
-        return false;
-    }
-
-    @Override
     public void apply(@NotNull Player player) {
         player.sendMessage(message.value());
     }

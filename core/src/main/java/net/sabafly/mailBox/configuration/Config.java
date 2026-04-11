@@ -201,6 +201,8 @@ public class Config extends BaseConfig {
         public String templateEditSubjectSuccess = "Edited subject of template <template> to <new_subject>";
         public String templateEditContentSuccess = "Edited content of template <template>";
         public String templateEditSenderSuccess = "Edited sender of template <template> to <sender>";
+        public String deleteMailConfirmTitle = "<red>Confirm</red><white> Deletion</white>";
+        public String deleteMailConfirmContent = "<gray>Are you sure you want to delete mail <mail_title>?</gray>";
     }
 
 }

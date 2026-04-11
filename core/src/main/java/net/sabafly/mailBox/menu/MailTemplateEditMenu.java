@@ -3,12 +3,12 @@ package net.sabafly.mailBox.menu;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailBox.utils.DateUtils;
-import net.sabafly.mailBox.utils.ThreadUtils;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -124,10 +124,23 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         delete.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.delete)));
         clickRegistry.setItem(8, delete, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                MailBox.getThreadedQueue().submit(() -> {
+                if (clickType.isShiftClick()) {
                     database().deleteMailTemplate(template);
-                    ThreadUtils.runSync(player::closeInventory);
-                });
+                    player.closeInventory();
+                    return;
+                }
+                new ConfirmMenu(
+                        viewer,
+                        this,
+                        miniMessage().deserialize(config().messages.deleteMailConfirmTitle),
+                        miniMessage().deserialize(
+                                config().messages.deleteMailConfirmContent,
+                                Placeholder.component("mail_title", plainText().deserialize(template.subject()))
+                        ),
+                        ok -> {
+                            if (ok) database().deleteMailTemplate(template);
+                            player.closeInventory();
+                        }).open();
             }
         });
         ItemStack paper = new ItemStack(Material.PAPER);
