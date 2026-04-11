@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
@@ -218,7 +219,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
 
         private void addAttachment(IAttachment<?, ?> attachment) {
             if (attachment != null) {
-                if (!isTemplate) attachment.expireDuration(config().mail.getExpirationDuration());
+                if (!isTemplate) attachment.setExpireDuration(config().mail.getExpirationDuration());
                 attachments.add(attachment);
             }
         }
@@ -283,7 +284,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                     final int finalI = i;
                     List<Component> lore = new ArrayList<>(List.of(
                             miniMessage().deserialize(config().messages.expirationValue, TagResolver.builder().tag(
-                                    "expiration", Tag.inserting(miniMessage().deserialize(attachments.get(i).expireDuration().map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.expiresNever)))
+                                    "expiration", Tag.inserting(miniMessage().deserialize(Optional.ofNullable(attachments.get(i).expireDuration()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.expiresNever)))
                             ).build())
                     ));
                     if (isTemplate) {
@@ -299,14 +300,14 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                                 try {
                                     final long seconds = Duration.of(s).seconds();
                                     if (seconds <= 0) {
-                                        attachments.get(finalI).expireDuration(null);
+                                        attachments.get(finalI).setExpireDuration(null);
                                     } else {
-                                        attachments.get(finalI).expireDuration(java.time.Duration.ofSeconds(seconds));
+                                        attachments.get(finalI).setExpireDuration(java.time.Duration.ofSeconds(seconds));
                                     }
                                 } catch (Exception e) {
                                     MailBox.logger().error("Error while setting expiration", e);
                                 }
-                            }, attachments.get(finalI).expireDuration().map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
+                            }, Optional.ofNullable(attachments.get(finalI).expireDuration()).map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
                                     false, 30));
                         }
                     });

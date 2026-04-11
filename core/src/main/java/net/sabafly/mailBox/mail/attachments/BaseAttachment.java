@@ -11,7 +11,6 @@ import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -104,12 +103,12 @@ public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends A
     }
 
     @Override
-    public @NotNull Optional<Duration> expireDuration() {
-        return Optional.ofNullable(expireDuration);
+    public @Nullable Duration expireDuration() {
+        return expireDuration;
     }
 
     @Override
-    public void expireDuration(@Nullable Duration expireDuration) {
+    public void setExpireDuration(@Nullable Duration expireDuration) {
         this.expireDuration = expireDuration;
     }
 
@@ -175,6 +174,13 @@ public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends A
         @Override
         public B icon(@NotNull ItemStack icon) {
             super.previewItem = icon;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public B expireDuration(@Nullable Duration expireDuration) {
+            super.expireDuration = expireDuration;
             return (B) this;
         }
 

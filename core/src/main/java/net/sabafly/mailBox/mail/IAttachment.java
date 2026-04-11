@@ -74,17 +74,19 @@ public interface IAttachment<T extends IAttachment<T, C>, C extends AttachmentCo
 
     boolean isExpired();
 
-    @NotNull
-    Optional<Duration> expireDuration();
+    @Nullable
+    @Override
+    Duration expireDuration();
+
+    void setExpireDuration(@Nullable Duration expireDuration);
 
     default Optional<LocalDateTime> expireTime() {
-        if (getReceivedTime() == null || expireDuration().isEmpty() || isTemplate()) {
+        if (getReceivedTime() == null || expireDuration() == null || isTemplate()) {
             return Optional.empty();
         }
-        return expireDuration().map(duration -> getReceivedTime().plus(duration));
+        return Optional.ofNullable(expireDuration()).map(duration -> getReceivedTime().plus(duration));
     }
 
-    void expireDuration(@Nullable Duration expireDuration);
 
     byte @NotNull [] serialize();
 

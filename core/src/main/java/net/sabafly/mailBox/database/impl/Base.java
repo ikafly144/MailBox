@@ -617,7 +617,7 @@ public abstract class Base implements Database {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, preview_item, data, receive_time, expire_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), Optional.ofNullable(attachment.getReceivedTime()).map(Timestamp::valueOf).orElse(null), attachment.expireDuration().map(Duration::getSeconds).orElse(0L));
+                    """, attachment.getId().toString(), mail.getId().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), Optional.ofNullable(attachment.getReceivedTime()).map(Timestamp::valueOf).orElse(null), Optional.ofNullable(attachment.expireDuration()).map(Duration::getSeconds).orElse(0L));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -652,7 +652,7 @@ public abstract class Base implements Database {
                     attachment.opened(),
                     Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(),
                     attachment.serialize(),
-                    attachment.expireDuration().map(Duration::getSeconds).orElse(0L),
+                    Optional.ofNullable(attachment.expireDuration()).map(Duration::getSeconds).orElse(0L),
                     attachment.getId().toString()
             );
         } catch (SQLException e) {
@@ -709,7 +709,7 @@ public abstract class Base implements Database {
     @Override
     public void createTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
-            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data, EXPIRE_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().orElse(null));
+            runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data, EXPIRE_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -736,7 +736,7 @@ public abstract class Base implements Database {
     @Override
     public void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
-            int row = runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
+            int row = runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), Optional.ofNullable(attachment.expireDuration()).map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
             if (row == 0) {
                 createTemplateAttachment(template, attachment);
             }

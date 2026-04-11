@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.mail.attachments;
 
+import net.kyori.adventure.text.Component;
 import net.sabafly.mailbox.api.mail.attachments.CommandContent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -62,7 +64,20 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment, Command
 
     @Override
     public @NotNull CommandAttachment create(boolean opened) {
-        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+        return new CommandAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), Optional.ofNullable(expireDuration()).orElse(config().mail.getExpirationDuration()), content().value());
+    }
+
+    @Override
+    public @NotNull Component format() {
+        return format(content())
+                .append(Component.text(": "))
+                .append(getName());
+    }
+
+    private static Component format(CommandContent content) {
+        return Component.text("COMMAND[")
+                .append(Component.text(content.value()))
+                .append(Component.text("]"));
     }
 
     @Override
@@ -84,6 +99,13 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment, Command
         @Override
         public @NonNull CommandAttachment create(boolean opened) {
             return new CommandAttachment(this);
+        }
+
+        @Override
+        public @NotNull Component format() {
+            return CommandAttachment.format(content())
+                     .append(Component.text(": "))
+                    .append(getName());
         }
     }
 

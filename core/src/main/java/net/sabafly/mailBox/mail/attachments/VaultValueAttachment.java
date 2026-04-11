@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.mail.attachments;
 
+import net.kyori.adventure.text.Component;
 import net.sabafly.mailBox.utils.EconomyUtils;
 import net.sabafly.mailbox.api.mail.attachments.VaultValueContent;
 import org.bukkit.entity.Player;
@@ -12,6 +13,7 @@ import org.jspecify.annotations.NonNull;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -67,11 +69,24 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, V
 
     @Override
     public @NotNull VaultValueAttachment create(boolean opened) {
-        return new VaultValueAttachment(LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+        return new VaultValueAttachment(LocalDateTime.now(), Optional.ofNullable(expireDuration()).orElse(config().mail.getExpirationDuration()), content().value());
     }
 
     public static @NotNull VaultValueAttachment createNew(double value) {
         return new VaultValueAttachment(null, config().mail.getExpirationDuration(), value);
+    }
+
+    @Override
+    public @NotNull Component format() {
+        return format(content())
+                .append(Component.text(": "))
+                .append(getName());
+    }
+
+    private static Component format(VaultValueContent content) {
+        return Component.text("VAULT_VALUE[")
+                .append(Component.text(EconomyUtils.getEconomy().format(content.value())))
+                .append(Component.text("]"));
     }
 
     @Override
@@ -91,12 +106,19 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, V
 
         @Override
         public @NotNull VaultValueAttachment build() {
-            return new VaultValueAttachment(LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+            return new VaultValueAttachment(LocalDateTime.now(), Optional.ofNullable(expireDuration()).orElse(config().mail.getExpirationDuration()), content().value());
         }
 
         @Override
         public @NonNull VaultValueAttachment create(boolean opened) {
             return new VaultValueAttachment(this);
+        }
+
+        @Override
+        public @NotNull Component format() {
+            return VaultValueAttachment.format(content())
+                    .append(Component.text(": "))
+                    .append(getName());
         }
     }
 

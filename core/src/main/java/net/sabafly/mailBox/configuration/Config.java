@@ -191,6 +191,11 @@ public class Config extends BaseConfig {
         public String inboxOwner = "<dark_gray>{owner}'s inbox</dark_gray>";
         public String templateAlreadyExists = "<red>A template with the name <template> already exists</red>";
         public String notEnoughAttachmentContent = "<red>You don't have some contents of attachments.</red>";
+        public String templateAttachmentList = "Attachments of <template>:<br><attachments>";
+        public String templateNoAttachments = "<template> has no attachments";
+        public String invalidAttachmentIndex = "<red>Invalid attachment index: <index></red>";
+        public String templateAttachmentAddSuccess = "Added attachment <attachment> to <template>";
+        public String templateAttachmentDeleteSuccess = "Deleted attachment <attachment> from <template>";
     }
 
 }

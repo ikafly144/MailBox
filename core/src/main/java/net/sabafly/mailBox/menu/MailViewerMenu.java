@@ -118,7 +118,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                 return lore;
             }), (p, clickType) -> {
                 final IAttachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
-                if (clickType.isLeftClick() && !attachment.canOpen() && !attachment.isExpired()) {
+                if (clickType.isLeftClick() && attachment.canOpen()) {
                     attachment.apply(p);
                     attachment.setOpened(true);
                     database().updateMailAttachment(mail, attachment);

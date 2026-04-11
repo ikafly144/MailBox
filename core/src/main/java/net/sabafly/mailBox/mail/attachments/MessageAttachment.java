@@ -11,6 +11,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -66,7 +67,20 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
 
     @Override
     public @NotNull MessageAttachment create(boolean opened) {
-        return new MessageAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+        return new MessageAttachment(miniMessage().serialize(getName()), opened, getPreviewItem(), LocalDateTime.now(), Optional.ofNullable(expireDuration()).orElse(config().mail.getExpirationDuration()), content().value());
+    }
+
+    @Override
+    public @NotNull Component format() {
+        return format(content())
+                .append(Component.text(": "))
+                .append(getName());
+    }
+
+    private static Component format(MessageContent content) {
+        return Component.text("MESSAGE[")
+                .append(content.value())
+                .append(Component.text("]"));
     }
 
     @Override
@@ -93,6 +107,13 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
         @Override
         public @NonNull MessageAttachment create(boolean opened) {
             return new MessageAttachment(this);
+        }
+
+        @Override
+        public @NotNull Component format() {
+            return MessageAttachment.format(content())
+                    .append(Component.text(": "))
+                    .append(getName());
         }
     }
 

@@ -11,6 +11,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
@@ -38,6 +39,19 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment, ItemContent> 
 
     private static Component getEffectiveName(@NotNull ItemStack itemStack) {
         return itemStack.effectiveName().append(itemStack.getAmount() > 1 ? Component.text(" ×" + itemStack.getAmount()) : Component.empty());
+    }
+
+    @Override
+    public @NotNull Component format() {
+        return format(content())
+                .append(Component.text(": "))
+                .append(getName());
+    }
+
+    private static Component format(ItemContent content) {
+        return Component.text("ITEM[")
+                .append(content.value().effectiveName())
+                .append(Component.text("]"));
     }
 
     public @NotNull ItemContent content() {
@@ -85,7 +99,7 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment, ItemContent> 
 
     @Override
     public @NotNull ItemAttachment create(boolean opened) {
-        return new ItemAttachment(content().value(), false, LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()));
+        return new ItemAttachment(content().value(), false, LocalDateTime.now(), Optional.ofNullable(expireDuration()).orElse(config().mail.getExpirationDuration()));
     }
 
     public static final class ItemAttachmentBuilder extends BaseBuilder<ItemAttachment, ItemAttachmentBuilder, ItemContent> implements Attachment.Builder<ItemAttachmentBuilder, ItemContent> {
@@ -103,6 +117,12 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment, ItemContent> 
             return new ItemAttachment(this);
         }
 
+        @Override
+        public @NotNull Component format() {
+            return ItemAttachment.format(content())
+                    .append(Component.text(": "))
+                    .append(getName());
+        }
     }
 
 }
