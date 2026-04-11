@@ -3,7 +3,6 @@ package net.sabafly.mailBox.database;
 import com.google.common.base.Preconditions;
 import com.google.gson.*;
 import net.kyori.adventure.key.Key;
-import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.gson.deserializer.OfflinePlayerDeserializer;
 import net.sabafly.mailBox.mail.DummyMailUser;
 import net.sabafly.mailBox.mail.PlayerMailUser;

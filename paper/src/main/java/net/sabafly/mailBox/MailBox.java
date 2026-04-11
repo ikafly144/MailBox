@@ -132,7 +132,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
         return user;
     }
 
-    public @NotNull Template createTemplate(@NotNull Consumer<Template.Builder> builderConsumer) {
+    public @NotNull Template createTemplate(@NotNull Consumer<Template.Builder<?>> builderConsumer) {
         var builder = new MailTemplate.TemplateBuilder(
                 java.util.UUID.randomUUID(),
                 "Default Title",

@@ -6,10 +6,25 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
     id("com.gradleup.shadow") version "9.4.1"
+    id("com.modrinth.minotaur") version "2.+"
+    id("io.papermc.hangar-publish-plugin") version "0.+"
 }
 
-group = "net.sabafly"
-version = "1.1.0-alpha.4"
+val javaVersion: String by project
+val minecraftVersion: String by project
+val pluginArtifactName: String by project
+val supportedMinecraftVersions: String by project
+val modrinthProjectId: String by project
+val modrinthLoaders: String by project
+val modrinthVersionType: String by project
+val hangarProjectId: String by project
+val hangarChannel: String by project
+
+val targetJavaVersion = javaVersion.toInt()
+val supportedMcVersions = supportedMinecraftVersions.split(',').map(String::trim).filter(String::isNotEmpty)
+val modrinthLoaderList = modrinthLoaders.split(',').map(String::trim).filter(String::isNotEmpty)
+val releaseChangelog = providers.environmentVariable("RELEASE_CHANGELOG")
+    .orElse("Automated release for ${project.version}")
 
 repositories {
     mavenCentral()
@@ -52,7 +67,6 @@ dependencies {
     paperweight.paperDevBundle(property("paperVersion") as String)
 }
 
-val targetJavaVersion = 25
 java {
     val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
@@ -79,8 +93,8 @@ tasks.processResources {
     }
 }
 
-tasks.named<ShadowJar>("shadowJar") {
-    archiveBaseName.set("MailBox")
+val shadowJarTask = tasks.named<ShadowJar>("shadowJar") {
+    archiveBaseName.set(pluginArtifactName)
     archiveClassifier.set("")
     archiveVersion.set(project.version.toString())
 
@@ -93,7 +107,44 @@ tasks.named<ShadowJar>("shadowJar") {
 }
 
 tasks.named("build") {
-    dependsOn(tasks.named("shadowJar"))
+    dependsOn(shadowJarTask)
+}
+
+modrinth {
+    token.set(providers.environmentVariable("MODRINTH_TOKEN"))
+    projectId.set(modrinthProjectId)
+    versionNumber.set(project.version.toString())
+    versionName.set("$pluginArtifactName ${project.version}")
+    versionType.set(modrinthVersionType)
+    uploadFile.set(shadowJarTask)
+    gameVersions.addAll(supportedMcVersions)
+    loaders.addAll(modrinthLoaderList)
+    changelog.set(releaseChangelog)
+}
+
+tasks.named("modrinth") {
+    dependsOn(shadowJarTask)
+}
+
+hangarPublish {
+    publications.register("plugin") {
+        version = project.version.toString()
+        id = hangarProjectId
+        channel = hangarChannel
+        changelog = releaseChangelog.get()
+        apiKey = providers.environmentVariable("HANGAR_API_TOKEN").orElse("").get()
+
+        platforms {
+            paper {
+                jar = shadowJarTask.flatMap { it.archiveFile }
+                platformVersions = supportedMcVersions
+            }
+        }
+    }
+}
+
+tasks.named("publishPluginPublicationToHangar") {
+    dependsOn(shadowJarTask)
 }
 
 tasks.named<RunServer>("runServer") {
@@ -103,5 +154,5 @@ tasks.named<RunServer>("runServer") {
         modrinth("placeholderapi", "2.12.2")
         modrinth("emeraldbank", "1.1.2")
     }
-    minecraftVersion("26.1.1")
+    minecraftVersion(minecraftVersion)
 }

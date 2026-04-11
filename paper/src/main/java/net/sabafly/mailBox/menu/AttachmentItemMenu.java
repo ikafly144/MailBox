@@ -53,7 +53,7 @@ public class AttachmentItemMenu extends InventoryMenu<AttachmentItemMenu> {
         glassPane.editMeta(meta -> meta.setHideTooltip(true));
         for (int i = 0; i < 9; i++) {
             if (i != 4) {
-                clickRegistry.setItem(i, glassPane, (player1, clickType) -> {
+                clickRegistry.setItem(i, glassPane, (_, _) -> {
                 });
             }
         }

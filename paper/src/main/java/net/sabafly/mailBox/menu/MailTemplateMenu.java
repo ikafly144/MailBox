@@ -35,14 +35,14 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack arrow = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(ItemTypeKeys.ARROW).createItemStack();
         arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
-        clickRegistry.setItem(0, arrow, (player, clickType) -> {
+        clickRegistry.setItem(0, arrow, (_, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
                 refresh();
             }
         });
         arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
-        clickRegistry.setItem(8, arrow, (player, clickType) -> {
+        clickRegistry.setItem(8, arrow, (_, clickType) -> {
             if (clickType.isLeftClick()) {
                 page++;
                 refresh();

@@ -2,7 +2,6 @@ package net.sabafly.mailBox.menu;
 
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.utils.ThreadUtils;
-import net.sabafly.mailbox.api.IMailBox;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,7 +11,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class MenuManager implements Listener {

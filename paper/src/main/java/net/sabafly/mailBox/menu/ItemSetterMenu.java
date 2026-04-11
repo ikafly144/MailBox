@@ -49,7 +49,7 @@ public class ItemSetterMenu extends InventoryMenu<ItemSetterMenu> {
         glassPane.editMeta(meta -> meta.setHideTooltip(true));
         for (int i = 0; i < 9; i++) {
             if (i != 4) {
-                clickRegistry.setItem(i, glassPane, (player1, clickType) -> {
+                clickRegistry.setItem(i, glassPane, (_, _) -> {
                 });
             }
         }

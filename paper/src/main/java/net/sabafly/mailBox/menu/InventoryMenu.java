@@ -37,7 +37,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     }
 
     public InventoryMenu(Player viewer, int size, Component title, boolean moveable) {
-        this(viewer, size, menu -> title, moveable);
+        this(viewer, size, _ -> title, moveable);
     }
 
     public InventoryMenu(Player viewer, int i, @NotNull Function<@NotNull T, @NotNull Component> title) {
