@@ -134,6 +134,10 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                             .subject(subject)
                                                             .build();
                                                     database().createMailTemplate(template);
+                                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(
+                                                            config().messages.templateCreateSuccess,
+                                                            Placeholder.component("template", miniMessage().deserialize(template.subject()))
+                                                    ));
                                                     return Command.SINGLE_SUCCESS;
                                                 })
                                         )
@@ -144,6 +148,10 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                 .executes(context -> {
                                                     var template = context.getArgument("template", MailTemplate.class);
                                                     database().deleteMailTemplate(template);
+                                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(
+                                                            config().messages.templateDeleteSuccess,
+                                                            Placeholder.component("template", miniMessage().deserialize(template.subject()))
+                                                    ));
                                                     return Command.SINGLE_SUCCESS;
                                                 })
                                         )
@@ -165,6 +173,12 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     }
                                                                     template.setSubject(newSubject);
                                                                     database().updateMailTemplate(template);
+                                                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(
+                                                                            config().messages.templateEditSubjectSuccess,
+                                                                            Placeholder.component("template", miniMessage().deserialize(newSubject)),
+                                                                            Placeholder.component("old_subject", miniMessage().deserialize(template.subject())),
+                                                                            Placeholder.component("new_subject", miniMessage().deserialize(newSubject))
+                                                                    ));
                                                                     return Command.SINGLE_SUCCESS;
                                                                 })
                                                         )
@@ -176,6 +190,10 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     Component newContent = context.getArgument("new_content", Component.class);
                                                                     template.setContent(miniMessage().serialize(newContent));
                                                                     database().updateMailTemplate(template);
+                                                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(
+                                                                            config().messages.templateEditContentSuccess,
+                                                                            Placeholder.component("template", miniMessage().deserialize(template.subject()))
+                                                                    ));
                                                                     return Command.SINGLE_SUCCESS;
                                                                 })
                                                         )
@@ -191,6 +209,11 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                         throw new TagParseCommandSyntaxException("User not found or has never played before");
                                                                     template.setSender(newSender);
                                                                     database().updateMailTemplate(template);
+                                                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(
+                                                                            config().messages.templateEditSenderSuccess,
+                                                                            Placeholder.component("template", miniMessage().deserialize(template.subject())),
+                                                                            Placeholder.component("sender", miniMessage().deserialize(newSender.name()))
+                                                                    ));
                                                                     return Command.SINGLE_SUCCESS;
                                                                 })
                                                         )

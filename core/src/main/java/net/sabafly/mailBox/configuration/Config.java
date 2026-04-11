@@ -196,6 +196,11 @@ public class Config extends BaseConfig {
         public String invalidAttachmentIndex = "<red>Invalid attachment index: <index></red>";
         public String templateAttachmentAddSuccess = "Added attachment <attachment> to <template>";
         public String templateAttachmentDeleteSuccess = "Deleted attachment <attachment> from <template>";
+        public String templateCreateSuccess = "Created template <template>";
+        public String templateDeleteSuccess = "Deleted template <template>";
+        public String templateEditSubjectSuccess = "Edited subject of template <template> to <new_subject>";
+        public String templateEditContentSuccess = "Edited content of template <template>";
+        public String templateEditSenderSuccess = "Edited sender of template <template> to <sender>";
     }
 
 }
