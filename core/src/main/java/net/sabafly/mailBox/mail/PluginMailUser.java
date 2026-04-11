@@ -45,7 +45,7 @@ public final class PluginMailUser extends DummyMailUser implements PluginUser {
     }
 
     @Override
-    public @NotNull Template createTemplate(Consumer<Template.Builder> builderConsumer) {
+    public @NotNull Template createTemplate(Consumer<Template.Builder<?>> builderConsumer) {
         var builder = new MailTemplate.PluginTemplateBuilder(
                 java.util.UUID.randomUUID(),
                 "No Title",

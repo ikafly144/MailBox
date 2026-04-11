@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-public interface Attachment<T extends Attachment<T, C>, C extends AttachmentContent<?>> extends Cloneable, MailAttachment<C> {
+public interface IAttachment<T extends IAttachment<T, C>, C extends AttachmentContent<?>> extends Cloneable, MailAttachment<C> {
 
     @NotNull
     UUID getId();
@@ -36,7 +36,7 @@ public interface Attachment<T extends Attachment<T, C>, C extends AttachmentCont
     String getPlainName();
 
     @NotNull
-    default ItemStack createPreview(@Nullable Function<@NotNull Attachment<T, C>, @NotNull List<@NotNull Component>> loreSupplier) {
+    default ItemStack createPreview(@Nullable Function<@NotNull IAttachment<T, C>, @NotNull List<@NotNull Component>> loreSupplier) {
         ItemStack item = getPreviewItem();
         item.editMeta(meta -> {
             meta.itemName(getName());
@@ -88,7 +88,7 @@ public interface Attachment<T extends Attachment<T, C>, C extends AttachmentCont
 
     byte @NotNull [] serialize();
 
-    static Attachment<?, ?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireTime) {
+    static IAttachment<?, ?> deserialize(@NotNull Type type, @NotNull UUID uuid, @NotNull String name, boolean received, byte @NotNull [] data, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireTime) {
         return switch (type) {
             case ITEM -> ItemAttachment.deserialize(uuid, name, received, data, previewItem, receivedTime, expireTime);
             case VAULT_VALUE -> VaultValueAttachment.deserialize(uuid, name, received, data, previewItem, receivedTime, expireTime);
@@ -117,7 +117,7 @@ public interface Attachment<T extends Attachment<T, C>, C extends AttachmentCont
 
     @Override
     default void open(@NonNull Player player) {
-        apply(player);
+        if (canOpen()) apply(player);
         setOpened(true);
     }
 

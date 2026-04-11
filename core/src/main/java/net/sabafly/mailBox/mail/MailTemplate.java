@@ -1,9 +1,11 @@
 package net.sabafly.mailBox.mail;
 
 import lombok.Setter;
+import net.sabafly.mailBox.mail.attachments.AttachmentBuilderFactoryImpl;
 import net.sabafly.mailbox.api.mail.PluginUser;
 import net.sabafly.mailbox.api.mail.Template;
 import net.sabafly.mailbox.api.mail.User;
+import net.sabafly.mailbox.api.mail.attachments.AttachmentBuilderFactory;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +15,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
@@ -23,7 +26,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
     private final @NotNull UUID id;
     private @NotNull String subject;
     private @NotNull String content;
-    private @NotNull List<@NotNull Attachment<?, ?>> attachment;
+    private @NotNull List<@NotNull IAttachment<?, ?>> attachment;
 
     @Setter
     private boolean autoSend;
@@ -46,7 +49,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
             @NotNull UUID id,
             @NotNull String subject,
             @NotNull String content,
-            @NotNull List<@NotNull Attachment<?, ?>> attachment,
+            @NotNull List<@NotNull IAttachment<?, ?>> attachment,
             boolean autoSend,
             @NotNull User sender,
             @Nullable LocalDateTime startTime,
@@ -65,7 +68,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         this.permission = permission;
     }
 
-    public static MailTemplate createNow(@NotNull User p, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?, ?>> attachments) {
+    public static MailTemplate createNow(@NotNull User p, @NotNull String title, @NotNull String content, @NotNull List<@NotNull IAttachment<?, ?>> attachments) {
         return new MailTemplate(UUID.randomUUID(), title, content, attachments, false, p, null, null, null, null);
     }
 
@@ -90,11 +93,11 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         this.content = content;
     }
 
-    public @NotNull List<@NotNull Attachment<?, ?>> attachment() {
+    public @NotNull List<@NotNull IAttachment<?, ?>> attachment() {
         return attachment;
     }
 
-    public void setAttachment(@NotNull List<@NotNull Attachment<?, ?>> attachment) {
+    public void setAttachment(@NotNull List<@NotNull IAttachment<?, ?>> attachment) {
         this.attachment = new ArrayList<>(attachment);
     }
 
@@ -165,7 +168,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
     }
 
     public @NotNull Mail createMail(@NotNull User receiver) {
-        List<Attachment<?, ?>> newAttachments = attachment.stream().map(Attachment::create).collect(Collectors.toList());
+        List<IAttachment<?, ?>> newAttachments = attachment.stream().map(IAttachment::create).collect(Collectors.toList());
         String title = this.subject
                 .replaceAll("\\{player}", Matcher.quoteReplacement(receiver.name()))
                 .replaceAll("\\{interval}", (intervalCount() + 1) + "")
@@ -205,7 +208,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
             );
         }
 
-        public TemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?, ?>> attachment, boolean autoSend, @NotNull User sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
+        public TemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull IAttachment<?, ?>> attachment, boolean autoSend, @NotNull User sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
             super(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
         }
 
@@ -228,6 +231,15 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         }
 
         @Override
+        public TemplateBuilder attachments(@NotNull Function<AttachmentBuilderFactory, @NotNull List<net.sabafly.mailbox.api.mail.attachments.Attachment<?>>> attachments) {
+            super.attachment = attachments.apply(new AttachmentBuilderFactoryImpl()).stream()
+                    .filter(a->a instanceof IAttachment<?,?>)
+                    .map(a -> (IAttachment<?, ?>) a)
+                    .collect(Collectors.toUnmodifiableList());
+            return this;
+        }
+
+        @Override
         public MailTemplate build() {
             return new MailTemplate(this);
         }
@@ -238,7 +250,7 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
 
         private final PluginUser pluginUser;
 
-        public PluginTemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull Attachment<?, ?>> attachment, boolean autoSend, @NotNull PluginUser sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
+        public PluginTemplateBuilder(@NotNull UUID id, @NotNull String title, @NotNull String content, @NotNull List<@NotNull IAttachment<?, ?>> attachment, boolean autoSend, @NotNull PluginUser sender, @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable Duration interval, @Nullable String permission) {
             super(id, title, content, attachment, autoSend, sender, startTime, endTime, interval, permission);
             this.pluginUser = sender;
         }
@@ -265,10 +277,20 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
         }
 
         @Override
+        public PluginTemplateBuilder attachments(@NotNull Function<AttachmentBuilderFactory, @NotNull List<net.sabafly.mailbox.api.mail.attachments.Attachment<?>>> attachments) {
+            super.attachment = attachments.apply(new AttachmentBuilderFactoryImpl()).stream()
+                    .filter(a->a instanceof IAttachment<?,?>)
+                    .map(a -> (IAttachment<?, ?>) a)
+                    .collect(Collectors.toUnmodifiableList());
+            return this;
+        }
+
+        @Override
         public Template build() {
             return new MailTemplate(this);
         }
 
     }
+
 
 }

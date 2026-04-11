@@ -33,7 +33,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     @NotNull
     @Getter
     private final String content;
-    private final @NotNull List<Attachment<?, ?>> attachments;
+    private final @NotNull List<IAttachment<?, ?>> attachments;
     @Getter
     @Setter
     private boolean read;
@@ -41,7 +41,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     private final LocalDateTime sentTime;
 
     @NotNull
-    public static Mail createFromUserNow(@NotNull User sender, User receiver, String title, String content, List<Attachment<?, ?>> attachments) {
+    public static Mail createFromUserNow(@NotNull User sender, User receiver, String title, String content, List<IAttachment<?, ?>> attachments) {
         return new Mail(
                 UUID.randomUUID(),
                 sender,
@@ -54,7 +54,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     }
 
     // For system mails with any sender
-    public static Mail createFromTemplateNow(@NotNull User sender, @NotNull User receiver, String title, String content, List<Attachment<?, ?>> attachments) {
+    public static Mail createFromTemplateNow(@NotNull User sender, @NotNull User receiver, String title, String content, List<IAttachment<?, ?>> attachments) {
         return new Mail(
                 UUID.randomUUID(),
                 sender,
@@ -80,7 +80,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
             @NotNull User receiver,
             @NotNull String title,
             @NotNull String content,
-            @NotNull List<Attachment<?, ?>> attachments,
+            @NotNull List<IAttachment<?, ?>> attachments,
             boolean read,
             @NotNull LocalDateTime sentTime) {
         this.id = id;
@@ -117,7 +117,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
         return database().getOrCreateUser(receiver);
     }
 
-    public void attachments(@NotNull List<@NotNull Attachment<?, ?>> mailAttachments) {
+    public void attachments(@NotNull List<@NotNull IAttachment<?, ?>> mailAttachments) {
         attachments.clear();
         attachments.addAll(mailAttachments);
     }
@@ -137,7 +137,7 @@ public class Mail implements Comparable<Mail>, net.sabafly.mailbox.api.mail.Mail
     }
 
     @ApiStatus.Internal
-    public @NotNull List<@NotNull Attachment<?, ?>> getAttachmentsInternal() {
+    public @NotNull List<@NotNull IAttachment<?, ?>> getAttachmentsInternal() {
         return attachments;
     }
 

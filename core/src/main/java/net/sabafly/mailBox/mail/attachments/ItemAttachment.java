@@ -1,11 +1,13 @@
 package net.sabafly.mailBox.mail.attachments;
 
 import net.kyori.adventure.text.Component;
+import net.sabafly.mailbox.api.mail.attachments.Attachment;
 import net.sabafly.mailbox.api.mail.attachments.ItemContent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -27,6 +29,11 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment, ItemContent> 
     public ItemAttachment(@NotNull UUID id, @NotNull ItemStack item, boolean received, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
         super(id, miniMessage().serialize(getEffectiveName(item)), Type.ITEM, received, item.clone(), receivedTime, expireDuration);
         this.itemStack = ItemContent.of(item);
+    }
+
+    private ItemAttachment(BaseAttachment<ItemAttachment, ItemContent> base) {
+        super(base);
+        this.itemStack = base.content();
     }
 
     private static Component getEffectiveName(@NotNull ItemStack itemStack) {
@@ -80,4 +87,22 @@ public class ItemAttachment extends BaseAttachment<ItemAttachment, ItemContent> 
     public @NotNull ItemAttachment create(boolean opened) {
         return new ItemAttachment(content().value(), false, LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()));
     }
+
+    public static final class ItemAttachmentBuilder extends BaseBuilder<ItemAttachment, ItemAttachmentBuilder, ItemContent> implements Attachment.Builder<ItemAttachmentBuilder, ItemContent> {
+
+        public static @NotNull ItemAttachmentBuilder builder(@NotNull ItemStack item) {
+            return new ItemAttachmentBuilder(UUID.randomUUID(), miniMessage().serialize(getEffectiveName(item)), false, item.clone(), null, null, ItemContent.of(item));
+        }
+
+        ItemAttachmentBuilder(@NotNull UUID id, @NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, ItemContent content) {
+            super(id, name, Type.ITEM, opened, previewItem, receivedTime, expireDuration, content);
+        }
+
+        @Override
+        public @NonNull ItemAttachment create(boolean opened) {
+            return new ItemAttachment(this);
+        }
+
+    }
+
 }

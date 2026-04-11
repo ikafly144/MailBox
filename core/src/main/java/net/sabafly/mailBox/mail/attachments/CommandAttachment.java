@@ -4,6 +4,7 @@ import net.sabafly.mailbox.api.mail.attachments.CommandContent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -28,6 +29,11 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment, Command
     public CommandAttachment(@NotNull UUID id, @NotNull String name, boolean received, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, String command) {
         super(id, name, Type.COMMAND, received, previewItem, receivedTime, expireDuration);
         this.command = CommandContent.of(command);
+    }
+
+    private CommandAttachment(@NotNull BaseAttachment<?, CommandContent> base) {
+        super(base);
+        this.command = base.content();
     }
 
     @Override
@@ -63,4 +69,22 @@ public class CommandAttachment extends BaseAttachment<CommandAttachment, Command
     public @NonNull CommandContent content() {
         return command;
     }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static final class CommandAttachmentBuilder extends BaseBuilder<CommandAttachment, CommandAttachmentBuilder, CommandContent> {
+
+        public static CommandAttachmentBuilder builder(@NotNull String command) {
+            return new CommandAttachmentBuilder(UUID.randomUUID(), "COMMAND", false, ItemType.COMMAND_BLOCK.createItemStack(), null, null, CommandContent.of(command));
+        }
+
+        private CommandAttachmentBuilder(@NotNull UUID id, @NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, CommandContent content) {
+            super(id, name, Type.COMMAND, opened, previewItem, receivedTime, expireDuration, content);
+        }
+
+        @Override
+        public @NonNull CommandAttachment create(boolean opened) {
+            return new CommandAttachment(this);
+        }
+    }
+
 }

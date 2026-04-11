@@ -3,7 +3,7 @@ package net.sabafly.mailBox.menu;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.sabafly.mailBox.mail.Attachment;
+import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailbox.api.mail.User;
@@ -117,7 +117,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                 lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
                 return lore;
             }), (p, clickType) -> {
-                final Attachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
+                final IAttachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
                 if (clickType.isLeftClick() && !attachment.canOpen() && !attachment.isExpired()) {
                     attachment.apply(p);
                     attachment.setOpened(true);

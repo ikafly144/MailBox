@@ -1,11 +1,13 @@
 package net.sabafly.mailBox.mail.attachments;
 
 import net.kyori.adventure.text.Component;
-import net.sabafly.mailBox.mail.Attachment;
+import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailbox.api.mail.attachments.AttachmentContent;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,16 +16,16 @@ import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 
-public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends AttachmentContent<?>> implements Attachment<T, C> {
+public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends AttachmentContent<?>> implements IAttachment<T, C> {
 
     @NotNull
     private final UUID id;
     @NotNull
-    private final String name;
+    private String name;
     @NotNull
     private final Type type;
     @NotNull
-    private final ItemStack previewItem;
+    private ItemStack previewItem;
     private boolean opened;
     @Nullable
     private LocalDateTime receivedTime;
@@ -32,6 +34,10 @@ public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends A
 
     protected BaseAttachment(@NotNull String name, @NotNull Type type, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
         this(UUID.randomUUID(), name, type, opened, previewItem, receivedTime, expireDuration);
+    }
+
+    protected BaseAttachment(@NotNull BaseAttachment<?, C> base) {
+        this(base.id, base.name, base.type, base.opened, base.previewItem, base.receivedTime, base.expireDuration);
     }
 
     protected BaseAttachment(@NotNull UUID id, @NotNull String name, @NotNull Type type, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration) {
@@ -128,4 +134,59 @@ public abstract class BaseAttachment<T extends BaseAttachment<T, C>, C extends A
         }
         return false;
     }
+
+    protected static abstract class BaseBuilder<T extends BaseAttachment<T, C>, B extends BaseBuilder<T, B, C>, C extends AttachmentContent<?>> extends BaseAttachment<T, C> implements net.sabafly.mailbox.api.mail.attachments.Attachment.Builder<B, C> {
+
+        protected final C content;
+
+        protected BaseBuilder(@NotNull UUID id, @NotNull String name, @NotNull Type type, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, C content) {
+            super(id, name, type, opened, previewItem, receivedTime, expireDuration);
+            this.content = content;
+        }
+
+        @Override
+        public void apply(@NotNull Player player) {
+            throw new UnsupportedOperationException("BaseBuilder does not support apply operation");
+        }
+
+        @Override
+        public boolean checkRequirement(@NotNull Player player) {
+            throw new UnsupportedOperationException("BaseBuilder does not support checkRequirement operation");
+        }
+
+        @Override
+        public boolean consumeRequirement(@NotNull Player player) {
+            throw new UnsupportedOperationException("BaseBuilder does not support consumeRequirement operation");
+        }
+
+        @Override
+        public byte @NotNull [] serialize() {
+            throw new UnsupportedOperationException("BaseBuilder does not support serialize operation");
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public B name(@NotNull String name) {
+            super.name = name;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public B icon(@NotNull ItemStack icon) {
+            super.previewItem = icon;
+            return (B) this;
+        }
+
+        @Override
+        public @NonNull C content() {
+            return content;
+        }
+
+        @Override
+        public T build() {
+            return create(false);
+        }
+    }
+
 }

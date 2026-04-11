@@ -4,7 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.UserConverter;
-import net.sabafly.mailBox.mail.Attachment;
+import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.DummyMailUser;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
@@ -421,7 +421,7 @@ public abstract class Base implements Database {
                     INSERT INTO mailbox_mails (id, sender, receiver, title, content, is_read, sentTime) VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, mail.getId().toString(), mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime());
             mail.attachments().forEach(attachment -> {
-                if (attachment instanceof Attachment<?, ?> attach) createMailAttachment(mail, attach);
+                if (attachment instanceof IAttachment<?, ?> attach) createMailAttachment(mail, attach);
             });
             createUserNotification(mail.getReceiver(), mail);
         } catch (SQLException e) {
@@ -436,7 +436,7 @@ public abstract class Base implements Database {
                     UPDATE mailbox_mails SET sender = ?, receiver = ?, title = ?, content = ?, is_read = ?, sentTime = ? WHERE id = ?
                     """, mail.getSenderId(), mail.getReceiver().id().toString(), mail.getTitle(), mail.getContent(), mail.isRead(), mail.getSentTime(), mail.getId().toString());
             mail.attachments().forEach(attachment -> {
-                if (attachment instanceof Attachment<?, ?> attach) updateMailAttachment(mail, attach);
+                if (attachment instanceof IAttachment<?, ?> attach) updateMailAttachment(mail, attach);
             });
         } catch (SQLException e) {
             e.printStackTrace();
@@ -613,7 +613,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment) {
+    public void createMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, """
                     INSERT INTO mailbox_mail_attachments (id, mail_id, type, name, received, preview_item, data, receive_time, expire_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -624,7 +624,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void deleteMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment) {
+    public void deleteMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, "DELETE FROM mailbox_mail_attachments WHERE id = ?", attachment.getId().toString());
         } catch (SQLException e) {
@@ -642,7 +642,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment) {
+    public void updateMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             runner.execute(
                     conn,
@@ -661,20 +661,20 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull List<@NotNull Attachment<?, ?>> getMailAttachments(@NotNull Mail mail) {
+    public @NotNull List<@NotNull IAttachment<?, ?>> getMailAttachments(@NotNull Mail mail) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, "SELECT * FROM mailbox_mail_attachments WHERE mail_id = ?", rs -> {
-                List<Attachment<?, ?>> attachments = new ArrayList<>();
+                List<IAttachment<?, ?>> attachments = new ArrayList<>();
                 while (rs.next()) {
                     UUID id = UUID.fromString(rs.getString("id"));
-                    Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
+                    IAttachment.Type type = IAttachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
                     ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     LocalDateTime receivedTime = Optional.ofNullable(rs.getTimestamp("receive_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    attachments.add(Attachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration));
+                    attachments.add(IAttachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration));
                 }
                 return attachments;
             }, mail.getId().toString());
@@ -685,18 +685,18 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull Optional<@NotNull Attachment<?, ?>> getMailAttachment(@NotNull UUID id) {
+    public @NotNull Optional<@NotNull IAttachment<?, ?>> getMailAttachment(@NotNull UUID id) {
         try (Connection conn = getConnection()) {
             return Optional.ofNullable(runner.query(conn, "SELECT * FROM mailbox_mail_attachments WHERE id = ?", rs -> {
                 if (rs.next()) {
-                    Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
+                    IAttachment.Type type = IAttachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
                     ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     LocalDateTime receivedTime = Optional.ofNullable(rs.getTimestamp("receive_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    return Attachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration);
+                    return IAttachment.deserialize(type, id, name, received, data, previewItem, receivedTime, expireDuration);
                 }
                 return null;
             }, id.toString()));
@@ -707,7 +707,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment) {
+    public void createTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, "INSERT INTO mailbox_template_attachments (id, template_id, type, name, received, preview_item, data, EXPIRE_DURATION) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", attachment.getId().toString(), template.id().toString(), attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().orElse(null));
         } catch (SQLException e) {
@@ -716,7 +716,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment) {
+    public void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             runner.execute(conn, "DELETE FROM mailbox_template_attachments WHERE id = ?", attachment.getId().toString());
         } catch (SQLException e) {
@@ -734,7 +734,7 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment) {
+    public void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment) {
         try (Connection conn = getConnection()) {
             int row = runner.execute(conn, "UPDATE mailbox_template_attachments SET type = ?, name = ?, received = ?, preview_item = ?, data = ?, EXPIRE_DURATION = ? WHERE id = ?", attachment.getType().name(), attachment.getPlainName(), attachment.opened(), Optional.of(attachment.getPreviewItem()).map(ItemStack::serializeAsBytes).orElseThrow(), attachment.serialize(), attachment.expireDuration().map(Duration::getSeconds).orElse(0L), attachment.getId().toString());
             if (row == 0) {
@@ -746,19 +746,19 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull List<@NotNull Attachment<?, ?>> getTemplateAttachments(@NotNull MailTemplate template) {
+    public @NotNull List<@NotNull IAttachment<?, ?>> getTemplateAttachments(@NotNull MailTemplate template) {
         try (Connection conn = getConnection()) {
             return runner.query(conn, "SELECT * FROM mailbox_template_attachments WHERE template_id = ?", rs -> {
-                List<Attachment<?, ?>> attachments = new ArrayList<>();
+                List<IAttachment<?, ?>> attachments = new ArrayList<>();
                 while (rs.next()) {
                     UUID id = UUID.fromString(rs.getString("id"));
-                    Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
+                    IAttachment.Type type = IAttachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
                     ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    attachments.add(Attachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration));
+                    attachments.add(IAttachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration));
                 }
                 return attachments;
             }, template.id().toString());
@@ -769,17 +769,17 @@ public abstract class Base implements Database {
     }
 
     @Override
-    public @NotNull Optional<@NotNull Attachment<?, ?>> getTemplateAttachment(@NotNull UUID id) {
+    public @NotNull Optional<@NotNull IAttachment<?, ?>> getTemplateAttachment(@NotNull UUID id) {
         try (Connection conn = getConnection()) {
             return Optional.ofNullable(runner.query(conn, "SELECT * FROM mailbox_template_attachments WHERE id = ?", rs -> {
                 if (rs.next()) {
-                    Attachment.Type type = Attachment.Type.valueOf(rs.getString("type"));
+                    IAttachment.Type type = IAttachment.Type.valueOf(rs.getString("type"));
                     String name = rs.getString("name");
                     boolean received = rs.getBoolean("received");
                     ItemStack previewItem = ItemStack.deserializeBytes(rs.getBytes("preview_item"));
                     byte[] data = rs.getBytes("data");
                     Duration expireDuration = Optional.of(rs.getLong("expire_duration")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
-                    return Attachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration);
+                    return IAttachment.deserialize(type, id, name, received, data, previewItem, null, expireDuration);
                 }
                 return null;
             }, id.toString()));

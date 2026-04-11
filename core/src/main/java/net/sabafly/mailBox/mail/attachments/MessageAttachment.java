@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.sabafly.mailbox.api.mail.attachments.MessageContent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -27,6 +28,11 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
     public MessageAttachment(@NotNull UUID id, @NotNull String name, boolean received, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, Component message) {
         super(id, name, Type.MESSAGE, received, previewItem, receivedTime, expireDuration);
         this.message = MessageContent.of(message);
+    }
+
+    public MessageAttachment(@NotNull BaseAttachment<?, MessageContent> base) {
+        super(base);
+        this.message = base.content();
     }
 
     @Override
@@ -72,4 +78,22 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
     public boolean canOpen() {
         return !isExpired();
     }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static final class MessageAttachmentBuilder extends BaseBuilder<MessageAttachment, MessageAttachmentBuilder, MessageContent> {
+
+        public static MessageAttachmentBuilder builder(@NotNull Component message) {
+            return new MessageAttachmentBuilder(UUID.randomUUID(), "MESSAGE", false, ItemType.BOOK.createItemStack(), null, null, MessageContent.of(message));
+        }
+
+        private MessageAttachmentBuilder(@NotNull UUID id, @NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, MessageContent content) {
+            super(id, name, Type.MESSAGE, opened, previewItem, receivedTime, expireDuration, content);
+        }
+
+        @Override
+        public @NonNull MessageAttachment create(boolean opened) {
+            return new MessageAttachment(this);
+        }
+    }
+
 }

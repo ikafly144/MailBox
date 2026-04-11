@@ -15,7 +15,7 @@ public interface PluginUser extends User, Keyed, Namespaced {
 
     @NotNull Plugin plugin();
 
-    @NotNull Template createTemplate(Consumer<Template.Builder> builderConsumer);
+    @NotNull Template createTemplate(Consumer<Template.Builder<?>> builderConsumer);
 
     @NotNull List<Template> templates(int page);
 

@@ -33,6 +33,11 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, V
         this.value = VaultValueContent.of(value);
     }
 
+    public VaultValueAttachment(@NotNull BaseAttachment<?, VaultValueContent> base) {
+        super(base);
+        this.value = base.content();
+    }
+
     @Override
     public void apply(@NotNull Player player) {
         EconomyUtils.getEconomy().depositPlayer(player, content().value());
@@ -73,4 +78,26 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, V
     public @NonNull VaultValueContent content() {
         return value;
     }
+
+    public static final class VaultValueAttachmentBuilder extends BaseBuilder<VaultValueAttachment, VaultValueAttachmentBuilder, VaultValueContent> {
+
+        public static VaultValueAttachmentBuilder builder(double value) {
+            return new VaultValueAttachmentBuilder(UUID.randomUUID(), EconomyUtils.getEconomy().format(value), false, ItemType.EMERALD.createItemStack(), null, null, value);
+        }
+
+        private VaultValueAttachmentBuilder(@NotNull UUID id, @NotNull String name, boolean opened, @NotNull ItemStack previewItem, @Nullable LocalDateTime receivedTime, @Nullable Duration expireDuration, double value) {
+            super(id, name, Type.VAULT_VALUE, opened, previewItem, receivedTime, expireDuration, VaultValueContent.of(value));
+        }
+
+        @Override
+        public @NotNull VaultValueAttachment build() {
+            return new VaultValueAttachment(LocalDateTime.now(), expireDuration().orElse(config().mail.getExpirationDuration()), content().value());
+        }
+
+        @Override
+        public @NonNull VaultValueAttachment create(boolean opened) {
+            return new VaultValueAttachment(this);
+        }
+    }
+
 }

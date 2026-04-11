@@ -14,7 +14,9 @@ public interface Attachment<C extends AttachmentContent<?>> {
 
     interface Builder<B extends Builder<B, C>, C extends AttachmentContent<?>> extends MailBuilder<Attachment<C>> {
 
-        Builder<B, C> content(@NotNull C content);
+        B name(@NotNull String name);
+
+        B icon(@NotNull ItemStack icon);
 
         Attachment<C> build();
 

@@ -2,7 +2,7 @@ package net.sabafly.mailBox.database;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
-import net.sabafly.mailBox.mail.Attachment;
+import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailbox.api.mail.User;
@@ -74,29 +74,29 @@ public interface Database {
 
     void deleteMailTemplate(@NotNull MailTemplate template);
 
-    void createMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
+    void createMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment);
 
-    void deleteMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
+    void deleteMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment);
 
     void deleteAllMailAttachments(@NotNull Mail mail);
 
-    void updateMailAttachment(@NotNull Mail mail, @NotNull Attachment<?, ?> attachment);
+    void updateMailAttachment(@NotNull Mail mail, @NotNull IAttachment<?, ?> attachment);
 
-    @NotNull List<@NotNull Attachment<?, ?>> getMailAttachments(@NotNull Mail mail);
+    @NotNull List<@NotNull IAttachment<?, ?>> getMailAttachments(@NotNull Mail mail);
 
-    @NotNull Optional<@NotNull Attachment<?, ?>> getMailAttachment(@NotNull UUID id);
+    @NotNull Optional<@NotNull IAttachment<?, ?>> getMailAttachment(@NotNull UUID id);
 
-    void createTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
+    void createTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment);
 
-    void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
+    void deleteTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment);
 
     void deleteAllTemplateAttachments(@NotNull MailTemplate template);
 
-    void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull Attachment<?, ?> attachment);
+    void updateTemplateAttachment(@NotNull MailTemplate template, @NotNull IAttachment<?, ?> attachment);
 
-    @NotNull List<@NotNull Attachment<?, ?>> getTemplateAttachments(@NotNull MailTemplate template);
+    @NotNull List<@NotNull IAttachment<?, ?>> getTemplateAttachments(@NotNull MailTemplate template);
 
-    @NotNull Optional<@NotNull Attachment<?, ?>> getTemplateAttachment(@NotNull UUID id);
+    @NotNull Optional<@NotNull IAttachment<?, ?>> getTemplateAttachment(@NotNull UUID id);
 
     void createUserTemplate(@NotNull User user, @NotNull MailTemplate template, int interval);
 
