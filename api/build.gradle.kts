@@ -1,7 +1,9 @@
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     java
+    id("maven-publish")
 }
 
 repositories {
@@ -30,5 +32,30 @@ tasks.withType<JavaCompile>().configureEach {
 
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         options.release.set(targetJavaVersion)
+    }
+}
+
+val githubRepository = providers.environmentVariable("GITHUB_REPOSITORY").orElse("ikafly144/MailBox")
+
+publishing {
+    publications {
+        create<MavenPublication>("githubPackages") {
+            from(components["java"])
+            artifactId = "mailbox-api"
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${githubRepository.get()}")
+            credentials {
+                username = providers.environmentVariable("GITHUB_ACTOR")
+                    .orElse(providers.gradleProperty("gpr.user"))
+                    .orNull
+                password = providers.environmentVariable("GITHUB_TOKEN")
+                    .orElse(providers.gradleProperty("gpr.key"))
+                    .orNull
+            }
+        }
     }
 }
