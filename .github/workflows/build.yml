@@ -50,7 +50,7 @@ jobs:
           -PpluginVersion=${{ steps.build-config.outputs.plugin_version }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mailbox-paper-${{ steps.build-config.outputs.plugin_version }}
           path: |
