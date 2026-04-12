@@ -1,8 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.minecrell.pluginyml.GeneratePluginDescription
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
+import net.minecrell.pluginyml.paper.PaperPluginDescription
 import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
     java
+    id("de.eldoria.plugin-yml.paper") version "0.9.0"
     id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
     id("com.gradleup.shadow") version "9.4.1"
@@ -49,8 +53,8 @@ repositories {
 
 dependencies {
     implementation(project(":mailbox-api"))
-    compileOnly("com.h2database:h2:2.4.240")
-    compileOnly("com.mysql:mysql-connector-j:9.6.0")
+    paperLibrary("com.h2database:h2:2.4.240")
+    paperLibrary("com.mysql:mysql-connector-j:9.6.0")
     compileOnly("org.spongepowered:configurate-yaml:4.3.0-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         isTransitive = false
@@ -67,6 +71,58 @@ dependencies {
     paperweight.paperDevBundle(property("paperVersion") as String)
 }
 
+paper {
+    name = pluginArtifactName
+    main = "net.sabafly.mailBox.MailBox"
+    apiVersion = "1.21.6"
+    authors = listOf("ikafly144")
+    website = "https://github.com/ikafly144/MailBox"
+    bootstrapper = "net.sabafly.mailBox.Bootstrapper"
+    loader = "net.sabafly.mailBox.Loader"
+    generateLibrariesJson = true
+
+    serverDependencies {
+        register("Vault") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("PlaceholderAPI") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+    }
+
+    permissions {
+        register("mailBox.admin") {
+            description = "Allows the user to use all MailBox commands"
+            default = BukkitPluginDescription.Permission.Default.OP
+            childrenMap = mapOf(
+                "mailbox.template" to true,
+                "mailbox.template.send" to true,
+                "mailbox.attachment.command" to true,
+                "mailbox.attachment.message" to true,
+                "mailbox.inbox.other" to true
+            )
+        }
+        register("mailBox.default") {
+            description = "Allows the user to use MailBox"
+            default = BukkitPluginDescription.Permission.Default.TRUE
+            childrenMap = mapOf(
+                "mailbox.inbox" to true,
+                "mailbox.send" to true,
+                "mailbox.attachment.item" to true,
+                "mailbox.attachment.vault" to true
+            )
+        }
+    }
+}
+
+tasks.named<GeneratePluginDescription>("generatePaperPluginDescription") {
+    useDefaultCentralProxy()
+}
+
 java {
     val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
@@ -81,15 +137,6 @@ tasks.withType<JavaCompile>().configureEach {
 
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         options.release.set(targetJavaVersion)
-    }
-}
-
-tasks.processResources {
-    val props = mapOf("version" to version)
-    inputs.properties(props)
-    filteringCharset = "UTF-8"
-    filesMatching("paper-plugin.yml") {
-        expand(props)
     }
 }
 
