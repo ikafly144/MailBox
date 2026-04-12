@@ -44,6 +44,9 @@ jobs:
       plugin_version: ${{ steps.config.outputs.plugin_version }}
       modrinth_version_type: ${{ steps.config.outputs.modrinth_version_type }}
       hangar_channel: ${{ steps.config.outputs.hangar_channel }}
+      channel_key: ${{ steps.config.outputs.channel_key }}
+      modrinth_project_id: ${{ steps.gradle-props.outputs.modrinth_project_id }}
+      hangar_project_id: ${{ steps.gradle-props.outputs.hangar_project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -55,6 +58,8 @@ jobs:
         run: |
           echo "java_version=$(grep '^javaVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
           echo "base_plugin_version=$(grep '^pluginVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+          echo "modrinth_project_id=$(grep '^modrinthProjectId=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+          echo "hangar_project_id=$(grep '^hangarProjectId=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
 
       - name: Resolve build and release settings
         id: config
@@ -84,11 +89,16 @@ jobs:
 
           modrinth_version_type="${INPUT_MODRINTH_VERSION_TYPE:-$default_modrinth_version_type}"
           hangar_channel="${INPUT_HANGAR_CHANNEL:-$default_hangar_channel}"
+          channel_key="$(echo "$hangar_channel" | tr '[:lower:]' '[:upper:]' | sed -E 's/[^A-Z0-9]+/_/g' | sed -E 's/^_+|_+$//g')"
+          if [ -z "$channel_key" ]; then
+            channel_key="DEFAULT"
+          fi
 
           echo "build_mode=$build_mode" >> "$GITHUB_OUTPUT"
           echo "plugin_version=$plugin_version" >> "$GITHUB_OUTPUT"
           echo "modrinth_version_type=$modrinth_version_type" >> "$GITHUB_OUTPUT"
           echo "hangar_channel=$hangar_channel" >> "$GITHUB_OUTPUT"
+          echo "channel_key=$channel_key" >> "$GITHUB_OUTPUT"
 
   build:
     needs: resolve-config
@@ -190,3 +200,55 @@ jobs:
         run: >
           ./gradlew :mailbox-api:publish --stacktrace
           -PpluginVersion=${{ needs.resolve-config.outputs.plugin_version }}
+
+  notify-discord:
+    needs:
+      - resolve-config
+      - publish
+      - publish-api
+    if: (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') && needs.publish.result == 'success' && needs.publish-api.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send changelog to Discord
+        env:
+          CHANNEL_KEY: ${{ needs.resolve-config.outputs.channel_key }}
+          RELEASE_CHANNEL: ${{ needs.resolve-config.outputs.hangar_channel }}
+          RELEASE_VERSION: ${{ needs.resolve-config.outputs.plugin_version }}
+          MODRINTH_PROJECT_ID: ${{ needs.resolve-config.outputs.modrinth_project_id }}
+          HANGAR_PROJECT_ID: ${{ needs.resolve-config.outputs.hangar_project_id }}
+          CHANGELOG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_changelog) || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
+          WEBHOOK_URL_SECRET: ${{ secrets[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
+          WEBHOOK_URL_VAR: ${{ vars[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
+          ROLE_MENTION_SECRET: ${{ secrets[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
+          ROLE_MENTION_VAR: ${{ vars[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
+        run: |
+          webhook_url="${WEBHOOK_URL_SECRET:-$WEBHOOK_URL_VAR}"
+          role_mention="${ROLE_MENTION_VAR:-$ROLE_MENTION_SECRET}"
+
+          if [ -z "$webhook_url" ]; then
+            echo "No Discord webhook configured for channel key '$CHANNEL_KEY'. Skipping notification."
+            exit 0
+          fi
+
+          if [ -n "$role_mention" ]; then
+            header="$role_mention "
+          else
+            header=""
+          fi
+
+          modrinth_version_id=$(curl --silent --show-error --fail "https://api.modrinth.com/v2/project/${MODRINTH_PROJECT_ID}/version" \
+            | jq -r --arg version "$RELEASE_VERSION" '.[] | select(.version_number == $version) | .id' \
+            | head -n 1)
+          if [ -n "$modrinth_version_id" ]; then
+            modrinth_release_url="https://modrinth.com/plugin/${MODRINTH_PROJECT_ID}/version/${modrinth_version_id}"
+          else
+            modrinth_release_url="https://modrinth.com/plugin/${MODRINTH_PROJECT_ID}/versions"
+          fi
+
+          hangar_release_url="https://hangar.papermc.io/${GITHUB_REPOSITORY_OWNER}/${HANGAR_PROJECT_ID}/versions/${RELEASE_VERSION}"
+
+          message=$(printf "%s**MailBox %s** (%s)\n%s\nModrinth: %s\nHangar: %s" \
+            "$header" "$RELEASE_VERSION" "$RELEASE_CHANNEL" "$CHANGELOG" "$modrinth_release_url" "$hangar_release_url")
+
+          payload=$(jq -n --arg content "$message" '{content:$content}')
+          curl --fail-with-body -X POST -H "Content-Type: application/json" -d "$payload" "$webhook_url"
