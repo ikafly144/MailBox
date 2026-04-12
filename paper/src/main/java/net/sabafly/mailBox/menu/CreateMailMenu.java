@@ -105,10 +105,10 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             clickRegistry.setItem(8, createTemplate, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (subject == null || content == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateError))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateError))));
                         return;
                     }
-                    MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
+                    MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> {
                         MailTemplate template = MailTemplate.createNow(MailBox.getInstance().getSystemUser(), subject, content, attachments);
                         database().createMailTemplate(template);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateSuccess));
@@ -151,7 +151,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             clickRegistry.setItem(8, sendItem, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (subject == null || content == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
                     var playerUser = database().getUser(viewer.getUniqueId());
@@ -159,7 +159,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         throw new IllegalStateException("Player user not found");
                     }
                     if (database().countMails(target, TriState.NOT_SET) >= config().mail.maxMailCount) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
                         return;
                     }
                     if (!attachments.stream().allMatch(a -> a.checkRequirement(viewer))) {
@@ -188,7 +188,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                             return;
                         }
                     }
-                    MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
+                    MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> {
                         Mail mail = Mail.createFromUserNow(playerUser, target, subject, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));

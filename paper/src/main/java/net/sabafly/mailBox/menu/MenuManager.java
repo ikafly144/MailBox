@@ -71,7 +71,7 @@ public class MenuManager implements Listener {
                 return;
             }
             CompletableFuture<Void> future = new CompletableFuture<>();
-            MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(() -> {
+            MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(player, () -> {
                 try {
                     holder.menu().callClose(player, event.getView());
                 } catch (Exception e) {
@@ -82,7 +82,7 @@ public class MenuManager implements Listener {
                 future.complete(null);
             }));
             future.thenRun(holder.menu()::onCloseComplete);
-            Bukkit.getAsyncScheduler().runNow(plugin, t -> future.join());
+            Bukkit.getAsyncScheduler().runNow(plugin, _ -> future.join());
         }
     }
 

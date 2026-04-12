@@ -18,6 +18,7 @@ import net.sabafly.mailBox.mail.PluginMailUser;
 import net.sabafly.mailBox.menu.MenuManager;
 import net.sabafly.mailBox.schedule.ScheduleManager;
 import net.sabafly.mailBox.utils.EconomyUtils;
+import net.sabafly.mailBox.utils.ThreadUtils;
 import net.sabafly.mailbox.api.IMailBox;
 import net.sabafly.mailbox.api.exception.MailException;
 import net.sabafly.mailbox.api.mail.PluginUser;
@@ -38,6 +39,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public final class MailBox extends JavaPlugin implements Listener, IMailBox {
@@ -90,9 +92,9 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
             logger().warn("===============================");
         }
 
-        Bukkit.getScheduler().runTask(this, this::loadVault);
-        Bukkit.getScheduler().runTask(this, this::loadPlaceholderAPI);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, _ -> updateCheck(), 1, 6 * 60 * 60 * 20);
+        ThreadUtils.runSync(this::loadVault);
+        ThreadUtils.runSync(this::loadPlaceholderAPI);
+        Bukkit.getAsyncScheduler().runAtFixedRate(this, _ -> updateCheck(), 1, 6L * 60 * 60, TimeUnit.SECONDS);
     }
 
     @Override

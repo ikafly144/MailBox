@@ -80,6 +80,7 @@ paper {
     bootstrapper = "net.sabafly.mailBox.Bootstrapper"
     loader = "net.sabafly.mailBox.Loader"
     generateLibrariesJson = true
+    foliaSupported = true
 
     serverDependencies {
         register("Vault") {

@@ -4,6 +4,31 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: Build mode
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - development
+      modrinth_version_type:
+        description: Override Modrinth version type (release/beta/alpha)
+        required: false
+        default: ""
+        type: string
+      hangar_channel:
+        description: Override Hangar channel
+        required: false
+        default: ""
+        type: string
+      release_changelog:
+        description: Override changelog
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -21,6 +46,32 @@ jobs:
         id: gradle-props
         run: |
           echo "java_version=$(grep '^javaVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+          echo "base_plugin_version=$(grep '^pluginVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve release settings
+        id: release-config
+        env:
+          BUILD_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_mode || 'release' }}
+          INPUT_MODRINTH_VERSION_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.modrinth_version_type || '' }}
+          INPUT_HANGAR_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.hangar_channel || '' }}
+          BASE_PLUGIN_VERSION: ${{ steps.gradle-props.outputs.base_plugin_version }}
+        run: |
+          if [ "$BUILD_MODE" = "development" ]; then
+            plugin_version="${BASE_PLUGIN_VERSION}-build.${GITHUB_RUN_NUMBER}"
+            default_modrinth_version_type="alpha"
+            default_hangar_channel="Alpha"
+          else
+            plugin_version="${BASE_PLUGIN_VERSION}"
+            default_modrinth_version_type="release"
+            default_hangar_channel="Release"
+          fi
+
+          modrinth_version_type="${INPUT_MODRINTH_VERSION_TYPE:-$default_modrinth_version_type}"
+          hangar_channel="${INPUT_HANGAR_CHANNEL:-$default_hangar_channel}"
+
+          echo "plugin_version=$plugin_version" >> "$GITHUB_OUTPUT"
+          echo "modrinth_version_type=$modrinth_version_type" >> "$GITHUB_OUTPUT"
+          echo "hangar_channel=$hangar_channel" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -38,5 +89,9 @@ jobs:
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
-          RELEASE_CHANGELOG: ${{ github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
-        run: ./gradlew publishPluginRelease --stacktrace
+          RELEASE_CHANGELOG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_changelog) || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
+        run: >
+          ./gradlew publishPluginRelease --stacktrace
+          -PpluginVersion=${{ steps.release-config.outputs.plugin_version }}
+          -PmodrinthVersionType=${{ steps.release-config.outputs.modrinth_version_type }}
+          -PhangarChannel=${{ steps.release-config.outputs.hangar_channel }}

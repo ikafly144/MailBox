@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    tags-ignore:
+      - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Read Gradle properties
+        id: gradle-props
+        run: |
+          echo "java_version=$(grep '^javaVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+          echo "base_plugin_version=$(grep '^pluginVersion=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve build version
+        id: build-config
+        env:
+          BASE_PLUGIN_VERSION: ${{ steps.gradle-props.outputs.base_plugin_version }}
+        run: |
+          echo "plugin_version=${BASE_PLUGIN_VERSION}-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ steps.gradle-props.outputs.java_version }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x ./gradlew
+
+      - name: Build plugin
+        run: >
+          ./gradlew :mailbox-paper:build --stacktrace
+          -PpluginVersion=${{ steps.build-config.outputs.plugin_version }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mailbox-paper-${{ steps.build-config.outputs.plugin_version }}
+          path: |
+            paper/build/libs/*.jar
+          if-no-files-found: error

@@ -75,7 +75,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
     }
 
     public void open() {
-        ThreadUtils.runSync(() -> {
+        ThreadUtils.runSync(viewer, () -> {
             refresh();
             viewer.openInventory(inventory);
         });
@@ -151,7 +151,7 @@ public abstract class InventoryMenu<T extends InventoryMenu<T>> extends SimpleMe
 
     public final void onClick(@NotNull InventoryClickEvent event) {
         event.setCancelled(!moveable || clickRegistry.exist(event.getSlot()));
-        Bukkit.getScheduler().runTask(MailBox.getInstance(), () -> clickRegistry.call((Player) event.getWhoClicked(), switch (event.getClick()) {
+        ThreadUtils.runSync((Player) event.getWhoClicked(), () -> clickRegistry.call((Player) event.getWhoClicked(), switch (event.getClick()) {
             case LEFT -> ClickType.LEFT;
             case RIGHT -> ClickType.RIGHT;
             case SHIFT_LEFT -> ClickType.SHIFT_LEFT;
