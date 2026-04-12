@@ -73,7 +73,7 @@ jobs:
           fi
 
           if [ "$build_mode" = "development" ]; then
-            plugin_version="${BASE_PLUGIN_VERSION}-build.${GITHUB_RUN_NUMBER}"
+            plugin_version="${BASE_PLUGIN_VERSION}+build.${GITHUB_RUN_NUMBER}"
             default_modrinth_version_type="alpha"
             default_hangar_channel="Alpha"
           else
