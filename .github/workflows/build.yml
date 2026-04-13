@@ -128,7 +128,7 @@ jobs:
           -PpluginVersion=${{ needs.resolve-config.outputs.plugin_version }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mailbox-paper-${{ needs.resolve-config.outputs.plugin_version }}
           path: |
