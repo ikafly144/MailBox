@@ -5,7 +5,9 @@ import net.kyori.adventure.key.Key;
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,6 +39,11 @@ public record PlayerMailUser(@NotNull OfflinePlayer player, @NotNull Key key) im
     @Override
     public @NotNull String name() {
         return Objects.requireNonNullElse(player.getName(), player.getUniqueId().toString());
+    }
+
+    @Override
+    public @Nullable URL skinUrl() {
+        return player.getPlayerProfile().getTextures().getSkin();
     }
 
     @NotNull

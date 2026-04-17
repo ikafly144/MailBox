@@ -121,7 +121,7 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
     @Override
     public @NotNull PluginUser registerPluginUser(@NotNull Plugin plugin, @NotNull String name) throws MailException {
-        var pluginUser = PluginMailUser.createPlugin(name, plugin);
+        var pluginUser = PluginMailUser.createPlugin(name, plugin, null);
         if (!database().createUser(pluginUser)) throw MailException.ALREADY_EXIST_USER;
         return pluginUser;
     }

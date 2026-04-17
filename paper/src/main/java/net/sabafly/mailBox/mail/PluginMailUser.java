@@ -11,6 +11,7 @@ import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,19 +24,25 @@ public final class PluginMailUser extends DummyMailUser implements PluginUser {
 
     @SuppressWarnings("PatternValidation")
     @ApiStatus.Internal
-    public static @NotNull PluginMailUser createPlugin(@NotNull UUID uuid, @NotNull String name, @NotNull Plugin plugin) {
-        return new PluginMailUser(uuid, name, plugin, User.sanitizeName(name));
+    public static @NotNull PluginMailUser createPlugin(@NotNull UUID uuid, @NotNull String name, @NotNull Plugin plugin, @Nullable String skinId) {
+        return new PluginMailUser(uuid, name, plugin, User.sanitizeName(name), skinId);
     }
 
     @SuppressWarnings("PatternValidation")
-    public static @NotNull PluginMailUser createPlugin(@NotNull String name, @NotNull Plugin plugin) {
-        return new PluginMailUser(UUID.randomUUID(), name, plugin, User.sanitizeName(name));
+    public static @NotNull PluginMailUser createPlugin(@NotNull String name, @NotNull Plugin plugin, @Nullable String skinId) {
+        return new PluginMailUser(UUID.randomUUID(), name, plugin, User.sanitizeName(name), skinId);
     }
 
     private final Plugin plugin;
 
-    private PluginMailUser(@NotNull UUID uuid, @NotNull String name, @NotNull Plugin plugin, @NotNull @KeyPattern.Value String keyValue) {
-        super(uuid, name, Key.key(plugin, keyValue));
+    private PluginMailUser(
+            @NotNull UUID uuid,
+            @NotNull String name,
+            @NotNull Plugin plugin,
+            @NotNull @KeyPattern.Value String keyValue,
+            @Nullable String skinId
+    ) {
+        super(uuid, name, Key.key(plugin, keyValue), skinId);
         this.plugin = plugin;
     }
 
@@ -81,10 +88,10 @@ public final class PluginMailUser extends DummyMailUser implements PluginUser {
         return database().getMails(this, TriState.NOT_SET, page).stream().collect(Collectors.toUnmodifiableList());
     }
 
+    @SuppressWarnings("PatternValidation")
     @KeyPattern.Namespace
     @Override
     public @NotNull String namespace() {
-        //noinspection PatternValidation
         return plugin.namespace();
     }
 }

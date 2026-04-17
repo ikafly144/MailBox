@@ -36,8 +36,8 @@ public class UserConverter {
     public static byte @NotNull [] toJson(@NotNull User user) {
         BaseUser<?> baseUser = switch (user) {
             case PlayerMailUser playerMailUser -> new PlayerUser(playerMailUser.player());
-            case PluginMailUser pluginMailUser -> new PluginUser(pluginMailUser.namespace(), pluginMailUser.name());
-            case DummyMailUser dummyMailUser -> new DummyUser(dummyMailUser.name());
+            case PluginMailUser pluginMailUser -> new PluginUser(pluginMailUser.namespace(), pluginMailUser.name(), pluginMailUser.skinId());
+            case DummyMailUser dummyMailUser -> new DummyUser(dummyMailUser.name(), dummyMailUser.skinId());
             default -> throw new IllegalArgumentException("Unknown user type: " + user.getClass().getSimpleName());
         };
         String json = new GsonBuilder()
@@ -152,10 +152,12 @@ public class UserConverter {
 
     static class DummyUser extends BaseUser<DummyMailUser> {
         public final @NotNull String name;
+        public final @Nullable String skinId;
 
-        DummyUser(@NotNull String name) {
+        DummyUser(@NotNull String name, @Nullable String skinId) {
             Preconditions.checkArgument(!name.isBlank(), "Name cannot be blank");
             this.name = name;
+            this.skinId = skinId;
         }
 
         @Override
@@ -167,7 +169,7 @@ public class UserConverter {
         @Override
         public DummyMailUser toUser(@NotNull UUID uuid, @Nullable Key key) {
             var defaultKey = defaultKey();
-            return DummyMailUser.createUser(uuid, this.name, defaultKey.value());
+            return DummyMailUser.createUser(uuid, this.name, defaultKey.value(), this.skinId);
         }
 
         @Override
@@ -182,7 +184,8 @@ public class UserConverter {
                 if (jsonObj == null) throw new JsonParseException("Expected JsonObject");
                 var name = jsonObj.get("name").getAsString();
                 if (name == null) throw new JsonParseException("Name cannot be null for dummy user");
-                return new DummyUser(name);
+                var skinId = jsonObj.get("skin_id").getAsString();
+                return new DummyUser(name, skinId);
             }
         }
 
@@ -191,12 +194,14 @@ public class UserConverter {
     static class PluginUser extends BaseUser<PluginMailUser> {
         public final @NotNull String namespace;
         public final @NotNull String name;
+        public final @Nullable String skinId;
 
-        PluginUser(@NotNull String namespace, @NotNull String name) {
+        PluginUser(@NotNull String namespace, @NotNull String name, @Nullable String skinId) {
             Preconditions.checkArgument(!namespace.isBlank(), "Namespace cannot be blank");
             Preconditions.checkArgument(!name.isBlank(), "Name cannot be blank");
             this.namespace = namespace;
             this.name = name;
+            this.skinId = skinId;
         }
 
         @Override
@@ -211,7 +216,7 @@ public class UserConverter {
                 throw new IllegalStateException("Key namespace does not match plugin user namespace");
             var plugin = Bukkit.getPluginManager().getPlugin(namespace);
             if (plugin == null) throw new IllegalStateException("Plugin not found for namespace: " + namespace);
-            return PluginMailUser.createPlugin(uuid, name, plugin);
+            return PluginMailUser.createPlugin(uuid, name, plugin, skinId);
         }
 
         @Override
@@ -228,7 +233,8 @@ public class UserConverter {
                 if (namespace == null) throw new JsonParseException("Namespace cannot be null for plugin user");
                 var name = jsonObj.get("name").getAsString();
                 if (name == null) throw new JsonParseException("Name cannot be null for plugin user");
-                return new PluginUser(namespace, name);
+                var skinId = jsonObj.get("skin_id").getAsString();
+                return new PluginUser(namespace, name, skinId);
             }
         }
 

@@ -5,8 +5,8 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
-import net.sabafly.mailBox.mail.PlayerMailUser;
 import net.sabafly.mailbox.api.mail.User;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
@@ -72,7 +72,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         final ItemStack senderItem = getSenderItem(replyEnabled);
 
         clickRegistry.setItem(0, senderItem, (p, clickType) -> {
-            if (replyEnabled && clickType.isLeftClick() ) {
+            if (replyEnabled && clickType.isLeftClick()) {
                 openMenu(new CreateMailMenu(p, mail.sender(), this));
             }
         });
@@ -130,18 +130,19 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     private @NotNull ItemStack getSenderItem(boolean replyEnabled) {
         ItemStack senderItem = new ItemStack(Material.PLAYER_HEAD);
-        if (mail.getSender() instanceof PlayerMailUser(
-                org.bukkit.OfflinePlayer offlinePlayer, _
-        )) {
-            senderItem.editMeta(meta -> {
-                if (meta instanceof SkullMeta skullMeta) {
-                    try {
-                        skullMeta.setPlayerProfile(offlinePlayer.getPlayerProfile());
-                    } catch (IllegalArgumentException ignored) {
-                    }
+
+        senderItem.editMeta(meta -> {
+            if (meta instanceof SkullMeta skullMeta) {
+                try {
+                    var profile = Bukkit.createProfile(mail.getSender().id(), mail.getSender().name());
+                    var texture = profile.getTextures();
+                    texture.setSkin(mail.getSender().skinUrl());
+                    profile.setTextures(texture);
+                    skullMeta.setPlayerProfile(profile);
+                } catch (IllegalArgumentException ignored) {
                 }
-            });
-        }
+            }
+        });
         senderItem.editMeta(meta ->
                 {
                     meta.customName(miniMessage().deserialize(
