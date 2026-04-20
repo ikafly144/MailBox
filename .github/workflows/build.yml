@@ -142,8 +142,6 @@ jobs:
           HANGAR_PROJECT_ID: ${{ needs.resolve-config.outputs.hangar_project_id }}
           CHANGELOG: ${{ needs.resolve-config.outputs.changelog || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
           WEBHOOK_URL_SECRET: ${{ secrets[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
-          WEBHOOK_URL_VAR: ${{ vars[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
-          ROLE_MENTION_SECRET: ${{ secrets[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
           ROLE_MENTION_VAR: ${{ vars[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
         run: |
           webhook_url="${WEBHOOK_URL_SECRET:-$WEBHOOK_URL_VAR}"
