@@ -102,6 +102,9 @@ paper {
             childrenMap = mapOf(
                 "mailbox.template" to true,
                 "mailbox.template.send" to true,
+                "mailbox.template.create" to true,
+                "mailbox.template.delete" to true,
+                "mailbox.template.edit" to true,
                 "mailbox.attachment.command" to true,
                 "mailbox.attachment.message" to true,
                 "mailbox.inbox.other" to true

@@ -74,7 +74,7 @@ jobs:
           fi
 
           if [ "$build_mode" = "development" ]; then
-            plugin_version="${BASE_PLUGIN_VERSION}+build.${GITHUB_RUN_NUMBER}"
+            plugin_version="${BASE_PLUGIN_VERSION}"
             default_modrinth_version_type="alpha"
             default_hangar_channel="Alpha"
           else
@@ -128,14 +128,6 @@ jobs:
         run: >
           ./gradlew :mailbox-paper:build --stacktrace
           -PpluginVersion=${{ needs.resolve-config.outputs.plugin_version }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: mailbox-paper-${{ needs.resolve-config.outputs.plugin_version }}
-          path: |
-            paper/build/libs/*.jar
-          if-no-files-found: error
 
   publish:
     needs: resolve-config

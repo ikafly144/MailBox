@@ -340,6 +340,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
     private static <A extends ArgumentBuilder<CommandSourceStack, A>> A addAttachmentNode(A node) {
         return node.then(Commands.literal("type")
                 .then(Commands.literal("item")
+                        .requires(context -> context.getSender().hasPermission("mailbox.attachment.item"))
                         .then(Commands.argument("item", ArgumentTypes.itemStack())
                                 .then(
                                         attachmentIcon(
@@ -355,6 +356,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                         )
                 )
                 .then(Commands.literal("command")
+                        .requires(context -> context.getSender().hasPermission("mailbox.attachment.command"))
                         .then(
                                 attachmentName(
                                         Commands.argument("command", StringArgumentType.string()),
@@ -366,6 +368,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                         )
                 )
                 .then(Commands.literal("vault_value")
+                        .requires(context -> context.getSender().hasPermission("mailbox.attachment.vault"))
                         .requires(_ -> MailBox.isVaultEnabled())
                         .then(
                                 attachmentIcon(
@@ -377,6 +380,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                         )
                 )
                 .then(Commands.literal("message")
+                        .requires(context -> context.getSender().hasPermission("mailbox.attachment.message"))
                         .then(
                                 attachmentName(
                                         Commands.argument("message", ArgumentTypes.component()),
