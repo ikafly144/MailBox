@@ -2,31 +2,8 @@ name: Build
 
 on:
   push:
-    branches:
-      - master
     tags:
       - "*"
-  workflow_dispatch:
-    inputs:
-      build_mode:
-        description: Build mode
-        required: true
-        default: release
-        type: choice
-        options:
-          - release
-          - development
-      modrinth_version_type:
-        description: Override Modrinth version type (release/beta/alpha)
-        required: false
-        default: ""
-        type: string
-      hangar_channel:
-        description: Override Hangar channel
-        required: false
-        default: ""
-        type: string
-
 permissions:
   contents: read
 
@@ -57,34 +34,48 @@ jobs:
           echo "modrinth_project_id=$(grep '^modrinthProjectId=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
           echo "hangar_project_id=$(grep '^hangarProjectId=' gradle.properties | cut -d'=' -f2)" >> "$GITHUB_OUTPUT"
 
+      - name: Check version format
+        id: version-check
+        env:
+          BASE_PLUGIN_VERSION: ${{ steps.gradle-props.outputs.base_plugin_version }}
+        run: |
+          if [[ ! "$BASE_PLUGIN_VERSION" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo "Error: pluginVersion '$BASE_PLUGIN_VERSION' does not match required format 'X.Y.Z' or 'X.Y.Z-qualifier'."
+            exit 1
+          fi
+          # base version and tag version must exactly match
+          tag_version="${GITHUB_REF#refs/tags/}"
+          if [ "$BASE_PLUGIN_VERSION" != "$tag_version" ]; then
+            echo "Error: pluginVersion '$BASE_PLUGIN_VERSION' does not match tag version '$tag_version'."
+            exit 1
+          fi
+
       - name: Resolve build and release settings
         id: config
         env:
           BASE_PLUGIN_VERSION: ${{ steps.gradle-props.outputs.base_plugin_version }}
-          INPUT_BUILD_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_mode || '' }}
-          INPUT_MODRINTH_VERSION_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.modrinth_version_type || '' }}
-          INPUT_HANGAR_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.hangar_channel || '' }}
         run: |
-          if [ -n "$INPUT_BUILD_MODE" ]; then
-            build_mode="$INPUT_BUILD_MODE"
-          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          if [[ "$BASE_PLUGIN_VERSION" =~ -[A-Za-z0-9.-]+ ]]; then
+            if [[ "$BASE_PLUGIN_VERSION" =~ -[Bb][Ee][Tt][Aa] ]]; then
+              build_mode="beta"
+              plugin_version="${BASE_PLUGIN_VERSION}"
+              default_modrinth_version_type="beta"
+              default_hangar_channel="Beta"
+            else
+              build_mode="alpha"
+              plugin_version="${BASE_PLUGIN_VERSION}"
+              default_modrinth_version_type="alpha"
+              default_hangar_channel="Alpha"
+            fi
+          else
             build_mode="release"
-          else
-            build_mode="development"
-          fi
-
-          if [ "$build_mode" = "development" ]; then
-            plugin_version="${BASE_PLUGIN_VERSION}"
-            default_modrinth_version_type="alpha"
-            default_hangar_channel="Alpha"
-          else
             plugin_version="${BASE_PLUGIN_VERSION}"
             default_modrinth_version_type="release"
             default_hangar_channel="Release"
           fi
 
-          modrinth_version_type="${INPUT_MODRINTH_VERSION_TYPE:-$default_modrinth_version_type}"
-          hangar_channel="${INPUT_HANGAR_CHANNEL:-$default_hangar_channel}"
+          modrinth_version_type="${default_modrinth_version_type}"
+          hangar_channel="${default_hangar_channel}"
           channel_key="$(echo "$hangar_channel" | tr '[:lower:]' '[:upper:]' | sed -E 's/[^A-Z0-9]+/_/g' | sed -E 's/^_+|_+$//g')"
           if [ -z "$channel_key" ]; then
             channel_key="DEFAULT"
@@ -98,40 +89,13 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: janheinrichmerker/action-github-changelog-generator@v2.4
+        uses: mikepenz/release-changelog-builder-action@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
-    needs: resolve-config
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: ${{ needs.resolve-config.outputs.java_version }}
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Ensure Gradle wrapper is executable
-        run: chmod +x ./gradlew
-
-      - name: Build plugin
-        run: >
-          ./gradlew :mailbox-paper:build --stacktrace
-          -PpluginVersion=${{ needs.resolve-config.outputs.plugin_version }}
-
   publish:
     needs: resolve-config
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -166,7 +130,7 @@ jobs:
     needs:
       - resolve-config
       - publish
-    if: (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') && needs.publish.result == 'success' && needs.publish-api.result == 'success'
+    if: startsWith(github.ref, 'refs/tags/') && needs.publish.result == 'success' && needs.publish-api.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Send changelog to Discord
