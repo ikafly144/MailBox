@@ -1,5 +1,9 @@
 # MailBox
 
+[![Release](https://github.com/ikafly144/MailBox/actions/workflows/build.yml/badge.svg)](https://github.com/ikafly144/MailBox/actions/workflows/build.yml)
+[![Build Status](https://ci.codemc.io/job/ikafly144/job/MailBox/badge/icon?subject=dev+build)](https://ci.codemc.io/job/ikafly144/job/MailBox/)
+[![GitHub License](https://img.shields.io/github/license/ikafly144/MailBox)](https://github.com/ikafly144/MailBox/blob/master/COPYING.LESSER)
+
 A powerful mail system plugin for Minecraft PaperMC servers that enables players to send and receive messages and items
 through an intuitive GUI interface with economy integration.
 
@@ -22,14 +26,14 @@ through an intuitive GUI interface with economy integration.
 
 - **Intuitive GUI**: User-friendly interface for managing mail and items.
 - **Economy Integration**: Seamless integration with popular economy plugins for item transactions.
-- **Customizable Settings**: Flexible configuration options to tailor the plugin to your server's needs
+- **Customisable Settings**: Flexible configuration options to tailor the plugin to your server's needs
 
 ## Installation
 
 1. Download the latest version of MailBox from the [Releases](https://modrinth.com/plugin/mailbox) page.
 2. Place the downloaded JAR file into your server's `plugins` directory.
 3. Restart your server to generate the configuration files.
-4. Customize the settings in the generated `config.yml` file as needed.
+4. Customise the settings in the generated `config.yml` file as needed.
 5. Use the `/mail` command to access the plugin's features and manage your mail.
 
 ## Quick Action
