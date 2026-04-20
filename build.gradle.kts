@@ -11,7 +11,7 @@ val releaseVersion =
 
 subprojects {
     group = projectGroup
-    version = pluginVersion
+    version = releaseVersion
 }
 
 val publishPluginRelease by tasks.registering {
