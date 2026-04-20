@@ -4,6 +4,10 @@ plugins {
 
 val projectGroup: String by project
 val pluginVersion: String by project
+val buildNumber: String? = System.getenv("BUILD_NUMBER")
+
+val releaseVersion =
+    pluginVersion + (if (buildNumber != null && pluginVersion.contains('-')) "+build.$buildNumber" else "")
 
 subprojects {
     group = projectGroup
