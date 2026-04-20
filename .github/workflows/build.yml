@@ -98,9 +98,9 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: metcalfc/changelog-generator@v4
+        uses: janheinrichmerker/action-github-changelog-generator@v2.4
         with:
-          mytoken: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     needs: resolve-config
