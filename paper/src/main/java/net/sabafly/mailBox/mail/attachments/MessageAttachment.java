@@ -1,7 +1,6 @@
 package net.sabafly.mailBox.mail.attachments;
 
 import net.kyori.adventure.text.Component;
-import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.menu.ContentMenu;
 import net.sabafly.mailBox.utils.ThreadUtils;
 import net.sabafly.mailbox.api.mail.attachments.MessageContent;
@@ -41,9 +40,7 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
 
     @Override
     public void apply(@NotNull Player player) {
-        ThreadUtils.runSync(() -> {
-            ContentMenu.contentMenu(player, message.value(), message.value(), null).open();
-        });
+        ThreadUtils.runSync(() -> ContentMenu.contentMenu(player, message.value(), message.value(), null).open());
     }
 
     @Override
