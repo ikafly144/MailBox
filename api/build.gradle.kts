@@ -35,10 +35,11 @@ tasks.withType<JavaCompile>().configureEach {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"])
             groupId = project.group as String
             artifactId = "mailbox-api"
             version = project.version as String
+
+            from(components["java"])
         }
     }
     repositories {
