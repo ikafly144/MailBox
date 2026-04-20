@@ -39,8 +39,8 @@ jobs:
         env:
           BASE_PLUGIN_VERSION: ${{ steps.gradle-props.outputs.base_plugin_version }}
         run: |
-          if [[ ! "$BASE_PLUGIN_VERSION" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
-            echo "Error: pluginVersion '$BASE_PLUGIN_VERSION' does not match required format 'X.Y.Z' or 'X.Y.Z-qualifier'."
+          if [[ ! "$BASE_PLUGIN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo "Error: pluginVersion '$BASE_PLUGIN_VERSION' does not match required format x.y.z, x.y.z-qualifier.num, or x.y.z-qualifier."
             exit 1
           fi
           # base version and tag version must exactly match
