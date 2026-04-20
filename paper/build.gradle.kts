@@ -141,6 +141,10 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
+tasks.named<Jar>("jar") {
+    enabled = false
+}
+
 val shadowJarTask = tasks.named<ShadowJar>("shadowJar") {
     archiveBaseName.set(pluginArtifactName)
     archiveClassifier.set("")

@@ -32,6 +32,10 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
+tasks.named<Jar>("jar") {
+    enabled = false
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
