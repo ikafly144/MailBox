@@ -131,7 +131,7 @@ jobs:
     needs:
       - resolve-config
       - publish
-    if: startsWith(github.ref, 'refs/tags/') && needs.publish.result == 'success' && needs.publish-api.result == 'success'
+    if: startsWith(github.ref, 'refs/tags/') && needs.publish.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Send changelog to Discord
