@@ -184,7 +184,11 @@ public class UserConverter {
                 if (jsonObj == null) throw new JsonParseException("Expected JsonObject");
                 var name = jsonObj.get("name").getAsString();
                 if (name == null) throw new JsonParseException("Name cannot be null for dummy user");
-                var skinId = jsonObj.get("skin_id").getAsString();
+                var skinIdObj = jsonObj.get("skin_id");
+                String skinId = null;
+                if (skinIdObj != null && !skinIdObj.isJsonNull()) {
+                    skinId = skinIdObj.getAsString();
+                }
                 return new DummyUser(name, skinId);
             }
         }
@@ -233,7 +237,11 @@ public class UserConverter {
                 if (namespace == null) throw new JsonParseException("Namespace cannot be null for plugin user");
                 var name = jsonObj.get("name").getAsString();
                 if (name == null) throw new JsonParseException("Name cannot be null for plugin user");
-                var skinId = jsonObj.get("skin_id").getAsString();
+                var skinIdObj = jsonObj.get("skin_id");
+                String skinId = null;
+                if (skinIdObj != null && !skinIdObj.isJsonNull()) {
+                    skinId = skinIdObj.getAsString();
+                }
                 return new PluginUser(namespace, name, skinId);
             }
         }

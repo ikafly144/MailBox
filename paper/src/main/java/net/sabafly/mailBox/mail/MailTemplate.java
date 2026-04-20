@@ -156,8 +156,8 @@ public class MailTemplate implements Comparable<MailTemplate>, Template {
     public String toString() {
         return "Template[" +
                "id=" + id + ", " +
-               "setSubject=" + subject + ", " +
-               "setContent=" + content + ", " +
+               "subject=" + subject + ", " +
+               "content=" + content + ", " +
                "attachment=" + attachment + ", " +
                "autoSend=" + autoSend + ", " +
                "sender=" + sender + ", " +

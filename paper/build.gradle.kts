@@ -107,7 +107,8 @@ paper {
                 "mailbox.template.edit" to true,
                 "mailbox.attachment.command" to true,
                 "mailbox.attachment.message" to true,
-                "mailbox.inbox.other" to true
+                "mailbox.inbox.other" to true,
+                "mailbox.mailto.namespace.*" to true
             )
         }
         register("mailBox.default") {
@@ -202,12 +203,22 @@ tasks.named("publishPluginPublicationToHangar") {
     dependsOn(shadowJarTask)
 }
 
+runPaper.folia.registerTask {
+    downloadPlugins {
+        github("SirBlobman", "Vault-Folia", "v1.7.3-folia", "Vault-1.7.3.jar")
+        modrinth("luckperms", "v5.5.17-bukkit")
+        modrinth("placeholderapi", "2.12.2")
+        modrinth("emeraldbank", "1.2.0")
+    }
+    minecraftVersion(minecraftVersion)
+}
+
 tasks.named<RunServer>("runServer") {
     downloadPlugins {
         github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
         modrinth("luckperms", "v5.5.17-bukkit")
         modrinth("placeholderapi", "2.12.2")
-        modrinth("emeraldbank", "1.1.2")
+        modrinth("emeraldbank", "1.2.0")
     }
     minecraftVersion(minecraftVersion)
 }

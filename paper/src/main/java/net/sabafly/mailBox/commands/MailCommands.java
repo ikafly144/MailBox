@@ -7,8 +7,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
-import io.papermc.paper.brigadier.TagParseCommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -16,13 +15,13 @@ import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSele
 import io.papermc.paper.plugin.lifecycle.event.handler.LifecycleEventHandler;
 import io.papermc.paper.plugin.lifecycle.event.registrar.ReloadableRegistrarEvent;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.commands.arguments.DurationArgumentType;
 import net.sabafly.mailBox.commands.arguments.MailTemplateArgumentType;
+import net.sabafly.mailBox.commands.arguments.MailUserArgumentType;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.MailTemplate;
 import net.sabafly.mailBox.mail.PlayerMailUser;
@@ -52,6 +51,9 @@ import static net.sabafly.mailBox.MailBox.database;
 
 public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRegistrarEvent<@NotNull Commands>> {
 
+    private static final SimpleCommandExceptionType ERROR_PLAYER_REQUIRED = new SimpleCommandExceptionType(() -> "Player required");
+    private static final SimpleCommandExceptionType ERROR_CANNOT_SEND_YOURSELF = new SimpleCommandExceptionType(() -> "You can't send mail to yourself");
+
     @NotNull
     private final MailBox plugin;
 
@@ -63,16 +65,6 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
         // Register commands here
         plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, this);
     }
-
-    private static final SuggestionProvider<CommandSourceStack> MAIL_USER_SUGGESTION = (context, builder) -> {
-        if (!(context.getSource().getExecutor() instanceof Player))
-            return builder.buildFuture();
-        database().getAllUsers().stream()
-                .map(User::key)
-                .map(Key::asMinimalString)
-                .forEach(builder::suggest);
-        return builder.buildFuture();
-    };
 
     @Override
     public void run(ReloadableRegistrarEvent<@NotNull Commands> event) {
@@ -90,7 +82,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                 .requires(context -> context.getSender().hasPermission("mailbox.template"))
                                 .executes(context -> {
                                     if (!(context.getSource().getExecutor() instanceof Player player))
-                                        throw new TagParseCommandSyntaxException("Player required");
+                                        throw ERROR_PLAYER_REQUIRED.create();
                                     new MailTemplateMenu(player, 1).open();
                                     return Command.SINGLE_SUCCESS;
                                 })
@@ -199,14 +191,10 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                         )
                                                 )
                                                 .then(Commands.literal("sender")
-                                                        .then(Commands.argument("new_sender", ArgumentTypes.key())
-                                                                .suggests(MAIL_USER_SUGGESTION)
+                                                        .then(Commands.argument("new_sender", new MailTemplateArgumentType())
                                                                 .executes(context -> {
                                                                     var template = context.getArgument("template", MailTemplate.class);
-                                                                    var newSenderKey = context.getArgument("new_sender", Key.class);
-                                                                    var newSender = database().getUserByAddress(newSenderKey);
-                                                                    if (newSender == null)
-                                                                        throw new TagParseCommandSyntaxException("User not found or has never played before");
+                                                                    var newSender = context.getArgument("new_sender", User.class);
                                                                     template.setSender(newSender);
                                                                     database().updateMailTemplate(template);
                                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
@@ -285,7 +273,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                 .requires(source -> source.getSender().hasPermission("mailbox.inbox"))
                                 .executes(context -> {
                                     if (!(context.getSource().getExecutor() instanceof Player player))
-                                        throw new TagParseCommandSyntaxException("Failed to parse tag");
+                                        throw ERROR_PLAYER_REQUIRED.create();
                                     var user = database().getUser(player.getUniqueId());
                                     if (user == null)
                                         throw new IllegalStateException("User not found");
@@ -294,15 +282,11 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                 })
                                 .then(Commands.literal("of")
                                         .requires(source -> source.getSender().hasPermission("mailbox.inbox.others"))
-                                        .then(Commands.argument("source", ArgumentTypes.key())
-                                                .suggests(MAIL_USER_SUGGESTION)
+                                        .then(Commands.argument("source", new MailUserArgumentType())
                                                 .executes(context -> {
                                                     if (!(context.getSource().getExecutor() instanceof Player player))
-                                                        throw new TagParseCommandSyntaxException("Player required");
-                                                    var source = context.getArgument("source", Key.class);
-                                                    var user = database().getUserByAddress(source);
-                                                    if (user == null)
-                                                        throw new TagParseCommandSyntaxException("User not found or has never played before");
+                                                        throw ERROR_PLAYER_REQUIRED.create();
+                                                    var user = context.getArgument("source", User.class);
                                                     new InboxMenu(player, user).open();
                                                     return Command.SINGLE_SUCCESS;
                                                 })
@@ -315,21 +299,17 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                 .requires(context -> context.getSender().hasPermission("mailbox.send"))
                 .executes(context -> {
                     if (!(context.getSource().getExecutor() instanceof Player player))
-                        throw new TagParseCommandSyntaxException("Player required");
+                        throw ERROR_PLAYER_REQUIRED.create();
                     new SendMailMenu(player).open();
                     return Command.SINGLE_SUCCESS;
                 })
-                .then(Commands.argument("to", ArgumentTypes.key())
-                        .suggests(MAIL_USER_SUGGESTION)
+                .then(Commands.argument("to", new MailUserArgumentType())
                         .executes(context -> {
                             if (!(context.getSource().getExecutor() instanceof Player player))
-                                throw new TagParseCommandSyntaxException("Player required");
-                            var target = context.getArgument("to", Key.class);
-                            var user = database().getUserByAddress(target);
-                            if (user == null)
-                                throw new TagParseCommandSyntaxException("User not found or has never played before");
+                                throw ERROR_PLAYER_REQUIRED.create();
+                            var user = context.getArgument("to", User.class);
                             if (player.getUniqueId().equals(user.id()) && !player.hasPermission("mailbox.admin"))
-                                throw new TagParseCommandSyntaxException("You can't send mail to yourself");
+                                throw ERROR_CANNOT_SEND_YOURSELF.create();
                             new CreateMailMenu(player, user).open();
                             return Command.SINGLE_SUCCESS;
                         })
@@ -455,6 +435,8 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
     ) {
         return node.executes(context -> {
             var template = context.getArgument("template", MailTemplate.class);
+            if (template == null)
+                throw new IllegalStateException("Template argument not found");
             var attachment = attachmentGetter.apply(context).build();
             if (!(attachment instanceof IAttachment<?, ?> iAttachment))
                 throw new IllegalStateException("Built attachment is not an instance of IAttachment");

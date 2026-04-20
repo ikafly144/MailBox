@@ -20,7 +20,7 @@ import static net.sabafly.mailBox.MailBox.database;
 public class MailTemplateArgumentType implements CustomArgumentType<MailTemplate, String> {
 
     private static final DynamicCommandExceptionType NO_SUCH_TEMPLATE_EXCEPTION = new DynamicCommandExceptionType(
-            input -> () -> "No mail template found with id or setSubject: " + input
+            input -> () -> "No mail template found with id or subject: " + input
     );
 
     @Override
