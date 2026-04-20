@@ -49,3 +49,21 @@ Press `G` to open the mail dialogue GUI, allowing you to quickly access your inb
 - `/mail template edit <name> attachment delete <item>` - Remove an item attachment from
 - `/mail template edit <name> attachment list` - List all item attachments in a mail template (admin only).
 - `/mail template send <player> <template>` - Send a mail using a template (admin only).
+
+## APIs
+
+- **MailBox API**: Provides methods for managing mails, templates, and attachments programmatically.
+
+### Gradle
+
+```gradle
+repositories {
+    maven {
+        url 'https://repo.codemc.io/repository/ikafly144/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.github.ikafly144:mailbox-api:{version}'
+}
+```
