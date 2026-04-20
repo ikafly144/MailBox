@@ -2,6 +2,7 @@ package net.sabafly.mailBox.menu;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
@@ -56,7 +57,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         database().updateMail(mail);
         super.open();
         if (!read && isOwnerView())
-            openMenu(new ContentMenu(viewer, mail.getTitle(), mail.getContent(), this));
+            openMenu(new ContentMenu(viewer, miniMessage().deserialize(mail.getTitle()), miniMessage().deserialize(mail.getContent()), this));
     }
 
     @Override
@@ -86,7 +87,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         });
         clickRegistry.setItem(2, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new ContentMenu(p, mail.getTitle(), mail.getContent(), this));
+                openMenu(new ContentMenu(p, miniMessage().deserialize(mail.getTitle()), miniMessage().deserialize(mail.getContent()), this));
             }
         });
         ItemStack glassPane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
@@ -118,11 +119,21 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                 return lore;
             }), (p, clickType) -> {
                 final IAttachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
-                if (clickType.isLeftClick() && attachment.canOpen()) {
-                    attachment.apply(p);
-                    attachment.setOpened(true);
-                    database().updateMailAttachment(mail, attachment);
-                    refresh();
+                if (clickType.isLeftClick()) {
+                    if (attachment.canOpen()) {
+                        attachment.apply(p);
+                        attachment.setOpened(true);
+                        database().updateMailAttachment(mail, attachment);
+                        refresh();
+                    } else {
+                        p.sendMessage(miniMessage().deserialize(
+                                config().messages.attachmentCannotOpen,
+                                Placeholder.component("attachment", attachment.getName()),
+                                Placeholder.parsed("reason", attachment.isExpired() ? config().messages.attachmentExpired :
+                                        attachment.opened() ? config().messages.attachmentAlreadyReceived :
+                                        "unknown")
+                        ));
+                    }
                 }
             });
         }

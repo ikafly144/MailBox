@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.menu;
 
+import net.sabafly.mailBox.MailBox;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

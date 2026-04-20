@@ -31,11 +31,6 @@ public class ConfirmMenu extends DialogMenu implements Menu {
     }
 
     @Override
-    public void callClose(@NotNull Player player) {
-        parent.callClose(player);
-    }
-
-    @Override
     public void open() {
         parent.callClose(viewer);
         this.viewer.showDialog(Dialog.create(builder -> builder.empty()

@@ -2,9 +2,11 @@ package net.sabafly.mailBox.configuration;
 
 import io.papermc.paper.configuration.type.Duration;
 import io.papermc.paper.configuration.type.DurationOrDisabled;
+import net.kyori.adventure.text.ComponentLike;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -203,6 +205,9 @@ public class Config extends BaseConfig {
         public String templateEditSenderSuccess = "Edited sender of template <template> to <sender>";
         public String deleteMailConfirmTitle = "<red>Confirm</red><white> Deletion</white>";
         public String deleteMailConfirmContent = "<gray>Are you sure you want to delete mail <mail_title>?</gray>";
+        public String attachmentCannotOpen = "<red>You cannot open attachment <attachment>, reason: <reason></red>";
+        public String attachmentExpired = "<red>Expired</red>";
+        public String attachmentAlreadyReceived = "<red>Already received</red>";
     }
 
 }

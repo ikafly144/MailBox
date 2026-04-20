@@ -10,7 +10,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class MenuManager implements Listener {
@@ -18,6 +22,8 @@ public class MenuManager implements Listener {
     private static MenuManager INSTANCE;
 
     private final Plugin plugin;
+
+    private final Map<UUID, SimpleMenu> playerMenus = new HashMap<>();
 
     public MenuManager() {
         this.plugin = MailBox.getInstance();
@@ -61,6 +67,7 @@ public class MenuManager implements Listener {
             return;
         }
         if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder holder) {
+            this.playerMenus.remove(player.getUniqueId());
             if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
                 Menu m = holder.menu();
                 while ((m instanceof InventoryMenu<?> inv) && inv.getNextMenu() != null) {
