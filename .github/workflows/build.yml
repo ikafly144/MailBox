@@ -145,8 +145,8 @@ jobs:
           WEBHOOK_URL_SECRET: ${{ secrets[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
           ROLE_MENTION_VAR: ${{ vars[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
         run: |
-          webhook_url="${WEBHOOK_URL_SECRET:-$WEBHOOK_URL_VAR}"
-          role_mention="${ROLE_MENTION_VAR:-$ROLE_MENTION_SECRET}"
+          webhook_url="${WEBHOOK_URL_SECRET}"
+          role_mention="${ROLE_MENTION_VAR}"
 
           if [ -z "$webhook_url" ]; then
             echo "No Discord webhook configured for channel key '$CHANNEL_KEY'. Skipping notification."
