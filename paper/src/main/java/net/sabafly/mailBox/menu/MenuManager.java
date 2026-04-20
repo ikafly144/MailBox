@@ -22,8 +22,6 @@ public class MenuManager implements Listener {
 
     private final Plugin plugin;
 
-    private final Map<UUID, SimpleMenu> playerMenus = new HashMap<>();
-
     public MenuManager() {
         this.plugin = MailBox.getInstance();
     }
@@ -66,7 +64,6 @@ public class MenuManager implements Listener {
             return;
         }
         if (event.getInventory().getHolder() instanceof InventoryMenu.MenuHolder holder) {
-            this.playerMenus.remove(player.getUniqueId());
             if (event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
                 Menu m = holder.menu();
                 while ((m instanceof InventoryMenu<?> inv) && inv.getNextMenu() != null) {
