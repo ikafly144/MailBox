@@ -26,11 +26,6 @@ on:
         required: false
         default: ""
         type: string
-      release_changelog:
-        description: Override changelog
-        required: false
-        default: ""
-        type: string
 
 permissions:
   contents: read
@@ -47,6 +42,7 @@ jobs:
       channel_key: ${{ steps.config.outputs.channel_key }}
       modrinth_project_id: ${{ steps.gradle-props.outputs.modrinth_project_id }}
       hangar_project_id: ${{ steps.gradle-props.outputs.hangar_project_id }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -99,6 +95,12 @@ jobs:
           echo "modrinth_version_type=$modrinth_version_type" >> "$GITHUB_OUTPUT"
           echo "hangar_channel=$hangar_channel" >> "$GITHUB_OUTPUT"
           echo "channel_key=$channel_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4
+        with:
+          mytoken: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     needs: resolve-config
@@ -161,7 +163,7 @@ jobs:
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
-          RELEASE_CHANGELOG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_changelog) || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
+          RELEASE_CHANGELOG: ${{ needs.resolve-config.outputs.changelog || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
         run: >
           ./gradlew publishPluginRelease --stacktrace
           -PpluginVersion=${{ needs.resolve-config.outputs.plugin_version }}
@@ -182,7 +184,7 @@ jobs:
           RELEASE_VERSION: ${{ needs.resolve-config.outputs.plugin_version }}
           MODRINTH_PROJECT_ID: ${{ needs.resolve-config.outputs.modrinth_project_id }}
           HANGAR_PROJECT_ID: ${{ needs.resolve-config.outputs.hangar_project_id }}
-          CHANGELOG: ${{ (github.event_name == 'workflow_dispatch' && inputs.release_changelog) || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
+          CHANGELOG: ${{ needs.resolve-config.outputs.changelog || github.event.head_commit.message || format('Automated release for {0}', github.ref_name) }}
           WEBHOOK_URL_SECRET: ${{ secrets[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
           WEBHOOK_URL_VAR: ${{ vars[format('DISCORD_WEBHOOK_{0}', needs.resolve-config.outputs.channel_key)] }}
           ROLE_MENTION_SECRET: ${{ secrets[format('DISCORD_ROLE_MENTION_{0}', needs.resolve-config.outputs.channel_key)] }}
