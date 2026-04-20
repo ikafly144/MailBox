@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.publish.maven.MavenPublication
-
 plugins {
     java
     id("maven-publish")
@@ -35,26 +32,29 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
-val githubRepository = providers.environmentVariable("GITHUB_REPOSITORY").orElse("ikafly144/MailBox")
-
 publishing {
     publications {
-        create<MavenPublication>("githubPackages") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
+            groupId = project.group as String
             artifactId = "mailbox-api"
+            version = project.version as String
         }
     }
     repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/${githubRepository.get()}")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user"))
-                    .orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.key"))
-                    .orNull
+        val mavenUrl: String? by project
+        val mavenSnapshotUrl: String? by project
+
+        (if (version.toString().endsWith("SNAPSHOT")) mavenSnapshotUrl else mavenUrl)?.let { url ->
+            maven(url) {
+                val mavenUsername: String? by project
+                val mavenPassword: String? by project
+                if (mavenUsername != null && mavenPassword != null) {
+                    credentials {
+                        username = mavenUsername
+                        password = mavenPassword
+                    }
+                }
             }
         }
     }
