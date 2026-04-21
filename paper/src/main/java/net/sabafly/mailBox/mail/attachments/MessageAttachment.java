@@ -40,7 +40,7 @@ public class MessageAttachment extends BaseAttachment<MessageAttachment, Message
 
     @Override
     public void apply(@NotNull Player player) {
-        ThreadUtils.runSync(() -> ContentMenu.contentMenu(player, message.value(), message.value(), null).open());
+        ThreadUtils.runSync(() -> ContentMenu.contentMenu(player, getName(), message.value(), null).open());
     }
 
     @Override
