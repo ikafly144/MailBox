@@ -68,6 +68,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'io.github.ikafly144:mailbox-api:{version}'
+    compileOnly 'net.sabafly:mailbox-api:{version}'
 }
 ```
