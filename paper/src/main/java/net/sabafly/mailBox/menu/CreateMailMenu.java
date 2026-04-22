@@ -7,6 +7,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
+import net.sabafly.mailBox.commands.arguments.MailUserArgumentType;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
@@ -154,6 +155,9 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
                         return;
                     }
+                    if (!MailUserArgumentType.checkPermission(p, target.key())) {
+                        throw new IllegalStateException("You cannot send mail to this user. This is a bug, report this to the developer.");
+                    }
                     var playerUser = database().getUser(viewer.getUniqueId());
                     if (playerUser == null) {
                         throw new IllegalStateException("Player user not found");
@@ -169,9 +173,6 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                                 )
                         );
                         return;
-                    }
-                    if (!attachments.stream().allMatch(a -> a.consumeRequirement(viewer))) {
-                        throw new IllegalStateException("Attachment creation failed! This is bug, report this to the developer.");
                     }
                     if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
                         int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
@@ -189,6 +190,9 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         }
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> {
+                        if (!attachments.stream().allMatch(a -> a.consumeRequirement(viewer))) {
+                            throw new IllegalStateException("Attachment creation failed! This is a bug, report this to the developer.");
+                        }
                         Mail mail = Mail.createFromUserNow(playerUser, target, subject, content, attachments);
                         database().createMail(mail);
                         p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.sabafly.mailBox.commands.arguments.MailUserArgumentType;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailbox.api.mail.User;
@@ -69,7 +70,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
-        final var replyEnabled = !mail.sender().id().equals(viewer.identity().uuid());
+        final var replyEnabled = !mail.sender().id().equals(viewer.identity().uuid()) && MailUserArgumentType.checkPermission(viewer, mail.sender().key());
         final ItemStack senderItem = getSenderItem(replyEnabled);
 
         clickRegistry.setItem(0, senderItem, (p, clickType) -> {

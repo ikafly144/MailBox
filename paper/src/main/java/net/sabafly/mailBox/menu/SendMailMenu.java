@@ -10,6 +10,7 @@ import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
+import net.sabafly.mailBox.commands.arguments.MailUserArgumentType;
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,10 @@ public class SendMailMenu extends DialogMenu {
             try {
                 User target = database().getUserByAddress(Key.key(recipient));
                 if (target == null) {
+                    player.sendMessage(miniMessage().deserialize(config().messages.notRegisteredError));
+                    return;
+                }
+                if (!MailUserArgumentType.checkPermission(player, target.key())) {
                     player.sendMessage(miniMessage().deserialize(config().messages.notRegisteredError));
                     return;
                 }

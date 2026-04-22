@@ -118,7 +118,8 @@ paper {
                 "mailbox.inbox" to true,
                 "mailbox.send" to true,
                 "mailbox.attachment.item" to true,
-                "mailbox.attachment.vault" to true
+                "mailbox.attachment.vault" to true,
+                "mailbox.mailto.namespace.minecraft" to true
             )
         }
     }

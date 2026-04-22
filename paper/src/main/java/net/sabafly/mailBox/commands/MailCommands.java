@@ -282,7 +282,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                 })
                                 .then(Commands.literal("of")
                                         .requires(source -> source.getSender().hasPermission("mailbox.inbox.others"))
-                                        .then(Commands.argument("source", new MailUserArgumentType())
+                                        .then(Commands.argument("source", MailUserArgumentType.create())
                                                 .executes(context -> {
                                                     if (!(context.getSource().getExecutor() instanceof Player player))
                                                         throw ERROR_PLAYER_REQUIRED.create();
@@ -303,7 +303,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                     new SendMailMenu(player).open();
                     return Command.SINGLE_SUCCESS;
                 })
-                .then(Commands.argument("to", new MailUserArgumentType())
+                .then(Commands.argument("to", MailUserArgumentType.withPermission())
                         .executes(context -> {
                             if (!(context.getSource().getExecutor() instanceof Player player))
                                 throw ERROR_PLAYER_REQUIRED.create();

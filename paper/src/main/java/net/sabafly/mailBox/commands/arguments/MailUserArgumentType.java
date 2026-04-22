@@ -13,6 +13,7 @@ import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailbox.api.mail.User;
+import org.bukkit.permissions.Permissible;
 import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,20 @@ public class MailUserArgumentType implements CustomArgumentType<User, Key> {
     private static final DynamicCommandExceptionType NO_SUCH_USER_EXCEPTION = new DynamicCommandExceptionType(
             input -> () -> "No such user: " + input
     );
+
+    public static MailUserArgumentType create() {
+        return new MailUserArgumentType(false);
+    }
+
+    public static MailUserArgumentType withPermission() {
+        return new MailUserArgumentType(true);
+    }
+
+    private final boolean perm;
+
+    private MailUserArgumentType(boolean perm) {
+        this.perm = perm;
+    }
 
     @Override
     public @NonNull User parse(@NonNull StringReader reader) throws CommandSyntaxException {
@@ -40,11 +55,9 @@ public class MailUserArgumentType implements CustomArgumentType<User, Key> {
         var c = reader.getCursor();
         var key = getNativeType().parse(reader);
         reader.setCursor(c);
-        if (!key.namespace().equals(Key.MINECRAFT_NAMESPACE) && source instanceof CommandSourceStack stack) {
+        if (source instanceof CommandSourceStack stack) {
             var sender = stack.getSender();
-            if ((!sender.hasPermission("mailbox.mailto.namespace.*") &&
-                sender.permissionValue("mailbox.mailto.namespace." + key.namespace()) != TriState.TRUE) ||
-                sender.permissionValue("mailbox.mailto.user." + key.asMinimalString()) == TriState.FALSE) {
+            if (perm && !checkPermission(sender, key)) {
                 throw NO_SUCH_USER_EXCEPTION.create(key);
             }
         }
@@ -55,16 +68,16 @@ public class MailUserArgumentType implements CustomArgumentType<User, Key> {
     public <S> @NonNull CompletableFuture<Suggestions> listSuggestions(@NonNull CommandContext<S> context, SuggestionsBuilder builder) {
         database().getAllUsers().stream()
                 .map(User::key)
-                .filter(key ->
-                        key.namespace().equals(Key.MINECRAFT_NAMESPACE) ||
-                        context.getSource() instanceof CommandSourceStack source &&
-                        (source.getSender().hasPermission("mailbox.mailto.namespace.*") ||
-                         source.getSender().permissionValue("mailbox.mailto.namespace." + key.namespace()) == TriState.TRUE) &&
-                        source.getSender().permissionValue("mailbox.mailto.user." + key.asMinimalString()) != TriState.FALSE
-                )
+                .filter(key -> perm || context.getSource() instanceof CommandSourceStack source && checkPermission(source.getSender(), key))
                 .map(Key::asMinimalString)
                 .forEach(builder::suggest);
         return builder.buildFuture();
+    }
+
+    public static boolean checkPermission(@NonNull Permissible subject, @NonNull Key key) {
+        final var userPerm = subject.permissionValue("mailbox.mailto.user." + key.asMinimalString());
+        final var namespacePerm = subject.permissionValue("mailbox.mailto.namespace." + key.namespace());
+        return userPerm == TriState.TRUE || namespacePerm == TriState.TRUE && userPerm != TriState.FALSE;
     }
 
     @Override
