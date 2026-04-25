@@ -63,8 +63,8 @@ dependencies {
         isTransitive = false
     }
     implementation("commons-dbutils:commons-dbutils:1.8.1")
-    compileOnly("org.projectlombok:lombok:1.18.44")
-    annotationProcessor("org.projectlombok:lombok:1.18.44")
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
     implementation("com.vdurmont:semver4j:3.1.0")
     compileOnly("me.clip:placeholderapi:2.12.2")
