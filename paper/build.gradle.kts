@@ -54,7 +54,7 @@ repositories {
 dependencies {
     implementation(project(":mailbox-api"))
     paperLibrary("com.h2database:h2:2.4.240")
-    paperLibrary("com.mysql:mysql-connector-j:9.6.0")
+    paperLibrary("com.mysql:mysql-connector-j:9.7.0")
     compileOnly("org.spongepowered:configurate-yaml:4.3.0-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         isTransitive = false
