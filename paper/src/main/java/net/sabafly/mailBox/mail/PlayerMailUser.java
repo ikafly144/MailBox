@@ -23,7 +23,7 @@ public record PlayerMailUser(@NotNull OfflinePlayer player, @NotNull Key key) im
     public static @NotNull Key keyOf(@NotNull OfflinePlayer offlinePlayer) {
         var name = offlinePlayer.getName();
         Preconditions.checkArgument(name != null, "OfflinePlayer must have a name to generate a key");
-        return Key.key("minecraft", name);
+        return Key.key("minecraft", User.sanitizeName(name));
     }
 
     @Override
