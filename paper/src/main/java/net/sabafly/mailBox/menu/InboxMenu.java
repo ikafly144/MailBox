@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.utils.DateUtils;
+import net.sabafly.mailBox.utils.ThreadUtils;
 import net.sabafly.mailbox.api.mail.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -109,6 +110,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         for (Mail mail : database().getMails(owner, TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
             clickRegistry.setItem(slot, createMailItem(mail), (_, clickType) -> {
                 if (clickType.isLeftClick()) {
+//                    ThreadUtils.runSync(viewer, () -> new MailDialogView(viewer, this, mail, owner).open());
                     openMenu(new MailViewerMenu(viewer, owner, mail, true));
                 } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
                     if (clickType.isShiftClick()) {
