@@ -154,9 +154,9 @@ jobs:
           fi
 
           if [ -n "$role_mention" ]; then
-            header="$role_mention "
+            footer="$role_mention "
           else
-            header=""
+            footer=""
           fi
 
           modrinth_version_id=$(curl --silent --show-error --fail "https://api.modrinth.com/v2/project/${MODRINTH_PROJECT_ID}/version" \
@@ -170,8 +170,8 @@ jobs:
 
           hangar_release_url="https://hangar.papermc.io/${GITHUB_REPOSITORY_OWNER}/${HANGAR_PROJECT_ID}/versions/${RELEASE_VERSION}"
 
-          message=$(printf "%s**MailBox %s** (%s)\n%s\nModrinth: %s\nHangar: %s" \
-            "$header" "$RELEASE_VERSION" "$RELEASE_CHANNEL" "$CHANGELOG" "$modrinth_release_url" "$hangar_release_url")
+          message=$(printf "# **MailBox %s** \n%s\n\n%s\nModrinth: %s\nHangar: %s" \
+            "$RELEASE_VERSION" "$CHANGELOG" "$footer" "$modrinth_release_url" "$hangar_release_url")
 
           payload=$(jq -n --arg content "$message" '{content:$content}')
           curl --fail-with-body -X POST -H "Content-Type: application/json" -d "$payload" "$webhook_url"
