@@ -59,7 +59,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         isTransitive = false
     }
-    implementation("com.zaxxer:HikariCP:7.0.2") {
+    implementation("com.zaxxer:HikariCP:7.1.0") {
         isTransitive = false
     }
     implementation("commons-dbutils:commons-dbutils:1.8.1")
