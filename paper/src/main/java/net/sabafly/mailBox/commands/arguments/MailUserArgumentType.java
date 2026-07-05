@@ -42,7 +42,7 @@ public class MailUserArgumentType implements CustomArgumentType<User, Key> {
 
     @Override
     public @NonNull User parse(@NonNull StringReader reader) throws CommandSyntaxException {
-        var key = getNativeType().parse(reader);
+        @SuppressWarnings("PatternValidation") var key = Key.key(reader.readUnquotedString().toLowerCase());
         var user = database().getUserByAddress(key);
         if (user == null) {
             throw NO_SUCH_USER_EXCEPTION.create(key);
@@ -53,7 +53,7 @@ public class MailUserArgumentType implements CustomArgumentType<User, Key> {
     @Override
     public <S> @NonNull User parse(@NonNull StringReader reader, @NonNull S source) throws CommandSyntaxException {
         var c = reader.getCursor();
-        var key = getNativeType().parse(reader);
+        @SuppressWarnings("PatternValidation") var key = Key.key(reader.readUnquotedString().toLowerCase());
         reader.setCursor(c);
         if (source instanceof CommandSourceStack stack) {
             var sender = stack.getSender();

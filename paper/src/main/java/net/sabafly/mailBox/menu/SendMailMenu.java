@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
@@ -27,8 +28,8 @@ public class SendMailMenu extends DialogMenu {
     @SuppressWarnings("PatternValidation")
     public static final DialogAction.CustomClickAction OPEN_SEND_MENU_ACTION = DialogAction.customClick((response, audience) -> {
         if (audience instanceof Player player) {
-            String recipient = response.getText("recipient");
-            if (recipient == null || recipient.isEmpty()) {
+            String recipient = Objects.requireNonNull(response.getText("recipient")).toLowerCase();
+            if (recipient.isEmpty()) {
                 player.sendMessage(miniMessage().deserialize(config().messages.emptyInputError));
                 return;
             }
