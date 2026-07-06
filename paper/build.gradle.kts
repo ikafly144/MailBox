@@ -208,7 +208,7 @@ runPaper.folia.registerTask {
     downloadPlugins {
         github("SirBlobman", "Vault-Folia", "v1.7.3-folia", "Vault-1.7.3.jar")
         modrinth("luckperms", "v5.5.17-bukkit")
-        modrinth("placeholderapi", "2.12.2")
+        modrinth("placeholderapi", "2.12.3")
         modrinth("emeraldbank", "1.2.0")
     }
     minecraftVersion(minecraftVersion)
@@ -218,7 +218,7 @@ tasks.named<RunServer>("runServer") {
     downloadPlugins {
         github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
         modrinth("luckperms", "v5.5.17-bukkit")
-        modrinth("placeholderapi", "2.12.2")
+        modrinth("placeholderapi", "2.12.3")
         modrinth("emeraldbank", "1.2.0")
     }
     minecraftVersion(minecraftVersion)
