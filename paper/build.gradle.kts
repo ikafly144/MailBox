@@ -67,7 +67,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.46")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
     implementation("com.vdurmont:semver4j:3.1.0")
-    compileOnly("me.clip:placeholderapi:2.12.2")
+    compileOnly("me.clip:placeholderapi:2.12.3")
     paperweight.paperDevBundle(property("paperVersion") as String)
 }
 
