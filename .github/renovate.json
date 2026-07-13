@@ -12,5 +12,12 @@
   "dependencyDashboard": false,
   "automerge": true,
   "branchConcurrentLimit": 0,
-  "stabilityDays": 3
+  "stabilityDays": 3,
+  "packageRules": [
+    {
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["io.papermc.paper:paper-api"],
+      "versioning": "regex:^(?<compatibility>\\d+\\.\\d)(?:\\.(?<minor>\\d+))?(?:-(?<prerelease>.*))?\\.build\\.(?:(?<build>\\d+)-(?<revision>.*)|.+)$"
+    }
+  ]
 }
