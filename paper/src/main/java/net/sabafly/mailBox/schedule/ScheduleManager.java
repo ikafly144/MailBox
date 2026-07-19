@@ -73,6 +73,7 @@ public class ScheduleManager {
     }
 
     public static void checkNotify(Player player, PlayerMailUser user, boolean login) {
+        if (!config().enableMailNotification) return;
         boolean notified = false;
         try {
             if (login) {

@@ -109,7 +109,17 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         database().deleteAllUserNotification(owner);
         for (Mail mail : database().getMails(owner, TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
             clickRegistry.setItem(slot, createMailItem(mail), (_, clickType) -> {
-                if (clickType.isLeftClick()) {
+                if (clickType.isShiftClick() && clickType.isLeftClick()) {
+                    // Shift+左键：一键领取该邮件所有附件
+                    for (var attachment : mail.getAttachmentsInternal()) {
+                        if (attachment.canOpen()) {
+                            attachment.apply(viewer);
+                            attachment.setOpened(true);
+                            database().updateMailAttachment(mail, attachment);
+                        }
+                    }
+                    refresh();
+                } else if (clickType.isLeftClick()) {
 //                    ThreadUtils.runSync(viewer, () -> new MailDialogView(viewer, this, mail, owner).open());
                     openMenu(new MailViewerMenu(viewer, owner, mail, true));
                 } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
@@ -152,6 +162,10 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)
                     .collect(Collectors.toCollection(ArrayList::new));
+            long claimable = mail.getAttachmentsInternal().stream().filter(a -> a.canOpen()).count();
+            if (claimable > 0) {
+                lore.addFirst(miniMessage().deserialize(config().messages.shiftLeftClickTo.replace("{action}", config().messages.clickActionClaimAll)));
+            }
             lore.addFirst(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
             lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionOpen)));
             meta.lore(lore);
