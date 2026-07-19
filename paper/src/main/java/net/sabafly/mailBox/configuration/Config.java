@@ -15,6 +15,8 @@ import java.util.Optional;
 @ConfigSerializable
 public class Config extends BaseConfig {
 
+    public String locale = "en";
+
     public DatabaseConfig database = new DatabaseConfig();
 
     @ConfigSerializable
@@ -44,6 +46,7 @@ public class Config extends BaseConfig {
 
     public boolean enableGameMenuShortcut = true;
     public boolean enableQuickAction = true;
+    public boolean enableMailNotification = false;
     public String rightArrowItem = "arrow";
     public String leftArrowItem = "arrow";
 
@@ -68,7 +71,7 @@ public class Config extends BaseConfig {
     public Messages messages = new Messages();
 
     @ConfigSerializable
-    public static class Messages extends BaseConfig {
+    public static class Messages {
         @Comment("This field cannot use minimessage")
         public String systemName = "System";
 
@@ -149,6 +152,8 @@ public class Config extends BaseConfig {
         public String clickActionSetExpiration = "<green>Set Expiration</green>";
         public String clickActionEdit = "<green>Edit</green>";
         public String clickActionReply = "<green>Reply</green>";
+        public String shiftLeftClickTo = "<gray>Shift+Left Click to {action}</gray>";
+        public String clickActionClaimAll = "<green>Claim All Attachments</green>";
 
         public String unreceived = "Unreceived";
         public String page = "page";

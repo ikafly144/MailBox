@@ -155,8 +155,6 @@ val shadowJarTask = tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
     archiveVersion.set(project.version.toString())
 
-    exclude("plugin.yml")
-
     minimize()
     relocate("com.zaxxer.hikari", "net.sabafly.libs.com.zaxxer.hikari")
     relocate("org.apache.commons.dbutils", "net.sabafly.libs.org.apache.commons.dbutils")

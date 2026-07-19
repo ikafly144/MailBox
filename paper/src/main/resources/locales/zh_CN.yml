@@ -1,0 +1,139 @@
+# MailBox 简体中文语言包
+# 键名对应 Config.Messages 字段的 kebab-case 形式
+# 例如 "new-mail" -> Config.Messages.newMail
+
+system-name: 系统
+mail-menu-title: <red>邮件</red><white>箱</white>
+mail-viewer-menu-title: <red>邮件</red><white>查看器</white>
+create-mail-menu-title: <red>创建</red><white>邮件</white>
+attachment-menu-title: <red>附件</red><white>菜单</white>
+mail-template-menu-title: <red>邮件</red><white>模板</white>
+mail-template-edit-menu-title: <red>邮件</red><white>模板</white>
+mail-template-lore: |-
+  <gray>发送者: <white>{sender}</white>
+  <gray>开始: <white>{start}</white>
+  <gray>结束: <white>{end}</white>
+  <gray>间隔: <white>{interval}</white>
+  <gray>附件: <white>{attachments}</white>
+  <gray>自动发送: <white>{auto_send}</white>
+mail-menu-mail-lore: |-
+  <gray>来自: <white>{sender}</white>
+  <gray>时间: <white>{time}</white>
+  <gray>附件: <white>{attachments}</white>
+  <gray>已读: {read}</gray>
+attachment-lore: |-
+  <gray>已领取: <white>{received}</white>
+  <gray>过期: <white>{expires}</white>
+read: <green>已读</green>
+unread: <red>未读</red>
+content: 内容
+content-info: '内容: <bold><length> 封信</bold>'
+subject-value: '主题: <bold><subject></bold>'
+set-subject: 设置主题
+set-content: 设置内容
+attachment-append-item: <gray>添加物品</gray>
+attachment-append-command: <gray>添加命令</gray>
+set-attachment: 设置附件
+send: 发送
+create-mail-success: <green>邮件创建成功</green>
+create-mail-error: <red>邮件创建失败</red>
+sender-value: '发送者: <bold><sender></bold>'
+set-sender: 设置发送者
+next-page: 下一页
+previous-page: 上一页
+auto-send: 自动发送
+enabled: <green>已启用</green>
+disabled: <red>已禁用</red>
+start-time: 开始时间
+set-start-time: 设置开始时间
+end-time: 结束时间
+set-end-time: 设置结束时间
+interval: 间隔
+set-interval: 设置间隔
+permissions: 权限
+set-permissions: 设置权限
+delete: 删除
+attachments: 附件
+create-mail-template: 创建邮件模板
+create-mail-template-success: <green>邮件模板创建成功</green>
+create-mail-template-error: <red>邮件模板创建失败</red>
+new-mail: <green>你有 <count> 封新邮件</green>
+unread-mail: <green>你有 <count> 封未读邮件</green>
+unreceived-attachment: <yellow>你有 <count> 个未领取的附件</yellow>
+received: <green>已领取</green>
+not-received: <red>未领取</red>
+expired: <red>已过期</red>
+expires-never: <gray>永不过期</gray>
+right-click-to: <gray>右键 {action}</gray>
+left-click-to: <gray>左键 {action}</gray>
+shift-click-to: <gray>Shift+点击 {action}</gray>
+shift-left-click-to: <gray>Shift+左键 {action}</gray>
+click-action-delete: <red>删除</red>
+click-action-read: <green>阅读</green>
+click-action-unread: <red>标记未读</red>
+click-action-send: <green>发送</green>
+click-action-create: <green>创建</green>
+click-action-open: <green>打开</green>
+click-action-receive: <green>领取</green>
+click-action-set: <green>设置</green>
+click-action-unset: <red>取消设置</red>
+click-action-set-expiration: <green>设置过期时间</green>
+click-action-edit: <green>编辑</green>
+click-action-reply: <green>回复</green>
+click-action-claim-all: <green>一键领取附件</green>
+unreceived: 未领取
+page: 页
+mails: 封邮件
+no-value: <gray>无</gray>
+mail-box-full: <red>收件人的邮箱已满</red>
+deposit: 存入 {value}
+set-name: 设置名称
+name-value: '<gray>名称: <bold><yellow><name></yellow></bold></gray>'
+command-value: '<gray>命令: <bold><yellow><command></yellow></bold></gray>'
+set-command: 设置命令
+append: 添加
+attachment-append-vault: 添加 {currency}
+display-item: 显示物品
+set-expiration: 设置过期时间
+expiration-value: '<gray>过期时间: <bold><yellow><expiration></yellow></bold></gray>'
+close-button: 关闭
+attachment-command-error: <red>设置命令附件时出错，请检查你的命令</red>
+submit-button: 提交
+empty-input-error: <red>输入不能为空</red>
+cancel-button: 取消
+refresh-button: 刷新
+send-mail-recipient-input: 收件人
+send-mail-menu-title: <red>发送</red><white>邮件</white>
+send-mail-button: 发送邮件
+invalid-recipient-error: <red>无效的收件人名称</red>
+not-registered-error: <red>收件人未注册</red>
+inbox-button: 收件箱
+inbox-tooltip: 打开收件箱查看和管理你的邮件。
+send-mail-tooltip: 给其他玩家发送邮件。
+next-button: 下一步
+inbox-menu-title: <red>收件箱</red><white>菜单</white> 第 {page}/{total_pages} 页
+reload-success: <green>配置重载成功</green>
+how-to-open-mail: <gray>使用 <command> 或按 <yellow><key:key.quickActions></yellow> 打开你的邮箱。</gray>
+send-template-success: 已向 <count> 名玩家发送 <template>。
+not-enough-money: <red>你没有足够的 <missing_amount> <currency> 来执行此操作</red>
+mail-price-info: '<gray>邮件费用: <yellow><price> <currency></yellow></gray>'
+attachment-price-info: '<gray>附件费用: <yellow><price> <currency> × <count></yellow></gray>'
+total-price-info: '<gray>总费用: <yellow><price> <currency></yellow></gray>'
+inbox-owner: <dark_gray>{owner} 的收件箱</dark_gray>
+template-already-exists: <red>名为 <template> 的模板已存在</red>
+not-enough-attachment-content: <red>你缺少一些附件内容。</red>
+template-attachment-list: '<template> 的附件:<br><attachments>'
+template-no-attachments: <template> 没有附件
+invalid-attachment-index: '<red>无效的附件索引: <index></red>'
+template-attachment-add-success: 已向 <template> 添加附件 <attachment>
+template-attachment-delete-success: 已从 <template> 删除附件 <attachment>
+template-create-success: 已创建模板 <template>
+template-delete-success: 已删除模板 <template>
+template-edit-subject-success: 已将模板 <template> 的主题编辑为 <new_subject>
+template-edit-content-success: 已编辑模板 <template> 的内容
+template-edit-sender-success: 已将模板 <template> 的发送者编辑为 <sender>
+delete-mail-confirm-title: <red>确认</red><white>删除</white>
+delete-mail-confirm-content: <gray>你确定要删除邮件 <mail_title> 吗？</gray>
+attachment-cannot-open: '<red>你无法打开附件 <attachment>，原因: <reason></red>'
+attachment-expired: <red>已过期</red>
+attachment-already-received: <red>已领取</red>

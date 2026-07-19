@@ -1,0 +1,139 @@
+# MailBox 日本語ロケール
+# キー名はConfig.Messagesフィールドのケバブケースに対応
+# 例: "new-mail" -> Config.Messages.newMail
+
+system-name: システム
+mail-menu-title: <red>メール</red><white>ボックス</white>
+mail-viewer-menu-title: <red>メール</red><white>ビューア</white>
+create-mail-menu-title: <red>メール</red><white>作成</white>
+attachment-menu-title: <red>添付</red><white>メニュー</white>
+mail-template-menu-title: <red>メール</red><white>テンプレート</white>
+mail-template-edit-menu-title: <red>メール</red><white>テンプレート</white>
+mail-template-lore: |-
+  <gray>送信者: <white>{sender}</white>
+  <gray>開始: <white>{start}</white>
+  <gray>終了: <white>{end}</white>
+  <gray>間隔: <white>{interval}</white>
+  <gray>添付: <white>{attachments}</white>
+  <gray>自動送信: <white>{auto_send}</white>
+mail-menu-mail-lore: |-
+  <gray>差出人: <white>{sender}</white>
+  <gray>時刻: <white>{time}</white>
+  <gray>添付: <white>{attachments}</white>
+  <gray>既読: {read}</gray>
+attachment-lore: |-
+  <gray>受取済: <white>{received}</white>
+  <gray>期限: <white>{expires}</white>
+read: <green>既読</green>
+unread: <red>未読</red>
+content: 内容
+content-info: '内容: <bold><length> 文字</bold>'
+subject-value: '件名: <bold><subject></bold>'
+set-subject: 件名を設定
+set-content: 内容を設定
+attachment-append-item: <gray>アイテムを追加</gray>
+attachment-append-command: <gray>コマンドを追加</gray>
+set-attachment: 添付を設定
+send: 送信
+create-mail-success: <green>メールが作成されました</green>
+create-mail-error: <red>メールの作成に失敗しました</red>
+sender-value: '送信者: <bold><sender></bold>'
+set-sender: 送信者を設定
+next-page: 次のページ
+previous-page: 前のページ
+auto-send: 自動送信
+enabled: <green>有効</green>
+disabled: <red>無効</red>
+start-time: 開始時刻
+set-start-time: 開始時刻を設定
+end-time: 終了時刻
+set-end-time: 終了時刻を設定
+interval: 間隔
+set-interval: 間隔を設定
+permissions: 権限
+set-permissions: 権限を設定
+delete: 削除
+attachments: 添付ファイル
+create-mail-template: メールテンプレートを作成
+create-mail-template-success: <green>テンプレートが作成されました</green>
+create-mail-template-error: <red>テンプレートの作成に失敗しました</red>
+new-mail: <green><count> 件の新しいメールがあります</green>
+unread-mail: <green><count> 件の未読メールがあります</green>
+unreceived-attachment: <yellow><count> 件の未受取の添付があります</yellow>
+received: <green>受取済</green>
+not-received: <red>未受取</red>
+expired: <red>期限切れ</red>
+expires-never: <gray>無期限</gray>
+right-click-to: <gray>右クリックで {action}</gray>
+left-click-to: <gray>左クリックで {action}</gray>
+shift-click-to: <gray>Shift+クリックで {action}</gray>
+shift-left-click-to: <gray>Shift+左クリックで {action}</gray>
+click-action-delete: <red>削除</red>
+click-action-read: <green>読む</green>
+click-action-unread: <red>未読にする</red>
+click-action-send: <green>送信</green>
+click-action-create: <green>作成</green>
+click-action-open: <green>開く</green>
+click-action-receive: <green>受取る</green>
+click-action-set: <green>設定</green>
+click-action-unset: <red>解除</red>
+click-action-set-expiration: <green>有効期限を設定</green>
+click-action-edit: <green>編集</green>
+click-action-reply: <green>返信</green>
+click-action-claim-all: <green>全添付を一括受取</green>
+unreceived: 未受取
+page: ページ
+mails: 通のメール
+no-value: <gray>なし</gray>
+mail-box-full: <red>受信者のメールボックスが満杯です</red>
+deposit: '{value} を預入'
+set-name: 名前を設定
+name-value: '<gray>名前: <bold><yellow><name></yellow></bold></gray>'
+command-value: '<gray>コマンド: <bold><yellow><command></yellow></bold></gray>'
+set-command: コマンドを設定
+append: 追加
+attachment-append-vault: '{currency} を追加'
+display-item: 表示アイテム
+set-expiration: 有効期限を設定
+expiration-value: '<gray>有効期限: <bold><yellow><expiration></yellow></bold></gray>'
+close-button: 閉じる
+attachment-command-error: <red>コマンド添付の設定中にエラーが発生しました。コマンドを確認してください</red>
+submit-button: 送信
+empty-input-error: <red>入力が空です</red>
+cancel-button: キャンセル
+refresh-button: 更新
+send-mail-recipient-input: 宛先
+send-mail-menu-title: <red>メール</red><white>送信</white>
+send-mail-button: メールを送信
+invalid-recipient-error: <red>無効な宛先名です</red>
+not-registered-error: <red>受信者が登録されていません</red>
+inbox-button: 受信箱
+inbox-tooltip: 受信箱を開いてメールを確認・管理します。
+send-mail-tooltip: 他のプレイヤーにメールを送信します。
+next-button: 次へ
+inbox-menu-title: <red>受信箱</red><white>メニュー</white> {page}/{total_pages} ページ
+reload-success: <green>設定がリロードされました</green>
+how-to-open-mail: <gray><command> を使用するか、<yellow><key:key.quickActions></yellow> を押してメールボックスを開きます。</gray>
+send-template-success: <template> を <count> 人のプレイヤーに送信しました。
+not-enough-money: <red>この操作に必要な <missing_amount> <currency> が不足しています</red>
+mail-price-info: '<gray>メール料金: <yellow><price> <currency></yellow></gray>'
+attachment-price-info: '<gray>添付料金: <yellow><price> <currency> × <count></yellow></gray>'
+total-price-info: '<gray>合計: <yellow><price> <currency></yellow></gray>'
+inbox-owner: <dark_gray>{owner} の受信箱</dark_gray>
+template-already-exists: <red><template> というテンプレートは既に存在します</red>
+not-enough-attachment-content: <red>添付コンテンツの一部が不足しています。</red>
+template-attachment-list: '<template> の添付:<br><attachments>'
+template-no-attachments: <template> に添付はありません
+invalid-attachment-index: '<red>無効な添付インデックス: <index></red>'
+template-attachment-add-success: <template> に添付 <attachment> を追加しました
+template-attachment-delete-success: <template> から添付 <attachment> を削除しました
+template-create-success: テンプレート <template> を作成しました
+template-delete-success: テンプレート <template> を削除しました
+template-edit-subject-success: テンプレート <template> の件名を <new_subject> に編集しました
+template-edit-content-success: テンプレート <template> の内容を編集しました
+template-edit-sender-success: テンプレート <template> の送信者を <sender> に編集しました
+delete-mail-confirm-title: <red>削除</red><white>確認</white>
+delete-mail-confirm-content: <gray>メール <mail_title> を削除しますか？</gray>
+attachment-cannot-open: '<red>添付 <attachment> を開けません。理由: <reason></red>'
+attachment-expired: <red>期限切れ</red>
+attachment-already-received: <red>受取済</red>

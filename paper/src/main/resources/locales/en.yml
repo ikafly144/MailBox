@@ -1,0 +1,139 @@
+# MailBox English locale
+# Key names correspond to Config.Messages fields in kebab-case.
+# e.g. "new-mail" -> Config.Messages.newMail
+
+system-name: System
+mail-menu-title: <red>Mail</red><white>Box</white>
+mail-viewer-menu-title: <red>Mail</red><white>Viewer</white>
+create-mail-menu-title: <red>Create</red><white>Mail</white>
+attachment-menu-title: <red>Attachment</red><white>Menu</white>
+mail-template-menu-title: <red>Mail</red><white>Template</white>
+mail-template-edit-menu-title: <red>Mail</red><white>Template</white>
+mail-template-lore: |-
+  <gray>Sender: <white>{sender}</white>
+  <gray>Start: <white>{start}</white>
+  <gray>End: <white>{end}</white>
+  <gray>Interval: <white>{interval}</white>
+  <gray>Attachments: <white>{attachments}</white>
+  <gray>Auto Send: <white>{auto_send}</white>
+mail-menu-mail-lore: |-
+  <gray>From: <white>{sender}</white>
+  <gray>Time: <white>{time}</white>
+  <gray>Attachments: <white>{attachments}</white>
+  <gray>Read: {read}</gray>
+attachment-lore: |-
+  <gray>Received: <white>{received}</white>
+  <gray>Expires: <white>{expires}</white>
+read: <green>Read</green>
+unread: <red>Unread</red>
+content: Content
+content-info: 'Content: <bold><length> letters</bold>'
+subject-value: 'Subject: <bold><subject></bold>'
+set-subject: Set Subject
+set-content: Set Content
+attachment-append-item: <gray>Append Item</gray>
+attachment-append-command: <gray>Append Command</gray>
+set-attachment: Set Attachment
+send: Send
+create-mail-success: <green>Mail created successfully</green>
+create-mail-error: <red>Mail creation failed</red>
+sender-value: 'Sender: <bold><sender></bold>'
+set-sender: Set Sender
+next-page: Next Page
+previous-page: Previous Page
+auto-send: Auto Send
+enabled: <green>Enabled</green>
+disabled: <red>Disabled</red>
+start-time: Start Time
+set-start-time: Set Start Time
+end-time: End Time
+set-end-time: Set End Time
+interval: Interval
+set-interval: Set Interval
+permissions: Permissions
+set-permissions: Set Permissions
+delete: Delete
+attachments: Attachments
+create-mail-template: Create Mail Template
+create-mail-template-success: <green>Mail template created successfully</green>
+create-mail-template-error: <red>Mail template creation failed</red>
+new-mail: <green>You have <count> new mail</green>
+unread-mail: <green>You have <count> unread mail</green>
+unreceived-attachment: <yellow>You have <count> unreceived attachment</yellow>
+received: <green>Received</green>
+not-received: <red>Not Received</red>
+expired: <red>Expired</red>
+expires-never: <gray>Never</gray>
+right-click-to: <gray>Right Click to {action}</gray>
+left-click-to: <gray>Left Click to {action}</gray>
+shift-click-to: <gray>Shift Click to {action}</gray>
+shift-left-click-to: <gray>Shift+Left Click to {action}</gray>
+click-action-delete: <red>Delete</red>
+click-action-read: <green>Read</green>
+click-action-unread: <red>Unread</red>
+click-action-send: <green>Send</green>
+click-action-create: <green>Create</green>
+click-action-open: <green>Open</green>
+click-action-receive: <green>Receive</green>
+click-action-set: <green>Set</green>
+click-action-unset: <red>Unset</red>
+click-action-set-expiration: <green>Set Expiration</green>
+click-action-edit: <green>Edit</green>
+click-action-reply: <green>Reply</green>
+click-action-claim-all: <green>Claim All Attachments</green>
+unreceived: Unreceived
+page: page
+mails: mails
+no-value: <gray>No Value</gray>
+mail-box-full: <red>Receiver's mail box is full</red>
+deposit: Deposit {value}
+set-name: Set Name
+name-value: '<gray>Name: <bold><yellow><name></yellow></bold></gray>'
+command-value: '<gray>Command: <bold><yellow><command></yellow></bold></gray>'
+set-command: Set Command
+append: Append
+attachment-append-vault: Append {currency}
+display-item: Display Item
+set-expiration: Set Expiration
+expiration-value: '<gray>Expiration: <bold><yellow><expiration></yellow></bold></gray>'
+close-button: Close
+attachment-command-error: <red>Error while setting command attachment, please check your command</red>
+submit-button: Submit
+empty-input-error: <red>Input cannot be empty</red>
+cancel-button: Cancel
+refresh-button: Refresh
+send-mail-recipient-input: Recipient
+send-mail-menu-title: <red>Send</red><white>Mail</white>
+send-mail-button: Send Mail
+invalid-recipient-error: <red>Invalid recipient name</red>
+not-registered-error: <red>Recipient is not registered</red>
+inbox-button: Inbox
+inbox-tooltip: Open your inbox to view and manage your mails.
+send-mail-tooltip: Send a mail to another player.
+next-button: Next
+inbox-menu-title: <red>Inbox</red><white>Menu</white> page {page}/{total_pages}
+reload-success: <green>Configuration reloaded successfully</green>
+how-to-open-mail: <gray>Use <command> or press <yellow><key:key.quickActions></yellow> to open your mail box.</gray>
+send-template-success: Sent <template> to <count> players.
+not-enough-money: <red>You don't have <missing_amount> <currency> to perform this action</red>
+mail-price-info: '<gray>Mail Price: <yellow><price> <currency></yellow></gray>'
+attachment-price-info: '<gray>Attachment Price: <yellow><price> <currency> × <count></yellow></gray>'
+total-price-info: '<gray>Total Price: <yellow><price> <currency></yellow></gray>'
+inbox-owner: <dark_gray>{owner}'s inbox</dark_gray>
+template-already-exists: <red>A template with the name <template> already exists</red>
+not-enough-attachment-content: <red>You don't have some contents of attachments.</red>
+template-attachment-list: 'Attachments of <template>:<br><attachments>'
+template-no-attachments: <template> has no attachments
+invalid-attachment-index: '<red>Invalid attachment index: <index></red>'
+template-attachment-add-success: Added attachment <attachment> to <template>
+template-attachment-delete-success: Deleted attachment <attachment> from <template>
+template-create-success: Created template <template>
+template-delete-success: Deleted template <template>
+template-edit-subject-success: Edited subject of template <template> to <new_subject>
+template-edit-content-success: Edited content of template <template>
+template-edit-sender-success: Edited sender of template <template> to <sender>
+delete-mail-confirm-title: <red>Confirm</red><white> Deletion</white>
+delete-mail-confirm-content: <gray>Are you sure you want to delete mail <mail_title>?</gray>
+attachment-cannot-open: '<red>You cannot open attachment <attachment>, reason: <reason></red>'
+attachment-expired: <red>Expired</red>
+attachment-already-received: <red>Already received</red>
