@@ -15,42 +15,49 @@ import java.util.Map;
 /**
  * i18n locale manager.
  * Loads locale overrides from plugins/MailBox/locales/{locale}.yml
- * and applies them to Config.Messages.
+ * and applies them to a Messages instance.
  *
- * Built-in locales: en (default), zh_CN
+ * Built-in locales: en (default), zh_CN, ja_JP
  */
 public class LocaleManager {
 
     private static final Logger logger = LoggerFactory.getLogger(LocaleManager.class);
 
     private final Path dataDir;
-    private String currentLocale = "en";
+    private Locale currentLocale = Locale.EN;
+    private Messages messages = new Messages();
 
     public LocaleManager(Path dataDir) {
         this.dataDir = dataDir;
     }
 
-    public String getCurrentLocale() {
+    public Locale currentLocale() {
         return currentLocale;
     }
 
     /**
-     * Load locale file and apply overrides to Config.Messages.
-     * Call this after Config is loaded.
+     * @return the current Messages instance with locale overrides applied
      */
-    public void applyLocale(Config config) {
-        this.currentLocale = config.locale;
-        if (currentLocale == null || currentLocale.isBlank()) {
-            this.currentLocale = "en";
-        }
+    public Messages messages() {
+        return messages;
+    }
+
+    /**
+     * Load locale file and apply overrides to Messages.
+     *
+     * @param locale the locale to load
+     */
+    public void loadLocale(Locale locale) {
+        this.currentLocale = locale;
+        this.messages = new Messages();
 
         ensureLocaleFilesExist();
 
-        Path localeFile = dataDir.resolve("locales").resolve(currentLocale + ".yml");
+        Path localeFile = dataDir.resolve("locales").resolve(locale.fileName() + ".yml");
         if (!Files.exists(localeFile)) {
-            logger.warn("Locale file not found: {}, falling back to en", localeFile);
-            this.currentLocale = "en";
-            localeFile = dataDir.resolve("locales").resolve("en.yml");
+            logger.warn("Locale file not found: {}, falling back to EN", localeFile);
+            this.currentLocale = Locale.EN;
+            localeFile = dataDir.resolve("locales").resolve(Locale.EN.fileName() + ".yml");
             if (!Files.exists(localeFile)) {
                 logger.error("Default locale file en.yml not found, using built-in defaults");
                 return;
@@ -63,17 +70,17 @@ public class LocaleManager {
                     .build();
             var node = loader.load();
             Map<String, String> localeMap = flattenNode(node, "");
-            applyToMessages(config.messages, localeMap);
-            logger.info("Loaded locale: {}", currentLocale);
+            applyToMessages(messages, localeMap);
+            logger.info("Loaded locale: {}", currentLocale.fileName());
         } catch (Exception e) {
-            logger.error("Failed to load locale: {}", currentLocale, e);
-            this.currentLocale = "en";
+            logger.error("Failed to load locale: {}", currentLocale.fileName(), e);
+            this.currentLocale = Locale.EN;
         }
     }
 
     /**
      * Flatten a Configurate node into a flat key-value map.
-     * e.g. "read" -> "<green>已读</green>"
+     * e.g. "read" -> "<green>Read</green>"
      */
     private Map<String, String> flattenNode(org.spongepowered.configurate.ConfigurationNode node, String prefix) {
         Map<String, String> result = new HashMap<>();
@@ -102,21 +109,20 @@ public class LocaleManager {
      * Locale keys use kebab-case (e.g. "read", "new-mail", "click-action-delete").
      * Field names in Messages use camelCase (e.g. "read", "newMail", "clickActionDelete").
      */
-    private void applyToMessages(Config.Messages messages, Map<String, String> localeMap) {
+    private void applyToMessages(Messages messages, Map<String, String> localeMap) {
         for (var entry : localeMap.entrySet()) {
-            String localeKey = entry.getKey(); // kebab-case, e.g. "click-action-delete"
+            String localeKey = entry.getKey();
             String value = entry.getValue();
-            String fieldName = kebabToCamel(localeKey); // camelCase, e.g. "clickActionDelete"
+            String fieldName = kebabToCamel(localeKey);
 
             try {
-                Field field = Config.Messages.class.getDeclaredField(fieldName);
+                Field field = Messages.class.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 Object current = field.get(messages);
                 if (current instanceof String) {
                     field.set(messages, value);
                 }
             } catch (NoSuchFieldException e) {
-                // Unknown key, skip silently
                 logger.debug("Unknown locale key: {}", localeKey);
             } catch (Exception e) {
                 logger.warn("Failed to apply locale key {}: {}", localeKey, e.getMessage());
@@ -157,9 +163,9 @@ public class LocaleManager {
             return;
         }
 
-        copyResourceIfMissing("/locales/en.yml", localesDir.resolve("en.yml"));
-        copyResourceIfMissing("/locales/zh_CN.yml", localesDir.resolve("zh_CN.yml"));
-        copyResourceIfMissing("/locales/ja_JP.yml", localesDir.resolve("ja_JP.yml"));
+        for (Locale locale : Locale.values()) {
+            copyResourceIfMissing("/locales/" + locale.fileName() + ".yml", localesDir.resolve(locale.fileName() + ".yml"));
+        }
     }
 
     private void copyResourceIfMissing(String resource, Path target) {

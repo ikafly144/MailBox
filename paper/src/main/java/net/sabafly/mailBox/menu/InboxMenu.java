@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -52,9 +53,9 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                 throw new IllegalStateException("User not found");
             var footer = new StringBuilder();
             if (!owner.id().equals(viewer.identity().uuid()))
-                footer.append(" ").append(config().messages.inboxOwner.replace("{owner}", owner.name()));
+                footer.append(" ").append(messages().inboxOwner.replace("{owner}", owner.name()));
             return miniMessage().deserialize(
-                    (config().messages.inboxMenuTitle + footer)
+                    (messages().inboxMenuTitle + footer)
                             .replaceAll("\\{unread_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.FALSE))))
                             .replaceAll("\\{total_count}", Matcher.quoteReplacement(String.valueOf(database().countMails(user, TriState.NOT_SET))))
                             .replaceAll("\\{page}", Matcher.quoteReplacement(String.valueOf(menu.page)))
@@ -68,7 +69,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack leftArrow = Bukkit.getItemFactory().createItemStack(config().leftArrowItem);
-        leftArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
+        leftArrow.editMeta(meta -> meta.itemName(plainText().deserialize(messages().previousPage)));
         if (page > 1) clickRegistry.setItem(0, leftArrow, (_, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
@@ -76,7 +77,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             }
         });
         ItemStack rightArrow = Bukkit.getItemFactory().createItemStack(config().rightArrowItem);
-        rightArrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
+        rightArrow.editMeta(meta -> meta.itemName(plainText().deserialize(messages().nextPage)));
         if (database().countMails(owner, TriState.NOT_SET) > page * 27) {
             clickRegistry.setItem(8, rightArrow, (_, clickType) -> {
                 if (clickType.isLeftClick() && database().countMails(owner, TriState.NOT_SET) > page * 27) {
@@ -86,7 +87,7 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
             });
         }
         ItemStack refreshItem = ItemStack.of(Material.WIND_CHARGE);
-        refreshItem.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.refreshButton)));
+        refreshItem.editMeta(meta -> meta.itemName(plainText().deserialize(messages().refreshButton)));
         refreshItem.editMeta(meta -> {
             var cooldown = meta.getUseCooldown();
             cooldown.setCooldownGroup(MAIL_INBOX_KEY);
@@ -121,9 +122,9 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                     new ConfirmMenu(
                             viewer,
                             this,
-                            miniMessage().deserialize(config().messages.deleteMailConfirmTitle),
+                            miniMessage().deserialize(messages().deleteMailConfirmTitle),
                             miniMessage().deserialize(
-                                    config().messages.deleteMailConfirmContent,
+                                    messages().deleteMailConfirmContent,
                                     Placeholder.component("mail_title", plainText().deserialize(mail.getTitle()))
                             ),
                             ok -> {
@@ -144,16 +145,16 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                 meta.addEnchant(Enchantment.INFINITY, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
-            List<Component> lore = config().messages.mailMenuMailLore
+            List<Component> lore = messages().mailMenuMailLore
                     .replaceAll("\\{sender}", Matcher.quoteReplacement(mail.getSender().name()))
                    .replaceAll("\\{time}", Matcher.quoteReplacement(DateUtils.format(mail.getSentTime())))
-                    .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + config().messages.unreceived + " " + mail.getAttachmentsInternal().stream().filter(a -> !a.opened() && !a.isExpired()).count() + ")"))
-                   .replaceAll("\\{read}", Matcher.quoteReplacement(mail.isRead() ? config().messages.read : config().messages.unread))
+                    .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachments().size() + " (" + messages().unreceived + " " + mail.getAttachmentsInternal().stream().filter(a -> !a.opened() && !a.isExpired()).count() + ")"))
+                   .replaceAll("\\{read}", Matcher.quoteReplacement(mail.isRead() ? messages().read : messages().unread))
                     .transform(s -> Stream.of(s.split("\n")))
                     .filter(s -> !s.isBlank()).map(miniMessage()::deserialize)
                     .collect(Collectors.toCollection(ArrayList::new));
-            lore.addFirst(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
-            lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionOpen)));
+            lore.addFirst(miniMessage().deserialize(messages().rightClickTo.replace("{action}", messages().clickActionDelete)));
+            lore.addFirst(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionOpen)));
             meta.lore(lore);
         });
         return item;

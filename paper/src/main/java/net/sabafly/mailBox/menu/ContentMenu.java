@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ContentMenu extends DialogMenu {
@@ -47,7 +47,7 @@ public class ContentMenu extends DialogMenu {
                                 DialogBody.plainMessage(content)
                         ))
                         .build())
-                .type(DialogType.notice(ActionButton.builder(miniMessage().deserialize(config().messages.closeButton))
+                .type(DialogType.notice(ActionButton.builder(miniMessage().deserialize(messages().closeButton))
                         .action(DialogAction.customClick((_, _) -> {
                             if (parent != null) parent.open();
                         }, ClickCallback.Options.builder().build()))

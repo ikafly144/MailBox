@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public class AttachmentItemMenu extends InventoryMenu<AttachmentItemMenu> {
 
@@ -23,7 +23,7 @@ public class AttachmentItemMenu extends InventoryMenu<AttachmentItemMenu> {
     private final Consumer<ItemAttachment> consumer;
 
     public AttachmentItemMenu(CreateMailMenu.AttachmentMenu parent, Player player, Consumer<ItemAttachment> consumer) {
-        super(player, InventoryType.DROPPER, miniMessage().deserialize(config().messages.attachmentAppendItem), true);
+        super(player, InventoryType.DROPPER, miniMessage().deserialize(messages().attachmentAppendItem), true);
         this.parent = parent;
         this.consumer = consumer;
     }

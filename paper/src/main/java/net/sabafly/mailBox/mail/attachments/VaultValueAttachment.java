@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 @SuppressWarnings("UnstableApiUsage")
 public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, VaultValueContent> {
@@ -43,7 +44,7 @@ public class VaultValueAttachment extends BaseAttachment<VaultValueAttachment, V
     @Override
     public void apply(@NotNull Player player) {
         EconomyUtils.getEconomy().depositPlayer(player, content().value());
-        player.sendMessage(miniMessage().deserialize(config().messages.deposit
+        player.sendMessage(miniMessage().deserialize(messages().deposit
                 .replaceAll("\\{value}", Matcher.quoteReplacement(EconomyUtils.getEconomy().format(content().value())))
         ));
     }

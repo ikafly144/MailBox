@@ -51,9 +51,9 @@ public class ConfigLoader {
             if (dataDir.resolve("config.yml").toFile().exists()) {
                 var root = loader.load();
                 this.config = root.get(Config.class);
-                // 兼容旧配置：移除已废弃的 messages 区块
-                if (root.node("messages").virtual() == false) {
-                    logger.warn("config.yml 中的 messages 区块已废弃，请改用 locales/*.yml 语言文件。已自动忽略该区块。");
+                // Legacy migration: remove deprecated messages block from config.yml
+                if (!root.node("messages").virtual()) {
+                    logger.warn("The 'messages' block in config.yml is deprecated. Use locales/*.yml locale files instead. The block has been removed.");
                     root.node("messages").set(null);
                     loader.save(root);
                 }
@@ -68,7 +68,8 @@ public class ConfigLoader {
         }
 
         // Apply locale overrides
-        localeManager.applyLocale(this.config);
+        Locale locale = Locale.fromString(this.config.locale);
+        localeManager.loadLocale(locale);
     }
 
 }

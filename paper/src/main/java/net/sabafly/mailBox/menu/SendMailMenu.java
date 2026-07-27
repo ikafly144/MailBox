@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -30,26 +30,26 @@ public class SendMailMenu extends DialogMenu {
         if (audience instanceof Player player) {
             String recipient = Objects.requireNonNull(response.getText("recipient")).toLowerCase();
             if (recipient.isEmpty()) {
-                player.sendMessage(miniMessage().deserialize(config().messages.emptyInputError));
+                player.sendMessage(miniMessage().deserialize(messages().emptyInputError));
                 return;
             }
             if (!Key.parseable(recipient)) {
-                player.sendMessage(miniMessage().deserialize(config().messages.invalidRecipientError));
+                player.sendMessage(miniMessage().deserialize(messages().invalidRecipientError));
                 return;
             }
             try {
                 User target = database().getUserByAddress(Key.key(recipient));
                 if (target == null) {
-                    player.sendMessage(miniMessage().deserialize(config().messages.notRegisteredError));
+                    player.sendMessage(miniMessage().deserialize(messages().notRegisteredError));
                     return;
                 }
                 if (!MailUserArgumentType.checkPermission(player, target.key())) {
-                    player.sendMessage(miniMessage().deserialize(config().messages.notRegisteredError));
+                    player.sendMessage(miniMessage().deserialize(messages().notRegisteredError));
                     return;
                 }
                 new CreateMailMenu(player, target).open();
             } catch (Exception e) {
-                player.sendMessage(miniMessage().deserialize(config().messages.invalidRecipientError));
+                player.sendMessage(miniMessage().deserialize(messages().invalidRecipientError));
             }
         }
     }, ClickCallback.Options.builder()
@@ -58,15 +58,15 @@ public class SendMailMenu extends DialogMenu {
 
     private static void createDialog(@NotNull DialogRegistryEntry.Builder builder) {
         builder.type(DialogType.multiAction(List.of(
-                                ActionButton.builder(miniMessage().deserialize(config().messages.nextButton))
+                                ActionButton.builder(miniMessage().deserialize(messages().nextButton))
                                         .action(OPEN_SEND_MENU_ACTION)
                                         .build()
                         ))
                         .exitAction(ActionButton.builder(Component.translatable("gui.cancel")).build())
                         .build())
-                .base(DialogBase.builder(miniMessage().deserialize(config().messages.sendMailMenuTitle))
+                .base(DialogBase.builder(miniMessage().deserialize(messages().sendMailMenuTitle))
                         .inputs(List.of(
-                                DialogInput.text("recipient", miniMessage().deserialize(config().messages.sendMailRecipientInput))
+                                DialogInput.text("recipient", miniMessage().deserialize(messages().sendMailRecipientInput))
                                         .initial("")
                                         .maxLength(16)
                                         .build()

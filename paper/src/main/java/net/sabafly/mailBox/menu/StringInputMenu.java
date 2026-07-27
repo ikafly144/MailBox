@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 @SuppressWarnings("UnstableApiUsage")
 public class StringInputMenu extends DialogMenu implements Menu {
@@ -65,7 +65,7 @@ public class StringInputMenu extends DialogMenu implements Menu {
                         ))
                         .build())
                 .type(DialogType.multiAction(
-                        List.of(ActionButton.builder(miniMessage().deserialize(config().messages.submitButton))
+                        List.of(ActionButton.builder(miniMessage().deserialize(messages().submitButton))
                                 .action(DialogAction.customClick(
                                         (response, audience) -> {
                                             String text = response.getText("text");
@@ -81,7 +81,7 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                                     audience.sendMessage(Component.text("Error: " + e.getMessage()));
                                                 }
                                             } else {
-                                                audience.sendMessage(miniMessage().deserialize(config().messages.emptyInputError));
+                                                audience.sendMessage(miniMessage().deserialize(messages().emptyInputError));
                                             }
                                             if ((audience instanceof Player)) {
                                                 parent.open();
@@ -89,7 +89,7 @@ public class StringInputMenu extends DialogMenu implements Menu {
                                         },
                                         ClickCallback.Options.builder().build()))
                                 .build()),
-                        ActionButton.builder(miniMessage().deserialize(config().messages.cancelButton))
+                        ActionButton.builder(miniMessage().deserialize(messages().cancelButton))
                                 .action(DialogAction.customClick((_, audience) -> {
                                     if ((audience instanceof Player)) {
                                         parent.open();

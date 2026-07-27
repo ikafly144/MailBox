@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public class ItemSetterMenu extends InventoryMenu<ItemSetterMenu> {
 
@@ -22,7 +22,7 @@ public class ItemSetterMenu extends InventoryMenu<ItemSetterMenu> {
     private final ItemStack def;
 
     public ItemSetterMenu(InventoryMenu<?> parent, Player player, Consumer<ItemStack> consumer, @Nullable ItemStack def) {
-        super(player, InventoryType.DROPPER, miniMessage().deserialize(config().messages.attachmentAppendItem), true);
+        super(player, InventoryType.DROPPER, miniMessage().deserialize(messages().attachmentAppendItem), true);
         this.parent = parent;
         this.consumer = consumer;
         this.def = def;
