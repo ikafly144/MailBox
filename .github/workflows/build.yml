@@ -111,7 +111,7 @@ jobs:
           java-version: ${{ needs.resolve-config.outputs.java_version }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Ensure Gradle wrapper is executable
         run: chmod +x ./gradlew
