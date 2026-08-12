@@ -30,7 +30,12 @@ public class UserConverter {
         if (baseUser == null) {
             return null;
         }
-        return baseUser.toUser(uuid, key);
+        try {
+            return baseUser.toUser(uuid, key);
+        } catch (IllegalStateException e) {
+            // Plugin not found or other state issues - return null gracefully
+            return null;
+        }
     }
 
     public static byte @NotNull [] toJson(@NotNull User user) {
