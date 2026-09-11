@@ -2,7 +2,9 @@ package net.sabafly.mailBox.configuration;
 
 import io.papermc.paper.configuration.type.Duration;
 import io.papermc.paper.configuration.type.DurationOrDisabled;
-import net.sabafly.mailBox.MailBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.util.MapFactories;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
@@ -11,16 +13,24 @@ import java.nio.file.Path;
 
 public class ConfigLoader {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
+
     private Config config;
     private final Path dataDir;
+    private final LocaleManager localeManager;
 
     public ConfigLoader(Path dataDir) {
         this.config = new Config();
         this.dataDir = dataDir;
+        this.localeManager = new LocaleManager(dataDir);
     }
 
     public Config config() {
         return this.config;
+    }
+
+    public LocaleManager localeManager() {
+        return this.localeManager;
     }
 
     public void reload() {
@@ -39,15 +49,27 @@ public class ConfigLoader {
                 .build();
         try {
             if (dataDir.resolve("config.yml").toFile().exists()) {
-                this.config = loader.load().get(Config.class);
-                loader.save(loader.createNode(loader.defaultOptions()).set(Config.class, this.config));
+                var root = loader.load();
+                this.config = root.get(Config.class);
+                // Legacy migration: remove deprecated messages block from config.yml
+                if (!root.node("messages").virtual()) {
+                    logger.warn("The 'messages' block in config.yml is deprecated. Use locales/*.yml locale files instead. The block has been removed.");
+                    root.node("messages").set(null);
+                    loader.save(root);
+                }
             } else {
                 this.config = new Config();
-                loader.save(loader.createNode(loader.defaultOptions()).set(Config.class, this.config));
+                var root = loader.createNode(loader.defaultOptions()).set(Config.class, this.config);
+                root.node("messages").set(null);
+                loader.save(root);
             }
         } catch (Exception e) {
-            MailBox.logger().error("Failed to load config", e);
+            logger.error("Failed to load config", e);
         }
+
+        // Apply locale overrides
+        Locale locale = Locale.fromString(this.config.locale);
+        localeManager.loadLocale(locale);
     }
 
 }

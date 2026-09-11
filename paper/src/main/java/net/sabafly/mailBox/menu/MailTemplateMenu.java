@@ -19,7 +19,7 @@ import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
@@ -27,21 +27,21 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
     private int page;
 
     public MailTemplateMenu(Player player, int page) {
-        super(player, 45, menu -> miniMessage().deserialize(config().messages.mailTemplateMenuTitle + " " + menu.page));
+        super(player, 45, menu -> miniMessage().deserialize(messages().mailTemplateMenuTitle + " " + menu.page));
         this.page = page;
     }
 
     @Override
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack arrow = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(ItemTypeKeys.ARROW).createItemStack();
-        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.previousPage)));
+        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(messages().previousPage)));
         clickRegistry.setItem(0, arrow, (_, clickType) -> {
             if (clickType.isLeftClick() && page > 1) {
                 page--;
                 refresh();
             }
         });
-        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.nextPage)));
+        arrow.editMeta(meta -> meta.itemName(plainText().deserialize(messages().nextPage)));
         clickRegistry.setItem(8, arrow, (_, clickType) -> {
             if (clickType.isLeftClick()) {
                 page++;
@@ -49,7 +49,7 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
             }
         });
         ItemStack paper = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getOrThrow(ItemTypeKeys.PAPER).createItemStack();
-        paper.editMeta(meta -> meta.itemName(plainText().deserialize(config().messages.createMailTemplate)));
+        paper.editMeta(meta -> meta.itemName(plainText().deserialize(messages().createMailTemplate)));
         clickRegistry.setItem(4, paper, (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new CreateMailMenu(player, this));
@@ -79,13 +79,13 @@ public class MailTemplateMenu extends InventoryMenu<MailTemplateMenu> {
                 meta.addEnchant(Enchantment.INFINITY, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
-            meta.lore(config().messages.mailTemplateLore
-                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.of(mail.sender()).map(User::name).orElse(config().messages.systemName)))
-                   .replaceAll("\\{start}", Matcher.quoteReplacement(Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(config().messages.noValue)))
-                   .replaceAll("\\{end}", Matcher.quoteReplacement(Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(config().messages.noValue)))
-                   .replaceAll("\\{interval}", Matcher.quoteReplacement(Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.noValue)))
+            meta.lore(messages().mailTemplateLore
+                   .replaceAll("\\{sender}", Matcher.quoteReplacement(Optional.of(mail.sender()).map(User::name).orElse(messages().systemName)))
+                   .replaceAll("\\{start}", Matcher.quoteReplacement(Optional.ofNullable(mail.startTime()).map(DateUtils::format).orElse(messages().noValue)))
+                   .replaceAll("\\{end}", Matcher.quoteReplacement(Optional.ofNullable(mail.endTime()).map(DateUtils::format).orElse(messages().noValue)))
+                   .replaceAll("\\{interval}", Matcher.quoteReplacement(Optional.ofNullable(mail.interval()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(messages().noValue)))
                    .replaceAll("\\{attachments}", Matcher.quoteReplacement(mail.attachment().size() + ""))
-                   .replaceAll("\\{auto_send}", Matcher.quoteReplacement(mail.autoSend() ? config().messages.enabled : config().messages.disabled))
+                   .replaceAll("\\{auto_send}", Matcher.quoteReplacement(mail.autoSend() ? messages().enabled : messages().disabled))
                     .transform(s -> List.of(s.split("\n")))
                     .stream().filter(s -> !s.isBlank()).map(miniMessage()::deserialize).toList());
         });

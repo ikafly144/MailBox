@@ -9,12 +9,12 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public class AttachmentVaultValueMenu extends StringInputMenu {
 
     public AttachmentVaultValueMenu(InventoryMenu<?> parent, Player player, Consumer<VaultValueAttachment> consumer) {
-        super(parent, player, miniMessage().deserialize(config().messages.attachmentAppendVault
+        super(parent, player, miniMessage().deserialize(messages().attachmentAppendVault
                .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
         ), value -> {
             try {

@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
@@ -59,7 +60,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     public CreateMailMenu(@NotNull Player player, @Nullable User target, @Nullable InventoryMenu<?> nextMenu) {
         this.target = target;
         this.nextMenu = nextMenu;
-        super(player, 9, miniMessage().deserialize(config().messages.createMailMenuTitle));
+        super(player, 9, miniMessage().deserialize(messages().createMailMenuTitle));
     }
 
     @Override
@@ -74,26 +75,26 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
     void setItems(@NotNull ClickRegistry clickRegistry) {
         ItemStack subjectItem = new ItemStack(Material.NAME_TAG);
         subjectItem.editMeta(meta -> meta.itemName(subject == null ?
-                miniMessage().deserialize(config().messages.setSubject) :
-                miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(subject))).build())
+                miniMessage().deserialize(messages().setSubject) :
+                miniMessage().deserialize(messages().subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(subject))).build())
         ));
         clickRegistry.setItem(0, subjectItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(config().messages.setSubject), s -> subject = s, subject, false, 50));
+                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(messages().setSubject), s -> subject = s, subject, false, 50));
             }
         });
         ItemStack contentItem = new ItemStack(Material.WRITABLE_BOOK);
         contentItem.editMeta(meta -> meta.itemName(content == null ?
-                miniMessage().deserialize(config().messages.setContent) :
-                miniMessage().deserialize(config().messages.contentInfo, TagResolver.builder().tag("length", Tag.inserting(Component.text(content.length()))).build())
+                miniMessage().deserialize(messages().setContent) :
+                miniMessage().deserialize(messages().contentInfo, TagResolver.builder().tag("length", Tag.inserting(Component.text(content.length()))).build())
         ));
         clickRegistry.setItem(1, contentItem, (_, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(config().messages.setContent), str -> this.content = str, this.content, true, 2000));
+                openMenu(new StringInputMenu(this, viewer, miniMessage().deserialize(messages().setContent), str -> this.content = str, this.content, true, 2000));
             }
         });
         ItemStack attachmentItem = new ItemStack(Material.CHEST);
-        attachmentItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.setAttachment)));
+        attachmentItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().setAttachment)));
         clickRegistry.setItem(2, attachmentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new AttachmentMenu(this, p, attachments, attachments -> this.attachments = attachments, target == null));
@@ -102,17 +103,17 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         // NOTE: When template mode
         if (target == null) {
             ItemStack createTemplate = new ItemStack(Material.WRITABLE_BOOK);
-            createTemplate.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.createMailTemplate)));
+            createTemplate.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().createMailTemplate)));
             clickRegistry.setItem(8, createTemplate, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (subject == null || content == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateError))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(messages().createMailTemplateError))));
                         return;
                     }
                     MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> {
                         MailTemplate template = MailTemplate.createNow(MailBox.getInstance().getSystemUser(), subject, content, attachments);
                         database().createMailTemplate(template);
-                        p.sendMessage(miniMessage().deserialize(config().messages.createMailTemplateSuccess));
+                        p.sendMessage(miniMessage().deserialize(messages().createMailTemplateSuccess));
                     }));
                     created = true;
                     p.closeInventory();
@@ -121,27 +122,27 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         } else {
             ItemStack sendItem = new ItemStack(Material.GREEN_WOOL);
             sendItem.editMeta(meta -> {
-                meta.itemName(miniMessage().deserialize(config().messages.send));
+                meta.itemName(miniMessage().deserialize(messages().send));
                 if (config().mail.mailPrice > 0 || config().mail.attachmentPrice > 0) {
                     int totalPrice = config().mail.mailPrice + attachments.size() * config().mail.attachmentPrice;
                     List<Component> lore = new ArrayList<>();
                     if (config().mail.mailPrice > 0) {
                         lore.add(miniMessage().deserialize(
-                                config().messages.mailPriceInfo,
+                                messages().mailPriceInfo,
                                 Placeholder.component("price", Component.text(config().mail.mailPrice)),
                                 Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
                         ));
                     }
                     if (config().mail.attachmentPrice > 0) {
                         lore.add(miniMessage().deserialize(
-                                config().messages.attachmentPriceInfo,
+                                messages().attachmentPriceInfo,
                                 Placeholder.component("price", Component.text(config().mail.attachmentPrice)),
                                 Placeholder.component("count", Component.text(attachments.size())),
                                 Placeholder.component("total_price", Component.text(totalPrice)),
                                 Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
                         ));
                         lore.add(miniMessage().deserialize(
-                                config().messages.totalPriceInfo,
+                                messages().totalPriceInfo,
                                 Placeholder.component("price", Component.text(totalPrice)),
                                 Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural()))
                         ));
@@ -152,7 +153,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             clickRegistry.setItem(8, sendItem, (p, clickType) -> {
                 if (clickType.isLeftClick()) {
                     if (subject == null || content == null) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.createMailError))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(messages().createMailError))));
                         return;
                     }
                     if (!MailUserArgumentType.checkPermission(p, target.key())) {
@@ -163,13 +164,13 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         throw new IllegalStateException("Player user not found");
                     }
                     if (database().countMails(target, TriState.NOT_SET) >= config().mail.maxMailCount) {
-                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(config().messages.mailBoxFull))));
+                        MailBox.getThreadedQueue().submit(() -> ThreadUtils.runSync(p, () -> p.sendMessage(miniMessage().deserialize(messages().mailBoxFull))));
                         return;
                     }
                     if (!attachments.stream().allMatch(a -> a.checkRequirement(viewer))) {
                         p.sendMessage(miniMessage()
                                 .deserialize(
-                                        config().messages.notEnoughAttachmentContent
+                                        messages().notEnoughAttachmentContent
                                 )
                         );
                         return;
@@ -179,7 +180,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         if (totalPrice > 0 && !EconomyUtils.getEconomy().withdrawPlayer(p, totalPrice).transactionSuccess()) {
                             p.sendMessage(miniMessage().
                                     deserialize(
-                                            config().messages.notEnoughMoney,
+                                            messages().notEnoughMoney,
                                             Placeholder.component("currency", Component.text(EconomyUtils.getEconomy().currencyNamePlural())),
                                             Placeholder.component("price", Component.text(totalPrice)),
                                             Placeholder.component("missing_amount", Component.text(new DecimalFormat("#.##########").format(totalPrice - EconomyUtils.getEconomy().getBalance(p)))),
@@ -195,7 +196,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                         }
                         Mail mail = Mail.createFromUserNow(playerUser, target, subject, content, attachments);
                         database().createMail(mail);
-                        p.sendMessage(miniMessage().deserialize(config().messages.createMailSuccess));
+                        p.sendMessage(miniMessage().deserialize(messages().createMailSuccess));
                     }));
                     created = true;
                     p.closeInventory();
@@ -214,7 +215,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         private final boolean isTemplate;
 
         public AttachmentMenu(Menu menu, Player player, @NotNull List<@NotNull IAttachment<?, ?>> attachments, Consumer<List<@NotNull IAttachment<?, ?>>> consumer, boolean isTemplate) {
-            super(player, 45, miniMessage().deserialize(config().messages.attachmentMenuTitle));
+            super(player, 45, miniMessage().deserialize(messages().attachmentMenuTitle));
             this.menu = menu;
             this.consumer = consumer;
             this.attachments = attachments;
@@ -238,7 +239,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
         void setItems(@NotNull ClickRegistry clickRegistry) {
             if (viewer.hasPermission("mailbox.attachment.item")) {
                 ItemStack chest = new ItemStack(Material.CHEST);
-                chest.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendItem)));
+                chest.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().attachmentAppendItem)));
                 clickRegistry.setItem(0, chest, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentItemMenu(this, p, attachment -> {
@@ -251,7 +252,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             }
             if (viewer.hasPermission("mailbox.attachment.command")) {
                 ItemStack commandBlock = new ItemStack(Material.COMMAND_BLOCK);
-                commandBlock.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendCommand)));
+                commandBlock.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().attachmentAppendCommand)));
                 clickRegistry.setItem(1, commandBlock, (p, clickType) -> {
                     if (clickType.isLeftClick() && (p.hasPermission("mailbox.attachment.admin") || attachments.size() < config().mail.maxAttachmentCount)) {
                         openMenu(new AttachmentCommandMenu(this, p, attachment -> {
@@ -264,7 +265,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
             }
             if (viewer.hasPermission("mailbox.attachment.vault") && MailBox.isVaultEnabled()) {
                 ItemStack emerald = new ItemStack(Material.PAPER);
-                emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.attachmentAppendVault
+                emerald.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().attachmentAppendVault
                         .replaceAll("\\{currency}", Matcher.quoteReplacement(EconomyUtils.getEconomy().currencyNamePlural()))
                 )));
                 clickRegistry.setItem(2, emerald, (p, clickType) -> {
@@ -287,20 +288,20 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                 for (int i = 0; i < attachments.size(); i++) {
                     final int finalI = i;
                     List<Component> lore = new ArrayList<>(List.of(
-                            miniMessage().deserialize(config().messages.expirationValue, TagResolver.builder().tag(
-                                    "expiration", Tag.inserting(miniMessage().deserialize(Optional.ofNullable(attachments.get(i).expireDuration()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(config().messages.expiresNever)))
+                            miniMessage().deserialize(messages().expirationValue, TagResolver.builder().tag(
+                                    "expiration", Tag.inserting(miniMessage().deserialize(Optional.ofNullable(attachments.get(i).expireDuration()).map(d -> DurationFormatUtils.formatDuration(d.toMillis(), "HH:mm:ss")).orElse(messages().expiresNever)))
                             ).build())
                     ));
                     if (isTemplate) {
-                        lore.add(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionSetExpiration)));
+                        lore.add(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionSetExpiration)));
                     }
-                    lore.add(miniMessage().deserialize(config().messages.rightClickTo.replace("{action}", config().messages.clickActionDelete)));
+                    lore.add(miniMessage().deserialize(messages().rightClickTo.replace("{action}", messages().clickActionDelete)));
                     clickRegistry.setItem(i + 18, attachments.get(i).createPreview(_ -> lore), (player1, clickType) -> {
                         if (clickType.isRightClick()) {
                             attachments.remove(finalI);
                             refresh();
                         } else if (clickType.isLeftClick() && isTemplate) {
-                            openMenu(new StringInputMenu(this, player1, miniMessage().deserialize(config().messages.setExpiration), s -> {
+                            openMenu(new StringInputMenu(this, player1, miniMessage().deserialize(messages().setExpiration), s -> {
                                 try {
                                     final long seconds = Duration.of(s).seconds();
                                     if (seconds <= 0) {

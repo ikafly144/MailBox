@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class ScheduleManager {
@@ -81,14 +81,14 @@ public class ScheduleManager {
                         .stream().mapToLong(mail -> mail.getAttachmentsInternal().stream().filter(attachment -> !(attachment.isExpired() || attachment.opened())).count()).sum();
                 if (!mails.isEmpty()) {
                     ThreadUtils.runSync(player, () -> {
-                        player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
+                        player.sendMessage(PlaceholderUtils.deserialize(player, messages().unreadMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(mails.size()))).build()));
                         player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
                     });
                     notified = true;
                 }
                 if (unreceivedAttachments > 0) {
                     ThreadUtils.runSync(player, () -> {
-                        player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
+                        player.sendMessage(PlaceholderUtils.deserialize(player, messages().unreceivedAttachment, TagResolver.builder().tag("count", Tag.inserting(Component.text(unreceivedAttachments))).build()));
                         player.playSound(Sound.sound().type(org.bukkit.Sound.UI_BUTTON_CLICK).pitch(2).build());
                     });
                     notified = true;
@@ -104,14 +104,14 @@ public class ScheduleManager {
             if (size != 0) {
                 final int finalSize = size;
                 ThreadUtils.runSync(player, () -> {
-                    player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(finalSize))).build()));
+                    player.sendMessage(PlaceholderUtils.deserialize(player, messages().newMail, TagResolver.builder().tag("count", Tag.inserting(Component.text(finalSize))).build()));
                     player.playSound(Sound.sound().type(org.bukkit.Sound.UI_TOAST_IN).build());
                 });
                 notified = true;
             }
         } finally {
             if (notified) {
-                ThreadUtils.runSync(player, () -> player.sendMessage(PlaceholderUtils.deserialize(player, config().messages.howToOpenMail, TagResolver.builder().tag("command", Tag.inserting(Component.text("/mail"))).build())));
+                ThreadUtils.runSync(player, () -> player.sendMessage(PlaceholderUtils.deserialize(player, messages().howToOpenMail, TagResolver.builder().tag("command", Tag.inserting(Component.text("/mail"))).build())));
             }
         }
     }
