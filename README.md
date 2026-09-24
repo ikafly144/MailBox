@@ -56,6 +56,10 @@ Press `G` to open the mail dialogue GUI, allowing you to quickly access your inb
 
 ## APIs
 
+> [!CAUTION]
+> MailBox API is currently in development and may undergo changes.
+> Do not use the API in production environments until it is stable.
+
 - **MailBox API**: Provides methods for managing mails, templates, and attachments programmatically.
 
 ### Gradle
