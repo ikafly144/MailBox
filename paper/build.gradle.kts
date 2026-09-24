@@ -49,13 +49,17 @@ repositories {
     maven {
         url = uri("https://repo.extendedclip.com/releases/")
     }
+    maven {
+        name = "lunarclient"
+        url = uri("https://repo.lunarclient.dev")
+    }
 }
 
 dependencies {
     implementation(project(":mailbox-api"))
     paperLibrary("com.h2database:h2:2.5.250")
     paperLibrary("com.mysql:mysql-connector-j:26.7.0")
-    compileOnly("org.spongepowered:configurate-yaml:4.3.0-SNAPSHOT")
+    implementation("org.spongepowered:configurate-yaml:4.2.0+lunar.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
         isTransitive = false
     }
@@ -158,6 +162,8 @@ val shadowJarTask = tasks.named<ShadowJar>("shadowJar") {
     exclude("plugin.yml")
 
     minimize()
+    relocate("org.spongepowered.configurate", "net.sabafly.libs.org.spongepowered.configurate")
+    relocate("io.leangen.geantyref", "net.sabafly.libs.io.leangen.geantyref")
     relocate("com.zaxxer.hikari", "net.sabafly.libs.com.zaxxer.hikari")
     relocate("org.apache.commons.dbutils", "net.sabafly.libs.org.apache.commons.dbutils")
     relocate("com.vdurmont.semver4j", "net.sabafly.libs.com.vdurmont.semver4j")
