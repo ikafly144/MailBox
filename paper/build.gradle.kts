@@ -14,15 +14,15 @@ plugins {
     id("io.papermc.hangar-publish-plugin") version "0.+"
 }
 
-val javaVersion: String by project
-val minecraftVersion: String by project
-val pluginArtifactName: String by project
-val supportedMinecraftVersions: String by project
-val modrinthProjectId: String by project
-val modrinthLoaders: String by project
-val modrinthVersionType: String by project
-val hangarProjectId: String by project
-val hangarChannel: String by project
+val javaVersion = project.findProperty("javaVersion") as String
+val minecraftVersion = project.findProperty("minecraftVersion") as String
+val pluginArtifactName = project.findProperty("pluginArtifactName") as String
+val supportedMinecraftVersions = project.findProperty("supportedMinecraftVersions") as String
+val modrinthProjectId = project.findProperty("modrinthProjectId") as String
+val modrinthLoaders = project.findProperty("modrinthLoaders") as String
+val modrinthVersionType = project.findProperty("modrinthVersionType") as String
+val hangarProjectId = project.findProperty("hangarProjectId") as String
+val hangarChannel = project.findProperty("hangarChannel") as String
 
 val targetJavaVersion = javaVersion.toInt()
 val supportedMcVersions = supportedMinecraftVersions.split(',').map(String::trim).filter(String::isNotEmpty)

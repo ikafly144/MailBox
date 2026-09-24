@@ -10,11 +10,11 @@ through an intuitive GUI interface with economy integration.
 ## Version Support Policy
 
 | Minecraft Version | Support Status         | Notes                  |
-|-------------------|------------------------|------------------------|
-| 26.1.x            | ✅ Main Target          | Current target version |
-| 1.21.6 ~ 1.21.11  | ✅ Supported            | -                      |
-| 1.21 ~ 1.21.5     | 🚧 No Longer Supported | Use legacy version     |
-| < 1.20            | ❌ Not Supported        | Not compatible         |
+|:-----------------:|------------------------|------------------------|
+|    26.1 ~ 26.3    | ✅ Main Target         | Current target version |
+| 1.21.6 ~ 1.21.11  | 🔄️ Supported           | -                      |
+|   1.21 ~ 1.21.5   | 🚧 No Longer Supported | Use legacy version     |
+|      < 1.20       | ❌ Not Supported       | Not compatible         |
 
 **Support Policy:**
 
