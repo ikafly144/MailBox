@@ -37,19 +37,19 @@ public final class Bootstrapper implements PluginBootstrap {
         context.getLifecycleManager().registerEventHandler(RegistryEvents.DIALOG.compose().newHandler(event -> event.registry().register(
                 DialogKeys.create(CONTENT_DIALOG_KEY),
                 builder -> builder.type(DialogType.multiAction(List.of(
-                                        ActionButton.builder(miniMessage().deserialize(config.config().messages.inboxButton))
+                                        ActionButton.builder(miniMessage().deserialize(config.localeManager().messages().inboxButton))
                                                 .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:mail inbox")))
-                                                .tooltip(miniMessage().deserialize(config.config().messages.inboxTooltip))
+                                                .tooltip(miniMessage().deserialize(config.localeManager().messages().inboxTooltip))
                                                 .build(),
-                                        ActionButton.builder(miniMessage().deserialize(config.config().messages.sendMailButton))
+                                        ActionButton.builder(miniMessage().deserialize(config.localeManager().messages().sendMailButton))
                                                 .action(DialogAction.staticAction(ClickEvent.runCommand("/mailbox:sendmail")))
-                                                .tooltip(miniMessage().deserialize(config.config().messages.sendMailTooltip))
+                                                .tooltip(miniMessage().deserialize(config.localeManager().messages().sendMailTooltip))
                                                 .build()
                                 ))
                                 .exitAction(ActionButton.builder(Component.translatable("gui.back")).build())
                                 .columns(1)
                                 .build())
-                        .base(DialogBase.builder(miniMessage().deserialize(config.config().messages.mailMenuTitle)).build())
+                        .base(DialogBase.builder(miniMessage().deserialize(config.localeManager().messages().mailMenuTitle)).build())
         )));
         if (config.config().enableQuickAction) {
             context.getLifecycleManager().registerEventHandler(LifecycleEvents.TAGS.postFlatten(RegistryKey.DIALOG)

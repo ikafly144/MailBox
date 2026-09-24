@@ -14,13 +14,13 @@ import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public sealed class DummyMailUser implements User permits PluginMailUser {
 
     public static final UUID SYSTEM_UUID = new UUID(0, 0);
     @ApiStatus.Internal
-    public static final DummyMailUser SYSTEM_USER = createUser(SYSTEM_UUID, config().messages.systemName, "system", "40b05e699d28b3a278a92d169dca9d57c0791d07994d82de3f9ed4a48afe0e1d");
+    public static final DummyMailUser SYSTEM_USER = createUser(SYSTEM_UUID, messages().systemName, "system", "40b05e699d28b3a278a92d169dca9d57c0791d07994d82de3f9ed4a48afe0e1d");
 
     @Contract("_, _, _, _ -> new")
     @ApiStatus.Internal
@@ -68,7 +68,7 @@ public sealed class DummyMailUser implements User permits PluginMailUser {
     @Override
     public @NotNull String name() {
         if (uuid.equals(SYSTEM_UUID)) {
-            return config().messages.systemName;
+            return messages().systemName;
         }
         return name;
     }

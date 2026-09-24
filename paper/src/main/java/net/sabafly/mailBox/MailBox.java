@@ -8,6 +8,7 @@ import net.kyori.adventure.key.Key;
 import net.sabafly.mailBox.commands.MailCommands;
 import net.sabafly.mailBox.configuration.Config;
 import net.sabafly.mailBox.configuration.ConfigLoader;
+import net.sabafly.mailBox.configuration.Messages;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.executor.ThreadedQueue;
 import net.sabafly.mailBox.listener.PlayerListener;
@@ -153,6 +154,10 @@ public final class MailBox extends JavaPlugin implements Listener, IMailBox {
 
     public static Config config() {
         return getInstance().config.config();
+    }
+
+    public static Messages messages() {
+        return getInstance().config.localeManager().messages();
     }
 
     public static Database database() {

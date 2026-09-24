@@ -46,7 +46,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRegistrarEvent<@NotNull Commands>> {
@@ -74,7 +74,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                 .requires(context -> context.getSender().hasPermission("mailbox.admin"))
                                 .executes(context -> {
                                     MailBox.reload();
-                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(config().messages.reloadSuccess));
+                                    context.getSource().getSender().sendMessage(miniMessage().deserialize(messages().reloadSuccess));
                                     return Command.SINGLE_SUCCESS;
                                 })
                         )
@@ -100,7 +100,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     .forEach(template::send);
                                                             context.getSource().getSender().sendMessage(miniMessage()
                                                                     .deserialize(
-                                                                            config().messages.sendTemplateSuccess,
+                                                                            messages().sendTemplateSuccess,
                                                                             Placeholder.component("count", Component.text(targets.size())),
                                                                             Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                                     )
@@ -117,7 +117,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                     String subject = context.getArgument("subject", String.class);
                                                     if (database().getAllMailTemplates().stream().anyMatch(template -> template.subject().equals(subject))) {
                                                         context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                config().messages.templateAlreadyExists,
+                                                                messages().templateAlreadyExists,
                                                                 Placeholder.component("subject", miniMessage().deserialize(subject))
                                                         ));
                                                         return Command.SINGLE_SUCCESS;
@@ -127,7 +127,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                             .build();
                                                     database().createMailTemplate(template);
                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                            config().messages.templateCreateSuccess,
+                                                            messages().templateCreateSuccess,
                                                             Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                     ));
                                                     return Command.SINGLE_SUCCESS;
@@ -141,7 +141,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                     var template = context.getArgument("template", MailTemplate.class);
                                                     database().deleteMailTemplate(template);
                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                            config().messages.templateDeleteSuccess,
+                                                            messages().templateDeleteSuccess,
                                                             Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                     ));
                                                     return Command.SINGLE_SUCCESS;
@@ -158,7 +158,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     String newSubject = context.getArgument("new_subject", String.class);
                                                                     if (database().getAllMailTemplates().stream().anyMatch(t -> t.subject().equals(newSubject))) {
                                                                         context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                                config().messages.templateAlreadyExists,
+                                                                                messages().templateAlreadyExists,
                                                                                 Placeholder.component("subject", miniMessage().deserialize(newSubject))
                                                                         ));
                                                                         return Command.SINGLE_SUCCESS;
@@ -166,7 +166,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     template.setSubject(newSubject);
                                                                     database().updateMailTemplate(template);
                                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                            config().messages.templateEditSubjectSuccess,
+                                                                            messages().templateEditSubjectSuccess,
                                                                             Placeholder.component("template", miniMessage().deserialize(newSubject)),
                                                                             Placeholder.component("old_subject", miniMessage().deserialize(template.subject())),
                                                                             Placeholder.component("new_subject", miniMessage().deserialize(newSubject))
@@ -183,7 +183,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     template.setContent(miniMessage().serialize(newContent));
                                                                     database().updateMailTemplate(template);
                                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                            config().messages.templateEditContentSuccess,
+                                                                            messages().templateEditContentSuccess,
                                                                             Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                                     ));
                                                                     return Command.SINGLE_SUCCESS;
@@ -198,7 +198,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     template.setSender(newSender);
                                                                     database().updateMailTemplate(template);
                                                                     context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                            config().messages.templateEditSenderSuccess,
+                                                                            messages().templateEditSenderSuccess,
                                                                             Placeholder.component("template", miniMessage().deserialize(template.subject())),
                                                                             Placeholder.component("sender", miniMessage().deserialize(newSender.name()))
                                                                     ));
@@ -213,12 +213,12 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                     var attachments = database().getTemplateAttachments(template);
                                                                     if (attachments.isEmpty()) {
                                                                         context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                                config().messages.templateNoAttachments,
+                                                                                messages().templateNoAttachments,
                                                                                 Placeholder.component("template", miniMessage().deserialize(template.subject()))
                                                                         ));
                                                                     } else {
                                                                         context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                                config().messages.templateAttachmentList,
+                                                                                messages().templateAttachmentList,
                                                                                 Placeholder.component("template", miniMessage().deserialize(template.subject())),
                                                                                 Placeholder.component("attachments", Component.join(
                                                                                         JoinConfiguration.separator(Component.newline()),
@@ -248,7 +248,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                             var attachments = database().getTemplateAttachments(template);
                                                                             if (index < 0 || index >= attachments.size()) {
                                                                                 context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                                        config().messages.invalidAttachmentIndex,
+                                                                                        messages().invalidAttachmentIndex,
                                                                                         Placeholder.component("index", Component.text(index + 1))
                                                                                 ));
                                                                                 return Command.SINGLE_SUCCESS;
@@ -256,7 +256,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                             var attachment = attachments.get(index);
                                                                             database().deleteTemplateAttachment(template, attachment);
                                                                             context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                                                                                    config().messages.templateAttachmentDeleteSuccess,
+                                                                                    messages().templateAttachmentDeleteSuccess,
                                                                                     Placeholder.component("template", miniMessage().deserialize(template.subject())),
                                                                                     Placeholder.component("attachment", attachment.format())
                                                                             ));
@@ -442,7 +442,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                 throw new IllegalStateException("Built attachment is not an instance of IAttachment");
             database().createTemplateAttachment(template, iAttachment);
             context.getSource().getSender().sendMessage(miniMessage().deserialize(
-                    config().messages.templateAttachmentAddSuccess,
+                    messages().templateAttachmentAddSuccess,
                     Placeholder.component("template", miniMessage().deserialize(template.subject())),
                     Placeholder.component("attachment", attachment.format())
             ));

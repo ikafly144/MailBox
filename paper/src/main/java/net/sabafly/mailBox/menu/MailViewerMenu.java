@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
 
 public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
@@ -34,7 +35,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
     private final User owner;
 
     public MailViewerMenu(Player viewer, User owner, Mail mail, boolean openPreviousMenu) {
-        super(viewer, getSlot(mail.attachments().size()), miniMessage().deserialize(config().messages.mailViewerMenuTitle));
+        super(viewer, getSlot(mail.attachments().size()), miniMessage().deserialize(messages().mailViewerMenuTitle));
         this.owner = owner;
         this.mail = mail;
         this.openPreviousMenu = openPreviousMenu;
@@ -79,12 +80,12 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
             }
         });
         ItemStack titleItem = new ItemStack(Material.NAME_TAG);
-        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(config().messages.subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
+        titleItem.editMeta(meta -> meta.itemName(miniMessage().deserialize(messages().subjectValue, TagResolver.builder().tag("subject", Tag.inserting(plainText().deserialize(mail.getTitle()))).build())));
         clickRegistry.setItem(1, titleItem);
         ItemStack contentItem = new ItemStack(Material.BOOK);
         contentItem.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.content));
-            meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionRead))));
+            meta.itemName(miniMessage().deserialize(messages().content));
+            meta.lore(List.of(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionRead))));
         });
         clickRegistry.setItem(2, contentItem, (p, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -111,12 +112,12 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         for (int i = 0; i < mail.attachments().size(); i++) {
             int finalI = i;
             clickRegistry.setItem(start + count + i, mail.getAttachmentsInternal().get(i).createPreview(attachment -> {
-                List<Component> lore = config().messages.attachmentLore
-                        .replaceAll("\\{received}", attachment.opened() ? config().messages.received : attachment.isExpired() ? config().messages.expired : config().messages.notReceived)
-                        .replaceAll("\\{expires}", attachment.expireTime().map(t -> t.format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(config().messages.expiresNever))
+                List<Component> lore = messages().attachmentLore
+                        .replaceAll("\\{received}", attachment.opened() ? messages().received : attachment.isExpired() ? messages().expired : messages().notReceived)
+                        .replaceAll("\\{expires}", attachment.expireTime().map(t -> t.format(DateTimeFormatter.ofPattern(config().mail.dateFormat))).orElse(messages().expiresNever))
                         .transform(s -> Stream.of(s.split("\n")))
                         .filter(str -> !str.isBlank()).map(miniMessage()::deserialize).collect(Collectors.toList());
-                lore.addFirst(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReceive)));
+                lore.addFirst(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionReceive)));
                 return lore;
             }), (p, clickType) -> {
                 final IAttachment<?, ?> attachment = mail.getAttachmentsInternal().get(finalI);
@@ -128,10 +129,10 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                         refresh();
                     } else {
                         p.sendMessage(miniMessage().deserialize(
-                                config().messages.attachmentCannotOpen,
+                                messages().attachmentCannotOpen,
                                 Placeholder.component("attachment", attachment.getName()),
-                                Placeholder.parsed("reason", attachment.isExpired() ? config().messages.attachmentExpired :
-                                        attachment.opened() ? config().messages.attachmentAlreadyReceived :
+                                Placeholder.parsed("reason", attachment.isExpired() ? messages().attachmentExpired :
+                                        attachment.opened() ? messages().attachmentAlreadyReceived :
                                         "unknown")
                         ));
                     }
@@ -158,7 +159,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
         senderItem.editMeta(meta ->
                 {
                     meta.customName(miniMessage().deserialize(
-                            config().messages.senderValue,
+                            messages().senderValue,
                             TagResolver.builder().tag(
                                     "sender",
                                     Tag.inserting(
@@ -169,7 +170,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
                             ).build()
                     ));
                     if (replyEnabled) {
-                        meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo.replace("{action}", config().messages.clickActionReply))));
+                        meta.lore(List.of(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionReply))));
                     }
                 }
         );

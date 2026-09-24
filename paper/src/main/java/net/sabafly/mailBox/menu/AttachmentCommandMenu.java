@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
-import static net.sabafly.mailBox.MailBox.config;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> {
 
@@ -32,7 +32,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
     private @Nullable ItemStack displayItem = null;
 
     public AttachmentCommandMenu(CreateMailMenu.AttachmentMenu parent, Player player, Consumer<CommandAttachment> consumer) {
-        super(player, 9, miniMessage().deserialize(config().messages.attachmentAppendCommand));
+        super(player, 9, miniMessage().deserialize(messages().attachmentAppendCommand));
         this.parent = parent;
         this.consumer = consumer;
     }
@@ -47,20 +47,20 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
         final ItemStack nameTag = getNameTag();
         clickRegistry.setItem(4, nameTag, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setName), (s) -> name = s, name, false, 30));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(messages().setName), (s) -> name = s, name, false, 30));
             }
         });
         final ItemStack commandBlock = getCommandBlock();
         clickRegistry.setItem(3, commandBlock, (player, clickType) -> {
             if (clickType.isLeftClick()) {
-                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(config().messages.setCommand), (s) -> command = s, command, false, 2000));
+                openMenu(new StringInputMenu(this, player, miniMessage().deserialize(messages().setCommand), (s) -> command = s, command, false, 2000));
             }
         });
         final ItemStack display = new ItemStack((displayItem == null ? Material.STRUCTURE_VOID : displayItem.getType()));
         display.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.displayItem));
-            meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
-                    .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet)))));
+            meta.itemName(miniMessage().deserialize(messages().displayItem));
+            meta.lore(List.of(miniMessage().deserialize(messages().leftClickTo
+                    .replaceAll("\\{action}", Matcher.quoteReplacement(messages().clickActionSet)))));
         });
         clickRegistry.setItem(5, display, (player, clickType) -> {
             if (clickType.isLeftClick()) {
@@ -69,9 +69,9 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
         });
         ItemStack limeWool = new ItemStack(Material.LIME_WOOL);
         limeWool.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.append));
-            meta.lore(List.of(miniMessage().deserialize(config().messages.leftClickTo
-                    .replaceAll("\\{action}", config().messages.clickActionCreate))));
+            meta.itemName(miniMessage().deserialize(messages().append));
+            meta.lore(List.of(miniMessage().deserialize(messages().leftClickTo
+                    .replaceAll("\\{action}", messages().clickActionCreate))));
         });
         clickRegistry.setItem(8, limeWool, (player, clickType) -> {
             if (clickType.isLeftClick() && name != null && command != null && displayItem != null) {
@@ -89,7 +89,7 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
                 }
                 openMenu(parent);
             } else {
-                player.sendMessage(miniMessage().deserialize(config().messages.attachmentCommandError));
+                player.sendMessage(miniMessage().deserialize(messages().attachmentCommandError));
             }
         });
     }
@@ -97,15 +97,15 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
     private @NotNull ItemStack getCommandBlock() {
         ItemStack commandBlock = new ItemStack(Material.COMMAND_BLOCK);
         commandBlock.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.setCommand));
+            meta.itemName(miniMessage().deserialize(messages().setCommand));
             meta.lore(List.of(
-                    miniMessage().deserialize(config().messages.leftClickTo
-                            .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet))),
-                    miniMessage().deserialize(config().messages.commandValue,
+                    miniMessage().deserialize(messages().leftClickTo
+                            .replaceAll("\\{action}", Matcher.quoteReplacement(messages().clickActionSet))),
+                    miniMessage().deserialize(messages().commandValue,
                             TagResolver.builder()
                                     .tag("command", Tag.inserting(Optional.ofNullable(command)
                                             .map(s -> (Component) plainText().deserialize(s))
-                                            .orElse(miniMessage().deserialize(config().messages.noValue))))
+                                            .orElse(miniMessage().deserialize(messages().noValue))))
                                     .build())
             ));
         });
@@ -115,15 +115,15 @@ public class AttachmentCommandMenu extends InventoryMenu<AttachmentCommandMenu> 
     private @NotNull ItemStack getNameTag() {
         ItemStack nameTag = new ItemStack(Material.NAME_TAG);
         nameTag.editMeta(meta -> {
-            meta.itemName(miniMessage().deserialize(config().messages.setName));
+            meta.itemName(miniMessage().deserialize(messages().setName));
             meta.lore(List.of(
-                    miniMessage().deserialize(config().messages.leftClickTo
-                            .replaceAll("\\{action}", Matcher.quoteReplacement(config().messages.clickActionSet))),
-                    miniMessage().deserialize(config().messages.nameValue,
+                    miniMessage().deserialize(messages().leftClickTo
+                            .replaceAll("\\{action}", Matcher.quoteReplacement(messages().clickActionSet))),
+                    miniMessage().deserialize(messages().nameValue,
                             TagResolver.builder()
                                     .tag("name", Tag.inserting(Optional.ofNullable(name)
                                             .map(s -> (Component) plainText().deserialize(s))
-                                            .orElse(miniMessage().deserialize(config().messages.noValue))))
+                                            .orElse(miniMessage().deserialize(messages().noValue))))
                                     .build())
             ));
         });
