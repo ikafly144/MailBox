@@ -63,9 +63,7 @@ public class MailViewerMenu extends InventoryMenu<MailViewerMenu> {
 
     @Override
     protected void onClose(@NotNull Player player, @Nullable InventoryView inventory) {
-        if (openPreviousMenu) {
-            setNextMenu(new InboxMenu(player, owner));
-        }
+        // ESC直接关闭，不强制弹回收件箱
     }
 
     @Override
