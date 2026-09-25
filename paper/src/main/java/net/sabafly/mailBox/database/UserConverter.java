@@ -30,7 +30,12 @@ public class UserConverter {
         if (baseUser == null) {
             return null;
         }
-        return baseUser.toUser(uuid, key);
+        try {
+            return baseUser.toUser(uuid, key);
+        } catch (IllegalStateException e) {
+            // 插件不存在时返回null
+            return null;
+        }
     }
 
     public static byte @NotNull [] toJson(@NotNull User user) {
