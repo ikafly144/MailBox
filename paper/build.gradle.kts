@@ -57,7 +57,7 @@ repositories {
 
 dependencies {
     implementation(project(":mailbox-api"))
-    paperLibrary("com.h2database:h2:2.5.250")
+    paperLibrary("com.h2database:h2:2.5.252")
     paperLibrary("com.mysql:mysql-connector-j:26.7.0")
     implementation("org.spongepowered:configurate-yaml:4.2.0+lunar.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1") {
