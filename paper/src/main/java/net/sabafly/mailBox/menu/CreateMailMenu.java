@@ -1,6 +1,5 @@
 package net.sabafly.mailBox.menu;
 
-import io.papermc.paper.configuration.type.Duration;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -8,6 +7,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.util.TriState;
 import net.sabafly.mailBox.MailBox;
 import net.sabafly.mailBox.commands.arguments.MailUserArgumentType;
+import net.sabafly.mailBox.configuration.type.Duration;
 import net.sabafly.mailBox.mail.IAttachment;
 import net.sabafly.mailBox.mail.Mail;
 import net.sabafly.mailBox.mail.MailTemplate;
@@ -312,7 +312,7 @@ public class CreateMailMenu extends InventoryMenu<CreateMailMenu> {
                                 } catch (Exception e) {
                                     MailBox.logger().error("Error while setting expiration", e);
                                 }
-                            }, Optional.ofNullable(attachments.get(finalI).expireDuration()).map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
+                            }, Optional.ofNullable(attachments.get(finalI).expireDuration()).map(d -> Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
                                     false, 30));
                         }
                     });

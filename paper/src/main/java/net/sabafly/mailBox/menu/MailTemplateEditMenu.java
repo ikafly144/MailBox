@@ -100,9 +100,9 @@ public class MailTemplateEditMenu extends InventoryMenu<MailTemplateEditMenu> {
         clickRegistry.setItem(4, getInterval(), (player, clickType) -> {
             if (clickType.isLeftClick()) {
                 openMenu(new StringInputMenu(this, player, miniMessage().deserialize(messages().setInterval), value -> {
-                    template.setInterval(Duration.ofSeconds(io.papermc.paper.configuration.type.Duration.of(value).seconds()));
+                    template.setInterval(Duration.ofSeconds(net.sabafly.mailBox.configuration.type.Duration.of(value).seconds()));
                     refresh();
-                }, Optional.ofNullable(template.interval()).map(d -> io.papermc.paper.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
+                }, Optional.ofNullable(template.interval()).map(d -> net.sabafly.mailBox.configuration.type.Duration.of("%d%s".formatted(d.toMinutes() == 0 ? d.toSeconds() : d.toHours() == 0 ? d.toMinutes() : d.toHours(), d.toMinutes() == 0 ? "s" : d.toHours() == 0 ? "m" : "h")).value()).orElse(null),
                         false, 12));
             } else if (clickType.isRightClick()) {
                 template.setInterval(null);

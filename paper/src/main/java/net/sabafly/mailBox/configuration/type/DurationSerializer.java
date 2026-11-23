@@ -1,6 +1,5 @@
 package net.sabafly.mailBox.configuration.type;
 
-import io.papermc.paper.configuration.type.Duration;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.configurate.serialize.ScalarSerializer;
 import org.spongepowered.configurate.serialize.SerializationException;

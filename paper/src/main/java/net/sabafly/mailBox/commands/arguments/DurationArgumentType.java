@@ -1,5 +1,6 @@
 package net.sabafly.mailBox.commands.arguments;
 
+import com.google.common.base.CharMatcher;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -9,25 +10,25 @@ import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import io.papermc.paper.adventure.AdventureComponent;
 import io.papermc.paper.command.brigadier.argument.CustomArgumentType;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.minecraft.commands.SharedSuggestionProvider;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
 public class DurationArgumentType implements CustomArgumentType<Duration, String> {
 
-    private static final SimpleCommandExceptionType ERROR_INVALID_UNIT = new SimpleCommandExceptionType(new AdventureComponent(Component.translatable("argument.time.invalid_unit")));
+    private static final SimpleCommandExceptionType ERROR_INVALID_UNIT = new SimpleCommandExceptionType(() -> plainText().serialize(Component.translatable("argument.time.invalid_unit")));
     private static final Dynamic2CommandExceptionType ERROR_TICK_COUNT_TOO_LOW = new Dynamic2CommandExceptionType(
-            (value, limit) -> new AdventureComponent(miniMessage().deserialize(
+            (value, limit) -> ()-> plainText().serialize(miniMessage().deserialize(
                     "The duration must not be less than <limit>: found <value>",
                     Placeholder.parsed("value", String.valueOf(value)),
                     Placeholder.parsed("limit", String.valueOf(limit))
@@ -79,7 +80,33 @@ public class DurationArgumentType implements CustomArgumentType<Duration, String
             return builder.buildFuture();
         }
 
-        return SharedSuggestionProvider.suggest(UNITS.keySet(), builder.createOffset(builder.getStart() + reader.getCursor()));
+        return suggest(UNITS.keySet(), builder.createOffset(builder.getStart() + reader.getCursor()));
+    }
+
+    static CompletableFuture<Suggestions> suggest(Iterable<String> values, SuggestionsBuilder builder) {
+        String lowerPrefix = builder.getRemaining().toLowerCase(Locale.ROOT);
+
+        for(String name : values) {
+            if (matchesSubStr(lowerPrefix, name.toLowerCase(Locale.ROOT))) {
+                builder.suggest(name);
+            }
+        }
+
+        return builder.buildFuture();
+    }
+
+    static CharMatcher MATCH_SPLITTER = CharMatcher.anyOf("._/");
+
+    static boolean matchesSubStr(String pattern, String input) {
+        int indexOfSplitter;
+        for(int index = 0; !input.startsWith(pattern, index); index = indexOfSplitter + 1) {
+            indexOfSplitter = MATCH_SPLITTER.indexIn(input, index);
+            if (indexOfSplitter < 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

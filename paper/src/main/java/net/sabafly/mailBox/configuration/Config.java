@@ -1,7 +1,7 @@
 package net.sabafly.mailBox.configuration;
 
-import io.papermc.paper.configuration.type.Duration;
-import io.papermc.paper.configuration.type.DurationOrDisabled;
+import net.sabafly.mailBox.configuration.type.Duration;
+import net.sabafly.mailBox.configuration.type.DurationOrDisabled;
 import net.sabafly.mailBox.database.Database;
 import net.sabafly.mailBox.database.impl.H2;
 import net.sabafly.mailBox.database.impl.MySQL;
