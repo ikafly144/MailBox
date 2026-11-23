@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -42,12 +43,11 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static net.kyori.adventure.text.minimessage.MiniMessage.miniMessage;
-import static net.sabafly.mailBox.MailBox.messages;
 import static net.sabafly.mailBox.MailBox.database;
+import static net.sabafly.mailBox.MailBox.messages;
 
 public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRegistrarEvent<@NotNull Commands>> {
 
@@ -226,9 +226,7 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                                                                         attachments.stream()
                                                                                                                 .map(Attachment::format),
                                                                                                         (element, idx) ->
-                                                                                                                Optional.of(element)
-                                                                                                                        .map(e -> Component.text((idx + 1) + ": ").append(e))
-                                                                                                                        .orElse(Component.text((idx + 1) + ": <null>:"))
+                                                                                                                Component.text((idx + 1) + ": ").append(element)
                                                                                                 )
                                                                                                 .toList()
                                                                                 ))
@@ -268,53 +266,11 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                         )
                                 )
                         )
-                        .then(Commands.literal("inbox")
-                                .requires(source -> source.getExecutor() instanceof Player)
-                                .requires(source -> source.getSender().hasPermission("mailbox.inbox"))
-                                .executes(context -> {
-                                    if (!(context.getSource().getExecutor() instanceof Player player))
-                                        throw ERROR_PLAYER_REQUIRED.create();
-                                    var user = database().getUser(player.getUniqueId());
-                                    if (user == null)
-                                        throw new IllegalStateException("User not found");
-                                    new InboxMenu(player, user).open();
-                                    return Command.SINGLE_SUCCESS;
-                                })
-                                .then(Commands.literal("of")
-                                        .requires(source -> source.getSender().hasPermission("mailbox.inbox.others"))
-                                        .then(Commands.argument("source", MailUserArgumentType.create())
-                                                .executes(context -> {
-                                                    if (!(context.getSource().getExecutor() instanceof Player player))
-                                                        throw ERROR_PLAYER_REQUIRED.create();
-                                                    var user = context.getArgument("source", User.class);
-                                                    new InboxMenu(player, user).open();
-                                                    return Command.SINGLE_SUCCESS;
-                                                })
-                                        )
-                                )
-                        )
+                        .then(buildInboxNode())
                         .build(), List.of("mailbox")
         );
-        event.registrar().register(Commands.literal("sendmail")
-                .requires(context -> context.getSender().hasPermission("mailbox.send"))
-                .executes(context -> {
-                    if (!(context.getSource().getExecutor() instanceof Player player))
-                        throw ERROR_PLAYER_REQUIRED.create();
-                    new SendMailMenu(player).open();
-                    return Command.SINGLE_SUCCESS;
-                })
-                .then(Commands.argument("to", MailUserArgumentType.withPermission())
-                        .executes(context -> {
-                            if (!(context.getSource().getExecutor() instanceof Player player))
-                                throw ERROR_PLAYER_REQUIRED.create();
-                            var user = context.getArgument("to", User.class);
-                            if (player.getUniqueId().equals(user.id()) && !player.hasPermission("mailbox.admin"))
-                                throw ERROR_CANNOT_SEND_YOURSELF.create();
-                            new CreateMailMenu(player, user).open();
-                            return Command.SINGLE_SUCCESS;
-                        })
-                )
-                .build());
+        event.registrar().register(buildInboxNode().build());
+        event.registrar().register(buildSendMailNode().build());
     }
 
     private static <A extends ArgumentBuilder<CommandSourceStack, A>> A addAttachmentNode(A node) {
@@ -448,6 +404,55 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
             ));
             return Command.SINGLE_SUCCESS;
         });
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> buildInboxNode() {
+        return Commands.literal("inbox")
+                .requires(source -> source.getExecutor() instanceof Player)
+                .requires(source -> source.getSender().hasPermission("mailbox.inbox"))
+                .executes(context -> {
+                    if (!(context.getSource().getExecutor() instanceof Player player))
+                        throw ERROR_PLAYER_REQUIRED.create();
+                    var user = database().getUser(player.getUniqueId());
+                    if (user == null)
+                        throw new IllegalStateException("User not found");
+                    new InboxMenu(player, user).open();
+                    return Command.SINGLE_SUCCESS;
+                })
+                .then(Commands.literal("of")
+                        .requires(source -> source.getSender().hasPermission("mailbox.inbox.others"))
+                        .then(Commands.argument("source", MailUserArgumentType.create())
+                                .executes(context -> {
+                                    if (!(context.getSource().getExecutor() instanceof Player player))
+                                        throw ERROR_PLAYER_REQUIRED.create();
+                                    var user = context.getArgument("source", User.class);
+                                    new InboxMenu(player, user).open();
+                                    return Command.SINGLE_SUCCESS;
+                                })
+                        )
+                );
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> buildSendMailNode() {
+        return Commands.literal("sendmail")
+                .requires(context -> context.getSender().hasPermission("mailbox.send"))
+                .executes(context -> {
+                    if (!(context.getSource().getExecutor() instanceof Player player))
+                        throw ERROR_PLAYER_REQUIRED.create();
+                    new SendMailMenu(player).open();
+                    return Command.SINGLE_SUCCESS;
+                })
+                .then(Commands.argument("to", MailUserArgumentType.withPermission())
+                        .executes(context -> {
+                            if (!(context.getSource().getExecutor() instanceof Player player))
+                                throw ERROR_PLAYER_REQUIRED.create();
+                            var user = context.getArgument("to", User.class);
+                            if (player.getUniqueId().equals(user.id()) && !player.hasPermission("mailbox.admin"))
+                                throw ERROR_CANNOT_SEND_YOURSELF.create();
+                            new CreateMailMenu(player, user).open();
+                            return Command.SINGLE_SUCCESS;
+                        })
+                );
     }
 
 }
