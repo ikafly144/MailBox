@@ -107,8 +107,10 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
         database().deleteAllUserNotification(owner);
         for (Mail mail : database().getMails(owner, TriState.NOT_SET, page).stream().sorted().toList().reversed()) {
             clickRegistry.setItem(slot, createMailItem(mail), (_, clickType) -> {
-                if (clickType.isLeftClick()) {
-//                    ThreadUtils.runSync(viewer, () -> new MailDialogView(viewer, this, mail, owner).open());
+                if (clickType.isShiftClick() && clickType.isLeftClick() && mail.getAttachmentsInternal().stream().anyMatch(a -> !a.opened() && !a.isExpired())) {
+                    mail.getAttachmentsInternal().stream().filter(a -> !a.opened() && !a.isExpired()).forEach(a -> a.open(viewer));
+                    refresh();
+                } else if(clickType.isLeftClick()) {
                     openMenu(new MailViewerMenu(viewer, owner, mail, true));
                 } else if (clickType.isRightClick() && mail.getAttachmentsInternal().stream().allMatch(a -> a.opened() || a.isExpired())) {
                     if (clickType.isShiftClick()) {
@@ -152,6 +154,8 @@ public class InboxMenu extends InventoryMenu<InboxMenu> {
                     .collect(Collectors.toCollection(ArrayList::new));
             lore.addFirst(miniMessage().deserialize(messages().rightClickTo.replace("{action}", messages().clickActionDelete)));
             lore.addFirst(miniMessage().deserialize(messages().leftClickTo.replace("{action}", messages().clickActionOpen)));
+            if (mail.getAttachmentsInternal().stream().anyMatch(a -> !a.opened() && !a.isExpired()))
+                lore.addFirst(miniMessage().deserialize(messages().shiftClickTo.replace("{action}", messages().clickActionClaimAll)));
             meta.lore(lore);
         });
         return item;
