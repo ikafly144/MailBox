@@ -150,4 +150,6 @@ public class Messages {
         public String attachmentCannotOpen = "<red>You cannot open attachment <attachment>, reason: <reason></red>";
         public String attachmentExpired = "<red>Expired</red>";
         public String attachmentAlreadyReceived = "<red>Already received</red>";
+        public String sendTemplateSomeTargetsNotFound = "<yellow>Some targets were not found, but the template <template> was sent to the rest.</yellow>";
+        public String sendTemplateNoTargetsFound = "<red>No targets were found, the template <template> was not sent to anyone.</red>";
 }

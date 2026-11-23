@@ -93,11 +93,29 @@ public class MailCommands implements LifecycleEventHandler<@NotNull ReloadableRe
                                                         .executes(context -> {
                                                             final var targets = context.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(context.getSource());
                                                             final var template = context.getArgument("template", MailTemplate.class);
-                                                            targets.stream()
+                                                            final var sendTargets = targets.stream()
                                                                     .map(Player::getUniqueId)
                                                                     .map(database()::<PlayerMailUser>getUser)
                                                                     .filter(Objects::nonNull)
-                                                                    .forEach(template::send);
+                                                                    .toList();
+                                                            if (sendTargets.size() < targets.size()) {
+                                                                context.getSource().getSender().sendMessage(miniMessage()
+                                                                        .deserialize(
+                                                                                messages().sendTemplateSomeTargetsNotFound,
+                                                                                Placeholder.component("template", miniMessage().deserialize(template.subject()))
+                                                                        )
+                                                                );
+                                                            }
+                                                            if (sendTargets.isEmpty()) {
+                                                                context.getSource().getSender().sendMessage(miniMessage()
+                                                                        .deserialize(
+                                                                                messages().sendTemplateNoTargetsFound,
+                                                                                Placeholder.component("template", miniMessage().deserialize(template.subject()))
+                                                                        )
+                                                                );
+                                                                return Command.SINGLE_SUCCESS;
+                                                            }
+                                                            sendTargets.forEach(template::send);
                                                             context.getSource().getSender().sendMessage(miniMessage()
                                                                     .deserialize(
                                                                             messages().sendTemplateSuccess,
