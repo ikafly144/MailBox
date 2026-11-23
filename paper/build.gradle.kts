@@ -8,7 +8,6 @@ plugins {
     java
     id("de.eldoria.plugin-yml.paper") version "0.9.0"
     id("xyz.jpenilla.run-paper") version "3.1.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.24"
     id("com.gradleup.shadow") version "9.6.1"
     id("com.modrinth.minotaur") version "2.+"
     id("io.papermc.hangar-publish-plugin") version "0.+"
@@ -72,7 +71,7 @@ dependencies {
     compileOnly("org.apache.commons:commons-lang3:3.22.0")
     implementation("com.vdurmont:semver4j:3.1.0")
     compileOnly("me.clip:placeholderapi:2.12.3")
-    paperweight.paperDevBundle(property("paperVersion") as String)
+    compileOnly("io.papermc.paper:paper-api:${property("paperVersion") as String}")
 }
 
 paper {
