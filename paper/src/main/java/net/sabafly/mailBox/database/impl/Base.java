@@ -323,13 +323,19 @@ public abstract class Base implements Database {
                         UUID id = UUID.fromString(rs.getString("id"));
                         UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(DummyMailUser.SYSTEM_UUID);
                         User sender = getUser(senderId);
+                        if (sender == null) {
+                            sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                        }
                         UUID receiverId = UUID.fromString(rs.getString("receiver"));
                         User receiver = getUser(receiverId);
+                        if (receiver == null) {
+                            receiver = DummyMailUser.createUser(receiverId, "Unknown Receiver", "unknown", null);
+                        }
                         String title = rs.getString("title");
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
+                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
@@ -344,13 +350,19 @@ public abstract class Base implements Database {
                         UUID id = UUID.fromString(rs.getString("id"));
                         UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(DummyMailUser.SYSTEM_UUID);
                         User sender = getUser(senderId);
+                        if (sender == null) {
+                            sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                        }
                         UUID receiverId = UUID.fromString(rs.getString("receiver"));
                         User receiver = getUser(receiverId);
+                        if (receiver == null) {
+                            receiver = DummyMailUser.createUser(receiverId, "Unknown Receiver", "unknown", null);
+                        }
                         String title = rs.getString("title");
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
+                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
@@ -396,13 +408,19 @@ public abstract class Base implements Database {
                 if (rs.next()) {
                     UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(DummyMailUser.SYSTEM_UUID);
                     User sender = getUser(senderId);
+                    if (sender == null) {
+                        sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                    }
                     UUID receiverId = UUID.fromString(rs.getString("receiver"));
                     User receiver = getUser(receiverId);
+                    if (receiver == null) {
+                        receiver = DummyMailUser.createUser(receiverId, "Unknown Receiver", "unknown", null);
+                    }
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     boolean read = rs.getBoolean("is_read");
                     LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                    Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), read, sentTime);
+                    Mail mail = new Mail(id, sender, receiver, title, content, List.of(), read, sentTime);
                     mail.attachments(getMailAttachments(mail));
                     return mail;
                 }
@@ -490,11 +508,14 @@ public abstract class Base implements Database {
                     boolean autoSend = rs.getBoolean("auto_send");
                     UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
                     User sender = getUser(senderId);
+                    if (sender == null) {
+                        sender = DummyMailUser.createUser(senderId != null ? senderId : DummyMailUser.SYSTEM_UUID, "Unknown Sender", "unknown", null);
+                    }
                     Date startTime = rs.getTimestamp("start_time");
                     Date endTime = rs.getTimestamp("end_time");
                     Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), LocalDateTime.ofInstant(startTime.toInstant(), ZoneId.systemDefault()), LocalDateTime.ofInstant(endTime.toInstant(), ZoneId.systemDefault()), interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, LocalDateTime.ofInstant(startTime.toInstant(), ZoneId.systemDefault()), LocalDateTime.ofInstant(endTime.toInstant(), ZoneId.systemDefault()), interval, permission);
                     template.setAttachment(getTemplateAttachments(template));
                     return template;
                 }
@@ -520,11 +541,14 @@ public abstract class Base implements Database {
                     boolean autoSend = rs.getBoolean("auto_send");
                     UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
                     User sender = getUser(senderId);
+                    if (sender == null) {
+                        sender = DummyMailUser.createUser(senderId != null ? senderId : DummyMailUser.SYSTEM_UUID, "Unknown Sender", "unknown", null);
+                    }
                     @Nullable LocalDateTime startTime = Optional.ofNullable(rs.getTimestamp("start_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable LocalDateTime endTime = Optional.ofNullable(rs.getTimestamp("end_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     @Nullable String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), startTime, endTime, interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, startTime, endTime, interval, permission);
                     template.setAttachment(getTemplateAttachments(template));
                     templates.add(template);
                 }
@@ -550,11 +574,14 @@ public abstract class Base implements Database {
                     boolean autoSend = rs.getBoolean("auto_send");
                     UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(null);
                     User sender1 = getUser(senderId);
+                    if (sender1 == null) {
+                        sender1 = DummyMailUser.createUser(senderId != null ? senderId : DummyMailUser.SYSTEM_UUID, "Unknown Sender", "unknown", null);
+                    }
                     @Nullable LocalDateTime startTime = Optional.ofNullable(rs.getTimestamp("start_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable LocalDateTime endTime = Optional.ofNullable(rs.getTimestamp("end_time")).map(timestamp -> LocalDateTime.ofInstant(timestamp.toInstant(), ZoneId.systemDefault())).orElse(null);
                     @Nullable Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     @Nullable String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender1), startTime, endTime, interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender1, startTime, endTime, interval, permission);
                     template.setAttachment(getTemplateAttachments(template));
                     templates.add(template);
                 }
@@ -580,11 +607,14 @@ public abstract class Base implements Database {
                     boolean autoSend = rs.getBoolean("auto_send");
                     UUID senderId = Optional.ofNullable(rs.getString("sender")).map(UUID::fromString).orElse(DummyMailUser.SYSTEM_UUID);
                     User sender = getUser(senderId);
+                    if (sender == null) {
+                        sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                    }
                     @Nullable LocalDateTime startTime = rs.getTimestamp("start_time") == null ? null : LocalDateTime.ofInstant(rs.getTimestamp("start_time").toInstant(), ZoneId.systemDefault());
                     @Nullable LocalDateTime endTime = rs.getTimestamp("end_time") == null ? null : LocalDateTime.ofInstant(rs.getTimestamp("end_time").toInstant(), ZoneId.systemDefault());
                     @Nullable Duration interval = Optional.of(rs.getLong("send_interval")).filter(l -> l > 0).map(Duration::ofSeconds).orElse(null);
                     @Nullable String permission = rs.getString("permission");
-                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, Objects.requireNonNull(sender), startTime, endTime, interval, permission);
+                    MailTemplate template = new MailTemplate(id, title, content, List.of(), autoSend, sender, startTime, endTime, interval, permission);
                     template.setAttachment(getTemplateAttachments(template));
                     templates.add(template);
                 }
