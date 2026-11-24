@@ -38,7 +38,7 @@ public abstract class Base implements Database {
             CREATE TABLE IF NOT EXISTS mailbox_users (
                 uuid VARCHAR(36) PRIMARY KEY,
                 user_data LONGBLOB DEFAULT NULL,
-                address TEXT DEFAULT NULL UNIQUE
+                address VARCHAR(255) DEFAULT NULL UNIQUE
             )
             """;
 
@@ -122,6 +122,9 @@ public abstract class Base implements Database {
         runner = new QueryRunner();
 
         try (Connection conn = getConnection()) {
+            if (conn == null) {
+                throw new SQLException("Failed to get database connection");
+            }
             runner.execute(conn, CREATE_TABLE_USERS);
             runner.execute(conn, CREATE_TABLE_MAILS);
             runner.execute(conn, CREATE_TABLE_MAIL_ATTACHMENTS);
@@ -131,6 +134,7 @@ public abstract class Base implements Database {
             runner.execute(conn, CREATE_TABLE_USER_NOTIFICATION);
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new RuntimeException("Failed to setup database tables", e);
         }
         reload();
     }
@@ -140,36 +144,52 @@ public abstract class Base implements Database {
     public void reload() {
         try (Connection conn = getConnection()) {
             var fallbackPreview = ItemStack.of(Material.STONE).serializeAsBytes();
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_mail_attachments ADD COLUMN IF NOT EXISTS preview_item LONGBLOB DEFAULT NULL
-                    """);
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_mail_attachments DROP COLUMN IF EXISTS item_type
-                    """);
+
+            // 检查列是否存在，不存在则添加
+            addColumnIfNotExists(conn, "mailbox_mail_attachments", "preview_item", "LONGBLOB DEFAULT NULL");
+            dropColumnIfExists(conn, "mailbox_mail_attachments", "item_type");
             runner.execute(conn, """
                     UPDATE mailbox_mail_attachments SET preview_item = ? WHERE preview_item IS NULL
                     """, fallbackPreview);
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_template_attachments ADD COLUMN IF NOT EXISTS preview_item LONGBLOB DEFAULT NULL
-                    """);
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_template_attachments DROP COLUMN IF EXISTS item_type
-                    """);
+
+            addColumnIfNotExists(conn, "mailbox_template_attachments", "preview_item", "LONGBLOB DEFAULT NULL");
+            dropColumnIfExists(conn, "mailbox_template_attachments", "item_type");
             runner.execute(conn, """
                     UPDATE mailbox_template_attachments SET preview_item = ? WHERE preview_item IS NULL
                     """, fallbackPreview);
 
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_users ADD COLUMN IF NOT EXISTS user_data LONGBLOB DEFAULT NULL
-                    """);
-
-            runner.execute(conn, """
-                    ALTER TABLE mailbox_users ADD COLUMN IF NOT EXISTS address TEXT DEFAULT NULL UNIQUE
-                    """);
+            addColumnIfNotExists(conn, "mailbox_users", "user_data", "LONGBLOB DEFAULT NULL");
+            addColumnIfNotExists(conn, "mailbox_users", "address", "VARCHAR(255) DEFAULT NULL UNIQUE");
 
             getOrCreateUser(DummyMailUser.SYSTEM_USER);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void addColumnIfNotExists(Connection conn, String table, String column, String definition) throws SQLException {
+        try {
+            // 检查列是否存在（H2 默认大写存储标识符）
+            var rs = conn.getMetaData().getColumns(null, null, table.toUpperCase(), column.toUpperCase());
+            if (!rs.next()) {
+                runner.execute(conn, "ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            // 如果表不存在或其他错误，忽略
+            e.printStackTrace();
+        }
+    }
+
+    private void dropColumnIfExists(Connection conn, String table, String column) {
+        try {
+            var rs = conn.getMetaData().getColumns(null, null, table.toUpperCase(), column.toUpperCase());
+            if (rs.next()) {
+                runner.execute(conn, "ALTER TABLE " + table + " DROP COLUMN " + column);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            // 忽略错误
         }
     }
 
@@ -329,7 +349,13 @@ public abstract class Base implements Database {
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
+                        if (sender == null) {
+                            sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                        }
+                        if (receiver == null) {
+                            receiver = DummyMailUser.createUser(receiverId, "Unknown Receiver", "unknown", null);
+                        }
+                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
@@ -350,7 +376,13 @@ public abstract class Base implements Database {
                         String content = rs.getString("content");
                         boolean isRead = rs.getBoolean("is_read");
                         LocalDateTime sentTime = rs.getTimestamp("sentTime").toLocalDateTime();
-                        Mail mail = new Mail(id, Objects.requireNonNull(sender), Objects.requireNonNull(receiver), title, content, List.of(), isRead, sentTime);
+                        if (sender == null) {
+                            sender = DummyMailUser.createUser(senderId, "Unknown Sender", "unknown", null);
+                        }
+                        if (receiver == null) {
+                            receiver = DummyMailUser.createUser(receiverId, "Unknown Receiver", "unknown", null);
+                        }
+                        Mail mail = new Mail(id, sender, receiver, title, content, List.of(), isRead, sentTime);
                         mail.attachments(getMailAttachments(mail));
                         mails.add(mail);
                     }
